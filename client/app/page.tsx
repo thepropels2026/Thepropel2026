@@ -1,374 +1,274 @@
-"use client"; // Enable client-side rendering for this component
+"use client"; // Enable client-side rendering for this Next.js component
 
-// Import React components and hooks from Next.js and external libraries
-import Link from 'next/link';
-import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic } from 'lucide-react'; // Icon library
-import { motion } from 'framer-motion'; // Animation library for smooth transitions
+// Import standard React hooks and Next.js components
+import Link from 'next/link'; // For client-side navigation between pages
+import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic } from 'lucide-react'; // Premium icon library
+import { motion } from 'framer-motion'; // Animation library for smooth, hardware-accelerated transitions
 
 /**
- * Home component: The main landing page for The Propels website.
- * Features a high-impact hero section, metrics, process overview, and testimonials.
+ * Home Component: The landing page for The Propels.
+ * Designed with high-end aesthetics, 3D backgrounds, and interactive elements.
  */
 export default function Home() {
+  // The component returns a JSX structure representing the landing page
   return (
-    <div className="flex flex-col">
-      {/* SECTION 1: HERO - Optimized for performance with minimal JS-based animations */}
+    <div className="flex flex-col"> // Main wrapper with vertical flex layout
+      
+      {/* SECTION 1: HERO - The first fold of the website */}
       <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-32 md:pt-36 lg:pt-48 pb-16 overflow-hidden">
-
-        {/* Animated 3D Background - Creates a sense of depth and motion */}
+        
+        {/* Animated 3D Background - Visual centerpiece */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none" style={{ perspective: '1000px' }}>
-          {/* 3D Cyber grid animation */}
+          
+          {/* 3D Cyber grid animation container */}
           <div style={{ transform: "rotateX(60deg) scale(2)", transformOrigin: "top center" }} className="absolute inset-0 z-0">
+            {/* Motion div for the scrolling grid effect */}
             <motion.div 
-              animate={{ y: [0, 40] }} // Infinite vertical scroll effect
-              transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+              animate={{ y: [0, 40] }} // Animates vertical position infinitely
+              transition={{ repeat: Infinity, duration: 2, ease: "linear" }} // Smooth linear loop
               className="absolute -inset-[100px] bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_60%_at_50%_40%,#000_10%,transparent_100%)] opacity-30" 
             />
           </div>
           
-          {/* Animated 3D color orbs - Using will-change to optimize GPU rendering */}
+          {/* Decorative Background Orbs - Cyan */}
           <motion.div 
-            animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -50, 0] }}
-            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }}
-            style={{ willChange: "transform" }}
+            animate={{ scale: [1, 1.2, 1], x: [0, 50, 0], y: [0, -50, 0] }} // Floating scale and movement
+            transition={{ duration: 15, repeat: Infinity, ease: "easeInOut" }} // Slow, organic loop
+            style={{ willChange: "transform" }} // Browser optimization for animations
             className="absolute -top-[10%] left-[10%] w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[100px]" 
           />
+          
+          {/* Decorative Background Orbs - Orange */}
           <motion.div 
-            animate={{ scale: [1, 1.1, 1], x: [0, -30, 0], y: [0, 40, 0] }}
-            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-            style={{ willChange: "transform" }}
+            animate={{ scale: [1, 1.1, 1], x: [0, -30, 0], y: [0, 40, 0] }} // Subtly different movement
+            transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }} // Offset start time
+            style={{ willChange: "transform" }} // Performance hint
             className="absolute bottom-[-20%] right-[5%] w-[700px] h-[500px] bg-orange-500/10 rounded-full blur-[100px]" 
           />
+          
+          {/* Center Light Flare */}
           <motion.div 
-            animate={{ scale: [1, 1.3, 1], rotate: [0, 90, 0] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            style={{ willChange: "transform" }}
+            animate={{ scale: [1, 1.3, 1], rotate: [0, 90, 0] }} // Pulsing rotation
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }} // Extremely slow rotation
+            style={{ willChange: "transform" }} // GPU acceleration
             className="absolute top-[40%] left-[40%] w-[800px] h-[300px] bg-white/5 rounded-[100%] blur-[80px]" 
           />
         </div>
 
-        {/* Main Hero Content Grid */}
+        {/* Hero Content Grid - Structured for responsiveness */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-center z-10 w-full max-w-7xl mx-auto">
           
-          {/* Left Column: Typography and Call to Action */}
+          {/* Left Side: Text and CTA */}
           <div className="flex flex-col w-full">
-            {/* Status badge indicating the platform's theme */}
+            {/* Cyberpunk-style status badge */}
             <div className="inline-block px-4 py-1.5 border border-cyan-500 rounded-full text-[10px] md:text-xs font-bold tracking-[2px] text-cyan-500 uppercase mb-4 md:mb-8 self-start">
               INITIATING LAUNCH SEQUENCE
             </div>
 
-            {/* Main Title: Staggered animation text blocks */}
+            {/* High-impact Typography Heading */}
             <div className="staggered-title">
-              <span className="l1">Turning</span>
-              <span className="l2">India's 75%</span>
-              <span className="l3">Students</span>
-              <span className="l4">Entrepreneurial</span>
-              <span className="l5">Intent into</span>
-              <span className="l6 text-glow-gold">Real World Revenue</span>
+              <span className="l1">Turning</span> // Animated line 1
+              <span className="l2">India's 75%</span> // Animated line 2
+              <span className="l3">Students</span> // Animated line 3
+              <span className="l4">Entrepreneurial</span> // Animated line 4
+              <span className="l5">Intent into</span> // Animated line 5
+              <span className="l6 text-glow-gold">Real World Revenue</span> // High-highlighted line 6
             </div>
 
-            {/* Supporting Subtitle */}
+            {/* Supporting Hero Text */}
             <p className="text-left mt-0 md:mt-4 text-[#8B9BB4] text-xs md:text-lg max-w-lg mb-4 md:mb-8 font-inter">
               Elevating startups beyond the raw concept phase with predictive AI, zero-gravity scaling,
               and elite mentor networks.
             </p>
 
-            {/* Main Engagement Button */}
+            {/* Primary Action Button */}
             <div className="flex flex-col md:flex-row gap-4">
-              <Link href="/network">
-                <button className="btn-glow w-full md:w-auto text-xs md:text-sm py-3 md:py-2">ENGAGE THE NETWORK</button>
+              <Link href="/network"> // Link to the Network page
+                <button className="btn-glow w-full md:w-auto text-xs md:text-sm py-3 md:py-2">ENGAGE THE NETWORK</button> // Styled glowing button
               </Link>
             </div>
           </div>
 
-          {/* Right Column: Interactive Video Preview and Resource Links */}
+          {/* Right Side: Visual Content (Video Preview) */}
           <div className="flex flex-col items-center lg:items-start w-full lg:ml-16 mt-8 lg:-mt-4">
-            {/* Video Placeholder Card with hover effect */}
+            {/* Motion-enhanced Video Card */}
             <motion.div 
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              whileHover={{ scale: 1.02 }} // Interactive hover effect
+              transition={{ type: "spring", stiffness: 300, damping: 20 }} // Spring physics for realism
               className="relative w-full max-w-[550px] aspect-video rounded-[16px] md:rounded-[20px] bg-black/40 border border-white/10 overflow-hidden group flex flex-col items-center justify-center shadow-2xl mx-auto lg:mx-0"
             >
+              {/* Overlay for depth */}
               <div className="absolute inset-0 bg-[rgba(10,10,15,0.6)]" />
+              {/* Icon and label stack */}
               <div className="z-10 flex flex-col items-center">
-                {/* Play Button Icon */}
+                {/* Glowing Play Icon */}
                 <div className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] rounded-full bg-[#00F2FF] flex items-center justify-center mb-2 md:mb-4 hover:scale-110 transition-transform cursor-pointer">
-                  <Play className="w-5 h-5 md:w-8 md:h-8 fill-black text-black ml-1" />
+                  <Play className="w-5 h-5 md:w-8 md:h-8 fill-black text-black ml-1" /> // Play icon component
                 </div>
+                {/* Sub-label */}
                 <span className="font-montserrat text-[10px] md:text-sm text-[#F0F4F8]">Propulsion System Overview</span>
               </div>
             </motion.div>
+          </div>
+        </div>
 
-            {/* Resources and Social Links Card */}
-            <motion.div 
-              whileHover={{ scale: 1.02 }}
-              transition={{ type: "spring", stiffness: 300, damping: 20 }}
-              className="flex w-full max-w-[550px] mt-6 bg-black/80 backdrop-blur-md border border-white/10 rounded-[16px] px-6 md:px-8 py-6 flex-col sm:flex-row justify-between items-start shadow-xl mx-auto lg:mx-0 gap-6 min-h-[160px]"
-            >
-              {/* Related Links Column */}
-              <div className="flex flex-col items-center sm:items-start flex-1">
-                <h3 className="text-white font-montserrat font-bold text-lg mb-3">Related Links</h3>
-                <div className="flex flex-col gap-3">
-                  <Link href="/guide" className="text-white text-sm font-bold hover:text-[#00F2FF] hover:underline flex items-center gap-2 group transition-colors">
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 shrink-0" /> <span className="text-left">Download the report</span>
-                  </Link>
-                  <Link href="/guide" className="text-white text-sm font-bold hover:text-[#00F2FF] hover:underline flex items-center gap-2 group transition-colors">
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 shrink-0" /> <span className="text-left">Zero to One Startup MasterClass</span>
-                  </Link>
-                  <Link href="/guide" className="text-white text-sm font-bold hover:text-[#00F2FF] hover:underline flex items-center gap-2 group transition-colors">
-                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1 shrink-0" /> <span className="text-left">Download Market Report</span>
-                  </Link>
-                </div>
-              </div>
+        {/* Floating Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 opacity-40">
+           <span className="text-[10px] font-bold tracking-[4px] uppercase">Scroll</span>
+           <ChevronDown className="w-4 h-4 animate-bounce" /> // Bouncing arrow icon
+        </div>
+      </section>
 
-              {/* Vertical divider for desktop view */}
-              <div className="h-px w-full sm:w-px sm:h-auto sm:self-stretch bg-white/20 hidden sm:block mx-1"></div>
-
-              {/* Social Media Icons Column */}
-              <div className="flex flex-col items-center sm:items-start shrink-0">
-                <h3 className="text-white font-montserrat font-bold text-lg mb-3">Socials</h3>
-                <div className="flex flex-wrap gap-3 max-w-[140px] justify-center sm:justify-start">
-                  {/* Twitter/X Icon */}
-                  <Link href="#" className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-[#00F2FF] hover:border-[#00F2FF] group transition-all">
-                    <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
-                  </Link>
-                  {/* LinkedIn Icon */}
-                  <Link href="#" className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-[#00F2FF] hover:border-[#00F2FF] group transition-all">
-                    <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/></svg>
-                  </Link>
-                  {/* Instagram Icon */}
-                  <Link href="#" className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-[#00F2FF] hover:border-[#00F2FF] group transition-all">
-                    <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069v-2.163zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
-                  </Link>
-                  {/* YouTube Icon */}
-                  <Link href="#" className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-[#00F2FF] hover:border-[#00F2FF] group transition-all">
-                    <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.5 12 3.5 12 3.5s-7.505 0-9.377.55a3.016 3.016 0 0 0-2.122 2.136C0 8.078 0 12 0 12s0 3.922.501 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.55 9.377.55 9.377.55s7.505 0 9.377-.55a3.016 3.016 0 0 0 2.122-2.136C24 15.922 24 12 24 12s0-3.922-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg>
-                  </Link>
-                  {/* Facebook Icon */}
-                  <Link href="#" className="w-9 h-9 rounded-full bg-white/10 border border-white/10 flex items-center justify-center hover:bg-[#00F2FF] hover:border-[#00F2FF] group transition-all">
-                    <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
-                  </Link>
-                </div>
-              </div>
-            </motion.div>
+      {/* SECTION 2: METRICS - Social proof and data points */}
+      <section className="bg-[#050505] py-24 md:py-32 border-y border-white/5 relative">
+        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 lg:grid-cols-4 gap-12 md:gap-16">
+          {/* Statistic Item 1 */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-4xl md:text-6xl font-black font-montserrat text-white mb-2">75%</span>
+            <span className="text-[10px] md:text-xs font-bold text-cyan-500 uppercase tracking-widest text-center md:text-left">Entrepreneurial Intent</span>
+          </div>
+          {/* Statistic Item 2 */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-4xl md:text-6xl font-black font-montserrat text-white mb-2">12M+</span>
+            <span className="text-[10px] md:text-xs font-bold text-orange-500 uppercase tracking-widest text-center md:text-left">Student Visionaries</span>
+          </div>
+          {/* Statistic Item 3 */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-4xl md:text-6xl font-black font-montserrat text-white mb-2">₹4.2B</span>
+            <span className="text-[10px] md:text-xs font-bold text-cyan-500 uppercase tracking-widest text-center md:text-left">Unlocked Capital</span>
+          </div>
+          {/* Statistic Item 4 */}
+          <div className="flex flex-col items-center md:items-start">
+            <span className="text-4xl md:text-6xl font-black font-montserrat text-white mb-2">0.1%</span>
+            <span className="text-[10px] md:text-xs font-bold text-orange-500 uppercase tracking-widest text-center md:text-left">Atmospheric Failure Rate</span>
           </div>
         </div>
       </section>
 
-      {/* SECTION 2: STATS MODULE - Showcases the impact of the platform */}
-      <section className="bg-white text-black py-16 lg:py-32 mt-16 lg:mt-32 px-6 lg:px-24">
+      {/* SECTION 3: CORE PILLARS - Features and value props */}
+      <section className="bg-[#050505] py-24 md:py-48 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto">
-          {/* Section Heading */}
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">Propulsion Metrics</h2>
-          {/* Statistics Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8 text-center font-archivo">
-            {[
-              { label: 'Founders Associated', value: '1,204+' },
-              { label: 'Startups Funded', value: '342' },
-              { label: 'Jobs Created', value: '15,000+' },
-              { label: 'Investors Network', value: '850+' },
-              { label: 'Startup Modules', value: '250+' }
-            ].map((stat, i) => (
-              <div key={i} className="flex flex-col items-center">
-                {/* Individual Metric Value */}
-                <div className="text-4xl md:text-5xl font-black text-cyan-600 mb-2">{stat.value}</div>
-                {/* Metric Label */}
-                <div className="text-sm font-bold uppercase tracking-widest text-gray-500 font-inter">{stat.label}</div>
+          {/* Section Header */}
+          <div className="mb-16 md:mb-32 max-w-2xl">
+            <h2 className="text-3xl md:text-6xl font-bold font-montserrat leading-tight mb-8">
+              Engineered for <span className="text-cyan-500">Maximum Velocity.</span>
+            </h2>
+            <div className="h-1 w-24 bg-cyan-500" /> // Decorative line
+          </div>
+
+          {/* Pillars Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+            {/* Pillar 1: AI */}
+            <div className="group">
+              <div className="mb-8 p-6 bg-white/5 border border-white/10 rounded-2xl w-fit group-hover:border-cyan-500/50 transition-colors">
+                <Star className="w-8 h-8 text-cyan-500" /> // Feature icon
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 3: PROPULSION PROCESS - Explains the user journey */}
-      <section className="bg-gradient-to-b from-[#0a0a0f] to-[rgba(255,95,0,0.05)] py-16 lg:py-24 px-6 lg:px-24 mb-16 rounded-[40px] shadow-2xl relative z-10 border border-white/5 mx-auto max-w-[1200px] w-[90%] lg:w-full">
-        {/* Section Title with brand color highlight */}
-        <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-4"><span className="text-white">The</span> <span className="text-[#FF5F00]">Propulsion</span> <span className="text-white">Process</span></h2>
-        <p className="text-center mb-10 lg:mb-16 text-white/80 font-inter">A tested and proven framework to take you from concept to Series A.</p>
-
-        {/* Process Steps Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          {/* Step 1: Discovery */}
-          <div className="bg-[#FF5F00]/10 border border-[#FF5F00]/30 p-8 rounded-[20px] relative overflow-hidden transition-transform hover:-translate-y-2 group opacity-0-init animate-fade-in-up delay-100">
-            <div className="text-4xl mb-6">🔍</div>
-            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#FF5F00] opacity-10 leading-none">01</div>
-            <h3 className="text-xl font-bold text-white mb-2 font-montserrat">Discovery & Validation</h3>
-            <p className="text-white/80 text-sm font-inter">Use our AI evaluators and market heat maps to finalize your product blueprint with absolute precision.</p>
-          </div>
-          {/* Step 2: Acceleration */}
-          <div className="bg-white/90 border border-white p-8 rounded-[20px] relative overflow-hidden transition-transform hover:-translate-y-2 group opacity-0-init animate-fade-in-up delay-200">
-            <div className="text-4xl mb-6">⚡</div>
-            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-black opacity-5 leading-none">02</div>
-            <h3 className="text-xl font-bold text-[#FF5F00] mb-2 font-montserrat">MVP Acceleration</h3>
-            <p className="text-[#444] text-sm font-inter">Get paired with top-tier engineers and cloud infrastructure credits to build a high-converting prototype.</p>
-          </div>
-          {/* Step 3: Capital */}
-          <div className="bg-[#FF5F00]/10 border border-[#FF5F00]/30 p-8 rounded-[20px] relative overflow-hidden transition-transform hover:-translate-y-2 group opacity-0-init animate-fade-in-up delay-300">
-            <div className="text-4xl mb-6">💰</div>
-            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#FF5F00] opacity-10 leading-none">03</div>
-            <h3 className="text-xl font-bold text-white mb-2 font-montserrat">Capital Injection</h3>
-            <p className="text-white/80 text-sm font-inter">Engage our closed-circuit network of 400+ investors through our structured demo days and syndicate funds.</p>
-          </div>
-          {/* Step 4: Scale */}
-          <div className="bg-white/90 border border-white p-8 rounded-[20px] relative overflow-hidden transition-transform hover:-translate-y-2 group opacity-0-init animate-fade-in-up delay-400">
-            <div className="text-4xl mb-6">📈</div>
-            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-black opacity-5 leading-none">04</div>
-            <h3 className="text-xl font-bold text-[#FF5F00] mb-2 font-montserrat">Scale & Dominate</h3>
-            <p className="text-[#444] text-sm font-inter">Utilize our legal, marketing, and HR networks to rapidly scale your team and your ARR effectively.</p>
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 4: TESTIMONIALS - Social proof from other founders */}
-      <section className="bg-gray-50 text-black py-16 lg:py-24 px-6 lg:px-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Section Heading */}
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">What Founders & CEOs Say</h2>
-          {/* Testimonial Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-            {[1, 2, 3, 4].map((i) => (
-              <div key={i} className="bg-white border border-gray-200 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow relative">
-                {/* Decorative Quote Icon */}
-                <Quote className="text-cyan-200 w-12 h-12 absolute top-4 right-4 opacity-50" />
-                {/* Rating Stars */}
-                <div className="flex text-yellow-500 mb-6 font-bold">
-                  <Star className="fill-yellow-500 w-4 h-4" />
-                  <Star className="fill-yellow-500 w-4 h-4" />
-                  <Star className="fill-yellow-500 w-4 h-4" />
-                  <Star className="fill-yellow-500 w-4 h-4" />
-                  <Star className="fill-yellow-500 w-4 h-4" />
-                </div>
-                {/* Testimonial Quote */}
-                <p className="text-gray-600 italic mb-8 font-inter text-sm">"The Propels helped us transition from a college project to a funded SaaS platform in less than 3 months."</p>
-                {/* Author Information */}
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-gray-300 rounded-full border-2 border-white shadow-sm" />
-                  <div>
-                    <h4 className="font-bold font-montserrat text-sm text-gray-900">Rahul Sharma</h4>
-                    <p className="text-xs text-gray-500 font-inter">CEO, TechNova</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 5: INVESTORS COMMITTEE - Showcases the elite network */}
-      <section className="bg-[#050505] py-16 lg:py-24 px-6 lg:px-24">
-        <div className="max-w-7xl mx-auto">
-          {/* Header with link to full network */}
-          <div className="flex justify-between items-end mb-10 lg:mb-16">
-            <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
-            <Link href="/network" className="text-cyan-500 text-sm font-bold uppercase tracking-widest hover:text-cyan-400">View All</Link>
-          </div>
-          {/* Investor Cards Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white/5 border border-white/10 p-6 rounded-2xl flex flex-col items-center">
-                {/* Profile Picture Placeholder */}
-                <div className="w-24 h-24 bg-gray-800 rounded-full mb-4 border-2 border-cyan-500"></div>
-                <h3 className="font-bold text-lg font-montserrat">Aditi Verma</h3>
-                <p className="text-cyan-500 text-sm font-bold uppercase tracking-wider mb-2">Partner, Sequoia</p>
-                <p className="text-xs text-gray-400 text-center font-inter">Early Stage Deep Tech & B2B SaaS Investments.</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* SECTION 6: CULTURE / LIFE AT PROPELS - Highlights the community aspect */}
-      <section className="bg-[#0a0a0f] py-16 lg:py-24 px-6 lg:px-24 border-t border-white/5">
-        <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16">Life at The Propels</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Feature Content: Hacker House */}
-            <div className="col-span-1 md:col-span-2 aspect-video bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden group">
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
-                <h3 className="text-2xl font-bold font-montserrat mb-2">Annual Hacker House</h3>
-                <p className="text-gray-300 font-inter text-sm">Where 50 founders live, build, and ship for 30 days straight.</p>
-              </div>
+              <h3 className="text-2xl font-bold mb-4 font-montserrat">Predictive Scaling</h3>
+              <p className="text-gray-400 font-inter leading-relaxed">
+                Our AI models analyze market gaps and competitive friction to predict your startup's trajectory before you write a single line of code.
+              </p>
             </div>
-            {/* Sidebar content: Blogs and Podcasts */}
-            <div className="flex flex-col gap-6">
-              {/* Blog Link Card */}
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-end relative overflow-hidden hover:border-cyan-500/50 transition-colors">
-                <BookOpen className="w-8 h-8 text-cyan-500 mb-4" />
-                <h3 className="font-bold mb-1">Founder Blogs</h3>
-                <p className="text-xs text-gray-400">Read stories from the trenches.</p>
+
+            {/* Pillar 2: Mentors */}
+            <div className="group">
+              <div className="mb-8 p-6 bg-white/5 border border-white/10 rounded-2xl w-fit group-hover:border-orange-500/50 transition-colors">
+                <Mic className="w-8 h-8 text-orange-500" /> // Feature icon
               </div>
-              {/* Podcast Link Card */}
-              <div className="flex-1 bg-white/5 border border-white/10 rounded-2xl p-6 flex flex-col justify-end relative overflow-hidden hover:border-cyan-500/50 transition-colors">
-                <Mic className="w-8 h-8 text-cyan-500 mb-4" />
-                <h3 className="font-bold mb-1">Weekly Podcasts</h3>
-                <p className="text-xs text-gray-400">Listen to VCs drop knowledge.</p>
+              <h3 className="text-2xl font-bold mb-4 font-montserrat">Elite Guidance</h3>
+              <p className="text-gray-400 font-inter leading-relaxed">
+                Connect directly with mentors from top 1% global unicorns who have navigated the same gravitational pulls you're facing.
+              </p>
+            </div>
+
+            {/* Pillar 3: Resources */}
+            <div className="group">
+              <div className="mb-8 p-6 bg-white/5 border border-white/10 rounded-2xl w-fit group-hover:border-cyan-500/50 transition-colors">
+                <BookOpen className="w-8 h-8 text-cyan-500" /> // Feature icon
               </div>
+              <h3 className="text-2xl font-bold mb-4 font-montserrat">Propulsion Assets</h3>
+              <p className="text-gray-400 font-inter leading-relaxed">
+                Access a curated library of legal templates, financial models, and GTM strategies designed for zero-gravity execution.
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 7: FAQs - Addresses common concerns */}
-      <section className="bg-white text-black py-16 lg:py-24 px-6 lg:px-24 rounded-t-[3rem] -mb-20 pb-32 lg:pb-40">
-        <div className="max-w-4xl mx-auto">
-          {/* Section Title */}
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">Frequently Asked Questions</h2>
-          {/* FAQ Accordion List */}
-          <div className="space-y-4 font-inter">
-            {[
-              { q: 'How does The Propels secure seed funding?', a: 'We leverage a direct pipeline to top-tier VCs who review our rigorously vetted "Propulsion Output" metrics.' },
-              { q: 'What is the idea evaluator?', a: 'An AI-powered tool that cross-checks your concept against current market trends and historical failure rates.' },
-              { q: 'Can I join if I only have an idea?', a: 'Yes! We have modules dedicated to concept validation and MVP building.' },
-              { q: 'How does networking work?', a: 'Our platform matches you with mentors and investors based on your industry, stage, and specific needs, much like a professional matching algorithm.' }
-            ].map((faq, i) => (
-              <div key={i} className="border border-gray-200 rounded-xl p-6 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center">
+      {/* SECTION 4: TESTIMONIALS - User feedback */}
+      <section className="bg-[#080808] py-24 md:py-48 px-6 border-t border-white/5 relative overflow-hidden">
+        {/* Decorative ambient background element */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          <div className="text-center mb-16 md:mb-32">
+             <h2 className="text-4xl md:text-6xl font-black font-montserrat mb-6 tracking-tight">Mission Reports</h2>
+             <p className="text-gray-400 uppercase tracking-[6px] text-[10px] md:text-xs font-bold">Feedback from the propelled</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12">
+            {/* Testimonial Card 1 */}
+            <div className="bg-white/5 border border-white/10 p-10 rounded-[32px] hover:bg-white/[0.08] transition-all group">
+              <Quote className="w-10 h-10 text-cyan-500 mb-8 opacity-40 group-hover:opacity-100 transition-opacity" />
+              <p className="text-lg md:text-2xl font-medium font-inter leading-relaxed mb-8 italic">
+                "The Propels didn't just give us advice; they gave us an engine. We went from a student project to ₹2Cr revenue in 6 months using their GTM frameworks."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-700 rounded-full" /> // Avatar placeholder
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2 font-montserrat">{faq.q}</h3>
-                  <p className="text-gray-600 text-sm hidden md:block">{faq.a}</p>
+                  <h4 className="font-bold text-white">Aryan Sharma</h4>
+                  <p className="text-xs text-cyan-500 font-bold uppercase tracking-widest">Founder, Nexus AI</p>
                 </div>
-                {/* Icon indicating interactivity */}
-                <ChevronDown className="text-cyan-600" />
               </div>
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* SECTION 8: TRUSTED PARTNERS - Marquee showing industry affiliations */}
-      <section className="bg-black py-16 border-y border-[#FF5F00]/20 my-16 overflow-hidden">
-        <h2 className="text-center text-3xl mb-12 text-white font-montserrat font-bold">Powered By <span className="text-[#FF5F00]">World-Class</span> Partners</h2>
-        {/* Infinite Scrolling Marquee Container */}
-        <div className="flex whitespace-nowrap overflow-hidden relative">
-          <div className="flex gap-24 animate-scroll-partners w-max">
-            {/* Map over partner logos twice to create a seamless infinite loop */}
-            {[...Array(2)].map((_, loopIdx) => (
-              <div key={loopIdx} className="flex gap-24 ml-24">
-                <div className="flex items-center gap-3 text-4xl font-bold text-white/80 hover:text-white transition-opacity"><span className="text-white">AWS</span></div>
-                <div className="flex items-center gap-3 text-4xl font-bold text-[#FF5F00]/80 hover:text-[#FF5F00] transition-opacity"><span className="text-[#FF5F00]">Google Cloud</span></div>
-                <div className="flex items-center gap-3 text-4xl font-bold text-white/80 hover:text-white transition-opacity"><span className="text-white">Microsoft Startups</span></div>
-                <div className="flex items-center gap-3 text-4xl font-bold text-[#FF5F00]/80 hover:text-[#FF5F00] transition-opacity"><span className="text-[#FF5F00]">Stripe</span></div>
-                <div className="flex items-center gap-3 text-4xl font-bold text-white/80 hover:text-white transition-opacity"><span className="text-white">Razorpay</span></div>
-                <div className="flex items-center gap-3 text-4xl font-bold text-[#FF5F00]/80 hover:text-[#FF5F00] transition-opacity"><span className="text-[#FF5F00]">Y Combinator</span></div>
+            </div>
+
+            {/* Testimonial Card 2 */}
+            <div className="bg-white/5 border border-white/10 p-10 rounded-[32px] hover:bg-white/[0.08] transition-all group">
+              <Quote className="w-10 h-10 text-orange-500 mb-8 opacity-40 group-hover:opacity-100 transition-opacity" />
+              <p className="text-lg md:text-2xl font-medium font-inter leading-relaxed mb-8 italic">
+                "Finding mentors who actually care about your survival is hard. The Propels network is the most concentrated talent pool I've ever accessed."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gray-700 rounded-full" /> // Avatar placeholder
+                <div>
+                  <h4 className="font-bold text-white">Riya Kapoor</h4>
+                  <p className="text-xs text-orange-500 font-bold uppercase tracking-widest">CEO, GreenScale</p>
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* SECTION 9: FINAL CTA - Call to action for users to sign up */}
-      {/* High-impact gradient container with custom shadows */}
-      <section className="bg-gradient-to-br from-[#FF5F00] to-orange-400 py-16 lg:py-32 px-6 lg:px-24 rounded-[40px] text-center my-16 lg:my-24 mx-auto max-w-[1200px] shadow-[0_20px_50px_rgba(255,95,0,0.3)] w-[90%] lg:w-full">
-        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-montserrat">Ready to <span className="text-black/80">Propel</span> Your Startup?</h2>
-        <p className="text-lg lg:text-xl text-white/90 max-w-2xl mx-auto mb-10 lg:mb-12 font-inter">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
-        <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center">
-          {/* Registration Button with glow effect */}
-          <button className="bg-white text-[#FF5F00] px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:shadow-[0_0_30px_rgba(255,255,255,0.8)] transition-all">Register Now</button>
-          {/* secondary CTA to explore tools */}
-          <Link href="/tools">
-            <button className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:bg-white/10 transition-colors w-full sm:w-auto">Explore Tools</button>
-          </Link>
+      {/* SECTION 5: FINAL CTA - The closing conversion point */}
+      <section className="bg-white text-black py-24 md:py-48 px-6 relative overflow-hidden">
+        {/* Subtle background grain or texture can be added here */}
+        <div className="max-w-7xl mx-auto text-center relative z-10">
+          <h2 className="text-5xl md:text-9xl font-black font-montserrat tracking-tighter mb-12 uppercase leading-[0.9]">
+            Propel <br/> <span className="text-transparent bg-clip-text bg-[linear-gradient(90deg,#000,rgba(0,0,0,0.3))]">Your Idea.</span>
+          </h2>
+          <p className="text-lg md:text-2xl max-w-2xl mx-auto mb-16 font-medium text-black/60">
+            Stop dreaming in the atmosphere. Join the elite network of founders scaling India's future.
+          </p>
+          <div className="flex flex-col md:flex-row justify-center gap-6">
+            <Link href="/register"> // Link to registration
+              <button className="bg-black text-white px-12 py-6 rounded-full font-bold text-lg hover:scale-105 transition-transform flex items-center justify-center gap-3">
+                BEGIN LAUNCH <ArrowRight className="w-6 h-6" /> // Closing action icon
+              </button>
+            </Link>
+            <Link href="/about"> // Link to about page
+              <button className="px-12 py-6 rounded-full font-bold text-lg border-2 border-black hover:bg-black hover:text-white transition-all">
+                LEARN THE SYSTEMS
+              </button>
+            </Link>
+          </div>
+        </div>
+        
+        {/* Decorative giant text in background */}
+        <div className="absolute -bottom-20 left-0 right-0 text-[20vw] font-black text-black/[0.03] leading-none select-none pointer-events-none whitespace-nowrap text-center uppercase">
+          Propulsion
         </div>
       </section>
+
     </div>
   );
 }
