@@ -1,0 +1,7 @@
+{
+  "name": "thepropels-root",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "cd client && npm install && npm run dev"
+  }
+}
