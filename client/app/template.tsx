@@ -6,6 +6,7 @@ export default function Template({ children }: { children: React.ReactNode }) {
   return (
     // Apply a CSS animation class for smooth page transitions
     <div className="animate-page-transition">
+      {/* Render the child page content */}
       {children}
     </div>
   );
