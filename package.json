@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "dev": "cd client && npm install && npm run dev",
-    "build": "cd client && npm install && npm run build"
+    "build": "cd client && npm install && npx @cloudflare/next-on-pages@latest",
+    "build:client": "cd client && npx @cloudflare/next-on-pages@latest"
   }
 }

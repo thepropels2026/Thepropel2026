@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 // Import a wide variety of icons for the admin dashboard
 import { ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, Download, Eye, Mail, Phone, Linkedin, User, FileText, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion'; // Animation library for UI transitions
-import { supabase } from '@/lib/supabase'; // Initialize Supabase client
+import { supabase } from '../lib/supabase'; // Initialize Supabase client
 
 /**
  * AdminPortal: The central hub for managing platform content and user applications.
@@ -111,7 +111,7 @@ export default function AdminPortal() {
     doc.setFontSize(8);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(148, 163, 184);
-    doc.text('ADMIN — CANDIDATE PROFILE SUMMARY', margin + 4, 22);
+    doc.text('ADMIN \u2014 CANDIDATE PROFILE SUMMARY', margin + 4, 22);
     doc.text(`Generated: ${new Date().toLocaleString()}`, pageW - margin, 22, { align: 'right' });
 
     // Status badge visualization in PDF
@@ -135,7 +135,7 @@ export default function AdminPortal() {
     doc.setFontSize(9);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 116, 139);
-    doc.text(`${app.job_postings?.department || ''} · ${app.job_postings?.location || ''} · Applied: ${new Date(app.created_at).toLocaleDateString()}`, margin, 59);
+    doc.text(`${app.job_postings?.department || ''} \u00b7 ${app.job_postings?.location || ''} \u00b7 Applied: ${new Date(app.created_at).toLocaleDateString()}`, margin, 59);
 
     // Separator line
     doc.setDrawColor(226, 232, 240);
@@ -151,7 +151,7 @@ export default function AdminPortal() {
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10.5);
       doc.setTextColor(15, 23, 42);
-      doc.text(value || '—', margin, y + 5.5);
+      doc.text(value || '\u2014', margin, y + 5.5);
       y += 15;
     };
 
@@ -159,7 +159,7 @@ export default function AdminPortal() {
     field('Candidate Name', app.full_name);
     field('Email Address', app.email);
     field('Phone Number', app.phone);
-    field('LinkedIn Profile', app.linkedin_url || '—');
+    field('LinkedIn Profile', app.linkedin_url || '\u2014');
     field('Years of Experience', app.experience);
 
     // Cover Letter section with multi-line text wrapping
@@ -171,7 +171,7 @@ export default function AdminPortal() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10);
     doc.setTextColor(15, 23, 42);
-    const split = doc.splitTextToSize(app.cover_letter || '—', contentW);
+    const split = doc.splitTextToSize(app.cover_letter || '\u2014', contentW);
     doc.text(split, margin, y);
     y += split.length * 5.5 + 10;
 
@@ -184,8 +184,8 @@ export default function AdminPortal() {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(9);
     doc.setTextColor(8, 145, 178);
-    if (app.resume_url) { doc.textWithLink('View Resume →', margin, y, { url: app.resume_url }); y += 7; }
-    if (app.photo_url) { doc.textWithLink('View Photo →', margin, y, { url: app.photo_url }); y += 7; }
+    if (app.resume_url) { doc.textWithLink('View Resume \u2192', margin, y, { url: app.resume_url }); y += 7; }
+    if (app.photo_url) { doc.textWithLink('View Photo \u2192', margin, y, { url: app.photo_url }); y += 7; }
 
     // PDF Footer
     y += 5;
@@ -194,7 +194,7 @@ export default function AdminPortal() {
     y += 7;
     doc.setFontSize(7.5);
     doc.setTextColor(148, 163, 184);
-    doc.text('Confidential — For internal use only. The Propels Admin Portal.', margin, y, { maxWidth: contentW });
+    doc.text('Confidential \u2014 For internal use only. The Propels Admin Portal.', margin, y, { maxWidth: contentW });
 
     // Trigger file download
     doc.save(`Candidate_${app.full_name.replace(/\s+/g, '_')}.pdf`);
@@ -458,7 +458,7 @@ export default function AdminPortal() {
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div className="space-y-2">
                           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Key Metric</label>
-                          <input name="metric" type="text" required placeholder="e.g. ₹2.5L MRR" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                          <input name="metric" type="text" required placeholder="e.g. \u20b92.5L MRR" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Metric Label</label>
@@ -572,12 +572,12 @@ export default function AdminPortal() {
                                   </div>
                                   <div>
                                     <p className="font-bold text-white text-sm">{app.full_name}</p>
-                                    <p className="text-xs text-slate-400">{app.job_postings?.title || 'Unknown Role'} · {app.experience}</p>
+                                    <p className="text-xs text-slate-400">{app.job_postings?.title || 'Unknown Role'} \u00b7 {app.experience}</p>
                                     <div className="flex items-center gap-3 mt-1">
                                       <a href={`mailto:${app.email}`} className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-1 transition-colors">
                                         <Mail className="w-3 h-3" />{app.email}
                                       </a>
-                                      {app.linkedin_url && (
+                                      {app.linkedin_url \u0026\u0026 (
                                         <a href={app.linkedin_url} target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-1 transition-colors">
                                           <Linkedin className="w-3 h-3" /> LinkedIn
                                         </a>
@@ -600,7 +600,7 @@ export default function AdminPortal() {
                                     <option value="rejected">Rejected</option>
                                   </select>
                                   {/* Resume View Link */}
-                                  {app.resume_url && (
+                                  {app.resume_url \u0026\u0026 (
                                     <a href={app.resume_url} target="_blank" rel="noreferrer" title="View Resume" className="p-2 bg-white/5 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors">
                                       <FileText className="w-4 h-4" />
                                     </a>
