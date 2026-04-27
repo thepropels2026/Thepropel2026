@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Award, Zap, ArrowRight, PlayCircle } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
+import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 
 type Niche = 'All' | 'AI' | 'E-commerce' | 'SaaS';
@@ -198,5 +198,5 @@ export default function SuccessStories() {
 
       </div>
     </div>
-);
+  );
 }

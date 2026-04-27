@@ -1,6 +1,6 @@
 "use client"; // Enable client-side interactivity
 import React, { useEffect, useState } from 'react';
-import { useAuth } from '@/components/AuthContext'; // Custom hook for authentication state
+import { useAuth } from '../../components/AuthContext'; // Custom hook for authentication state
 import { useRouter } from 'next/navigation'; // Next.js router for client-side navigation
 // Import a wide variety of icons for UI representation
 import { MapPin, Link as LinkIcon, Building2, Calendar, Star, MessageCircle, Heart, Share2, Briefcase, GraduationCap, Compass, Search, Bell, Settings } from 'lucide-react';

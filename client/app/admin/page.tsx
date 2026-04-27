@@ -1,75 +1,66 @@
-"use client"; // Enable client-side rendering for the Admin dashboard
-import React, { useState, useEffect } from 'react'; // Standard hooks
-import { supabase } from '@/lib/supabase'; // Database client connection
-import { Download, Users, Briefcase, Building2, Search, ArrowRight } from 'lucide-react'; // Icon set
+"use client";
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
+import { Download, Users, Briefcase, Building2, Search, ArrowRight } from 'lucide-react';
 
-/**
- * AdminPanel Component: Provides a secure interface for monitoring user registrations.
- * Features: User search, statistical overview, and CSV data export.
- */
 export default function AdminPanel() {
-  // State for storing user profile data
-  const [profiles, setProfiles] = useState<any[]>([]); 
-  const [loading, setLoading] = useState(true); // Loading indicator state
-  const [searchTerm, setSearchTerm] = useState(''); // Live search filtering state
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
 
-  // Fetch all registered profiles on component mount
   useEffect(() => {
     async function fetchAllProfiles() {
       try {
         const { data, error } = await supabase
-          .from('profiles') // Target table
-          .select('*') // Get all records
-          .order('created_at', { ascending: false }); // Sort by newest first
+          .from('profiles')
+          .select('*')
+          .order('created_at', { ascending: false });
 
-        if (error) throw error; // Handle DB errors
-        setProfiles(data || []); // Update state with fetched array
+        if (error) throw error;
+        setProfiles(data || []);
       } catch (err) {
-        console.error('Error fetching admin profiles:', err); // Log failures
+        console.error('Error fetching admin profiles:', err);
       } finally {
-        setLoading(false); // Disable loading spinner
+        setLoading(false);
       }
     }
-    fetchAllProfiles(); // Initiate fetch
+    fetchAllProfiles();
   }, []);
 
-  /**
-   * Generates and downloads a CSV file of the current profiles list.
-   * Standard RFC 4180 format.
-   */
   const downloadCSV = () => {
-    if (profiles.length === 0) return; // Exit if no data exists
+    if (profiles.length === 0) return;
 
-    const headers = Object.keys(profiles[0]); // Use object keys as CSV headers
+    // Extract headers from the first object
+    const headers = Object.keys(profiles[0]);
+    
+    // Create CSV rows
     const csvRows = [];
-    csvRows.push(headers.join(',')); // Push header row
+    csvRows.push(headers.join(',')); // Add header row
 
-    // Iterate over profiles to create CSV data rows
     for (const row of profiles) {
       const values = headers.map(header => {
         const val = row[header];
-        if (val === null || val === undefined) return '""'; // Handle empty values
-        const escaped = ('' + val).replace(/"/g, '""'); // Escape double quotes for security
-        return `"${escaped}"`; // Wrap in quotes for comma safety
+        if (val === null || val === undefined) return '""';
+        const escaped = ('' + val).replace(/"/g, '""');
+        return `"${escaped}"`;
       });
-      csvRows.push(values.join(',')); // Join values with commas
+      csvRows.push(values.join(','));
     }
 
-    const csvString = csvRows.join('\n'); // Join rows with newlines
-    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' }); // Create binary file object
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
     
-    // Create temporary download link and trigger click
+    // Create download link
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
     link.setAttribute("href", url);
     link.setAttribute("download", `propels_profiles_${new Date().toISOString().split('T')[0]}.csv`);
     link.style.visibility = 'hidden';
     document.body.appendChild(link);
-    link.click(); // Trigger browser download
-    document.body.removeChild(link); // Cleanup DOM
+    link.click();
+    document.body.removeChild(link);
   };
 
-  // Live filtering logic for the data table based on search input
   const filteredProfiles = profiles.filter(p => 
     p.first_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
     p.last_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -81,7 +72,7 @@ export default function AdminPanel() {
     <div className="min-h-screen pt-32 px-4 md:px-8 lg:px-24 bg-[#050505] text-white font-inter">
       <div className="max-w-7xl mx-auto pb-20">
         
-        {/* Header Section with Search and Export controls */}
+        {/* Header Section */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
           <div>
             <h1 className="text-3xl md:text-4xl font-montserrat font-bold mb-2">Admin <span className="text-cyan-500">Dashboard</span></h1>
@@ -89,7 +80,6 @@ export default function AdminPanel() {
           </div>
           
           <div className="flex items-center gap-4 w-full md:w-auto">
-            {/* Search Input Wrapper */}
             <div className="relative flex-1 md:w-64">
               <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-white/40" />
               <input 
@@ -100,7 +90,6 @@ export default function AdminPanel() {
                 className="w-full bg-white/5 border border-white/10 rounded-lg pl-10 pr-4 py-2 text-sm focus:border-cyan-500 outline-none transition-colors placeholder-white/30"
               />
             </div>
-            {/* Export CSV Trigger */}
             <button 
               onClick={downloadCSV}
               disabled={profiles.length === 0}
@@ -112,15 +101,13 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* Statistical Overview Grid */}
+        {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          {/* Card 1: Total User Count */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
              <div className="absolute top-4 right-4 text-cyan-500/20"><Users className="w-16 h-16" /></div>
              <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Total Users</p>
              <h3 className="text-4xl font-black font-montserrat">{profiles.length}</h3>
           </div>
-          {/* Card 2: Founder Count - Filtered by designation */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
              <div className="absolute top-4 right-4 text-orange-500/20"><Briefcase className="w-16 h-16" /></div>
              <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Founders</p>
@@ -128,7 +115,6 @@ export default function AdminPanel() {
                {profiles.filter(p => !p.designation?.toLowerCase().includes('investor')).length}
              </h3>
           </div>
-          {/* Card 3: Investor Count */}
           <div className="bg-white/5 border border-white/10 rounded-2xl p-6 relative overflow-hidden">
              <div className="absolute top-4 right-4 text-green-500/20"><Building2 className="w-16 h-16" /></div>
              <p className="text-white/50 text-xs font-bold uppercase tracking-widest mb-2">Investors</p>
@@ -138,7 +124,7 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        {/* User Data Table Container */}
+        {/* Data Table */}
         <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm whitespace-nowrap">
@@ -152,23 +138,22 @@ export default function AdminPanel() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
-                {loading ? ( // Render loading state in table body
+                {loading ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-white/50">
                       Loading profile data...
                     </td>
                   </tr>
-                ) : filteredProfiles.length === 0 ? ( // Render empty state
+                ) : filteredProfiles.length === 0 ? (
                   <tr>
                     <td colSpan={5} className="px-6 py-12 text-center text-white/50">
                       No profiles found.
                     </td>
                   </tr>
-                ) : ( // Render live profile rows
+                ) : (
                   filteredProfiles.map((profile) => (
                     <tr key={profile.id} className="hover:bg-white/5 transition-colors">
                       <td className="px-6 py-4 font-bold flex items-center gap-3">
-                         {/* Dynamic Profile Picture from DiceBear API if missing */}
                          <img 
                            src={profile.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.first_name}`} 
                            alt="avatar" 

@@ -5,14 +5,14 @@ import { Montserrat, Inter, Archivo } from 'next/font/google'
 // Import global CSS styles
 import './globals.css'
 // Import core layout components
-import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import Header from '../components/Header'
+import Footer from '../components/Footer'
 // Import Authentication context provider
-import { AuthProvider } from '@/components/AuthContext'
+import { AuthProvider } from '../components/AuthContext'
 // Import icons from lucide-react
 import { MessageCircle } from 'lucide-react'
 // Import smooth scrolling utility component
-import SmoothScroll from '@/components/SmoothScroll'
+import SmoothScroll from '../components/SmoothScroll'
 
 // Configure font subsets and weights, and define CSS variables for use in Tailwind/CSS
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['800'], variable: '--font-montserrat' })
