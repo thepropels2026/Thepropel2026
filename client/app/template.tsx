@@ -1,13 +1,18 @@
-/**
- * Template component: Wraps around pages to provide consistent entrance animations.
- * Next.js templates create a new instance on every navigation, ensuring animations re-play.
- */
+"use client";
+import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+
 export default function Template({ children }: { children: React.ReactNode }) {
   return (
-    // Apply a CSS animation class for smooth page transitions
-    <div className="animate-page-transition">
-      {/* Render the child page content */}
-      {children}
-    </div>
+    <AnimatePresence mode="wait">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
+        {children}
+      </motion.div>
+    </AnimatePresence>
   );
 }
