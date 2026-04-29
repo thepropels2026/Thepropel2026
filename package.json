@@ -6,7 +6,7 @@
     "dev:admin": "cd admin && npm install && npm run dev",
     "dev:server": "cd server && python main.py",
     "install:all": "npm install && cd client && npm install && cd ../admin && npm install",
-    "build": "cd client && npm run build",
+    "build": "cd client && npm install && npm run build",
     "build:client": "cd client && npm run build",
     "build:admin": "cd admin && npm run build"
   },
