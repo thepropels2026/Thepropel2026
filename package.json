@@ -2,13 +2,13 @@
   "name": "thepropels-root",
   "version": "1.0.0",
   "scripts": {
-    "dev": "next dev",
-    "start":"next start",
+    "dev": "cd client && npm install && npm run dev",
     "dev:admin": "cd admin && npm install && npm run dev",
     "dev:server": "cd server && python main.py",
     "install:all": "npm install && cd client && npm install && cd ../admin && npm install",
-    "build": "next build",
-    "build:client": "cd client && npx @cloudflare/next-on-pages@latest"
+    "build": "cd client && npm run build",
+    "build:client": "cd client && npm run build",
+    "build:admin": "cd admin && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0"
