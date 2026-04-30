@@ -3,12 +3,12 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
   Briefcase, BarChart, FileText, Wrench, Globe, Layout, 
-  DollarSign, Activity, Terminal, Search, Filter, ArrowRight 
+  DollarSign, Activity, Terminal, Search, Filter, ArrowRight,
+  RefreshCw, AlertTriangle
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { RefreshCw } from 'lucide-react';
 
 type ToolCard = {
   id: string;
@@ -64,16 +64,26 @@ export default function Tools() {
     async function fetchTools() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
+        setError(null);
+        
+        // Detailed check for Supabase client
+        if (!supabase) {
+          throw new Error('Supabase client not initialized correctly');
+        }
+
+        const { data, error: sbError } = await supabase
           .from('tools_cards')
           .select('*')
           .order('created_at', { ascending: false });
           
-        if (error) throw error;
+        if (sbError) throw sbError;
+        
         setTools(data || []);
       } catch (err: any) {
-        console.error('Error fetching tools:', err.message);
-        setError('Connection interrupted. Please verify your internet or Supabase configuration.');
+        console.error('CRITICAL: Supabase Fetch Error', err);
+        const errorMessage = err.message || 'Unknown network error';
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'Using Fallback Project';
+        setError(`Connection failed: ${errorMessage}. (Project: ${url.includes('mjwadwx') ? 'ThePropels-Main' : 'Custom'})`);
       } finally {
         setIsLoading(false);
       }
@@ -163,9 +173,27 @@ export default function Tools() {
             ))}
           </div>
         ) : error ? (
-          <div className="text-center py-20 bg-red-500/10 border border-red-500/20 rounded-3xl">
-            <p className="text-red-400 font-bold mb-4">{error}</p>
-            <button onClick={() => window.location.reload()} className="text-xs font-bold uppercase tracking-widest text-white underline underline-offset-4">Retry Connection</button>
+          <div className="text-center py-20 bg-red-500/5 border border-red-500/20 rounded-[2.5rem] p-12">
+            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-10 h-10 text-red-500" />
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-4">Connection Failed</h3>
+            <p className="text-red-400/80 font-medium mb-8 max-w-lg mx-auto">{error}</p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <button 
+                onClick={() => window.location.reload()} 
+                className="px-8 py-4 bg-white text-black font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-slate-200 transition-all"
+              >
+                Retry Connection
+              </button>
+              <Link 
+                href="/admin" 
+                className="px-8 py-4 bg-white/5 border border-white/10 text-white font-black text-xs uppercase tracking-widest rounded-2xl hover:bg-white/10 transition-all"
+              >
+                Check Admin Panel
+              </Link>
+            </div>
+            <p className="mt-8 text-xs text-white/30 italic">Tip: If this persists on the live site, ensure your NEXT_PUBLIC_SUPABASE_URL environment variables are set in your hosting dashboard.</p>
           </div>
         ) : filteredTools.length === 0 ? (
           <div className="text-center py-24 bg-white/5 rounded-3xl border border-white/5">
