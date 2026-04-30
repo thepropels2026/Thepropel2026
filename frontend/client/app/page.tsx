@@ -2,8 +2,9 @@
 
 // Import React components and hooks from Next.js and external libraries
 import Link from 'next/link';
-import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic } from 'lucide-react'; // Icon library
+import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench } from 'lucide-react'; // Icon library
 import { motion } from 'framer-motion'; // Animation library for smooth transitions
+import { supabase } from '../lib/supabase'; // Database client
 
 /**
  * Home component: The main landing page for The Propels website.
@@ -219,7 +220,26 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SECTION 4: TESTIMONIALS - Social proof from other founders */}
+      {/* SECTION 4: FEATURED TOOLS - Bridging discovery to utility */}
+      <section className="py-16 lg:py-24 px-6 lg:px-24">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
+            <div>
+              <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-white mb-4">Elite <span className="text-cyan-500">Startup</span> Arsenal</h2>
+              <p className="text-white/60 font-inter max-w-xl">Don't reinvent the wheel. Use our proprietary systems to automate your growth from day one.</p>
+            </div>
+            <Link href="/tools" className="group flex items-center gap-2 text-cyan-500 font-bold uppercase tracking-widest hover:text-cyan-400 transition-all">
+              EXPLORE ALL TOOLS <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <FeaturedToolsGrid />
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 5: TESTIMONIALS - Social proof from other founders */}
       <section className="bg-gray-50 text-black py-16 lg:py-24 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
           {/* Section Heading */}
@@ -371,4 +391,64 @@ export default function Home() {
       </section>
     </div>
   );
+}
+
+/**
+ * FeaturedToolsGrid: Fetches and displays a few top tools on the homepage.
+ */
+function FeaturedToolsGrid() {
+  const [tools, setTools] = React.useState<any[]>([]);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    async function fetchTopTools() {
+      try {
+        const { data } = await supabase
+          .from('tools_cards')
+          .select('*')
+          .limit(3)
+          .order('created_at', { ascending: false });
+        setTools(data || []);
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchTopTools();
+  }, []);
+
+  if (loading) {
+    return [1, 2, 3].map(i => (
+      <div key={i} className="h-64 bg-white/5 rounded-3xl animate-pulse border border-white/5" />
+    ));
+  }
+
+  if (tools.length === 0) {
+    return (
+      <div className="col-span-full py-12 text-center bg-white/5 rounded-3xl border border-white/5">
+        <p className="text-white/40 font-bold">New tools are being deployed. Check back shortly.</p>
+      </div>
+    );
+  }
+
+  return tools.map((tool) => (
+    <Link 
+      key={tool.id}
+      href="/tools"
+      className="group bg-[#0a0a0f] border border-white/10 p-8 rounded-3xl hover:border-cyan-500/50 transition-all relative overflow-hidden"
+    >
+      <div className="flex justify-between items-start mb-6">
+        <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400">
+          <Wrench className="w-6 h-6" />
+        </div>
+        <div className="text-[10px] font-black text-cyan-500/60 uppercase tracking-widest">{tool.category}</div>
+      </div>
+      <h3 className="text-xl font-bold text-white mb-2 font-montserrat">{tool.title}</h3>
+      <p className="text-white/40 text-sm line-clamp-2 mb-6 font-inter">{tool.description}</p>
+      <div className="flex items-center gap-2 text-xs font-bold text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        Get Started <ArrowRight className="w-3 h-3" />
+      </div>
+    </Link>
+  ));
 }

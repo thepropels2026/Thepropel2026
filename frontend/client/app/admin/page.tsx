@@ -4,7 +4,7 @@ import {
   ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, 
   Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
   Download, Eye, Mail, Phone, Linkedin, User, FileText, 
-  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock
+  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -237,73 +237,135 @@ export default function AdminPortal() {
   }
 
   return (
-    <div className="min-h-screen bg-[#020202] text-slate-300 font-sans relative pb-20">
+    <div className="min-h-screen bg-[#020202] text-slate-300 font-sans relative pb-20 overflow-x-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-      
-      {/* Header */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 z-50 flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <Image src="/logo.png" alt="Logo" width={40} height={40} className="h-10 w-10 object-contain" />
-          <span className="font-montserrat text-lg font-extrabold tracking-wider uppercase text-white hidden sm:block">THE PROPELS <span className="text-cyan-400 text-sm">ADMIN</span></span>
-        </div>
+      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none" />
+
+      {/* Modern Fixed Navbar */}
+      <nav className="fixed top-0 left-0 right-0 h-20 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/10 z-50 flex items-center justify-between px-8">
         <div className="flex items-center gap-4">
-          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" /> SECURE SESSION
+          <div className="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)] group cursor-pointer">
+             <Image src="/logo.png" alt="Logo" width={24} height={24} className="group-hover:scale-110 transition-transform" />
           </div>
-          <button onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-semibold">
-            <LogOut className="w-4 h-4" /> Exit
+          <div>
+            <span className="font-montserrat text-xl font-black tracking-tighter uppercase text-white block leading-none">THE PROPELS</span>
+            <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[3px] mt-1 block">Command Center</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mr-4">
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Online</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Database Encrypted</div>
+          </div>
+          <button onClick={handleLogout} className="flex items-center gap-2 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all">
+            <LogOut className="w-4 h-4" /> Exit Session
           </button>
         </div>
       </nav>
 
-      <main className="pt-28 px-4 sm:px-6 md:px-12 max-w-6xl mx-auto relative z-10 flex gap-8 flex-col md:flex-row items-start">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 shrink-0 top-24 sticky z-20">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-xl">
+      <main className="max-w-7xl mx-auto pt-32 px-6 lg:px-12 flex flex-col lg:flex-row gap-10">
+        
+        {/* Futuristic Sidebar Navigation */}
+        <aside className="w-full lg:w-72 shrink-0">
+          <div className="sticky top-32 space-y-2 bg-[#0a0a0a] border border-white/10 p-3 rounded-3xl shadow-2xl">
             {[
-              { id: 'tools', name: 'Tools Library', icon: Wrench, color: 'text-cyan-400' },
-              { id: 'courses', name: 'Course Manager', icon: Video, color: 'text-orange-400' },
-              { id: 'stories', name: 'Success Stories', icon: Award, color: 'text-purple-400' },
-              { id: 'careers', name: 'Career Manager', icon: MapPin, color: 'text-yellow-400' },
-              { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-emerald-400' }
-            ].map(tab => (
-              <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === tab.id ? 'bg-white/5 text-white border border-white/10' : 'text-slate-400 hover:bg-white/5 border border-transparent'}`}>
-                <div className="flex items-center gap-3"><tab.icon className={`w-4 h-4 ${tab.color}`} /> {tab.name}</div>
-                {activeTab === tab.id && <ChevronRight className="w-4 h-4" />}
+              { id: 'tools', name: 'Startup Tools', icon: Wrench, color: 'text-cyan-400', bg: 'bg-cyan-400/10' },
+              { id: 'courses', name: 'Course Manager', icon: Video, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+              { id: 'stories', name: 'Success Stories', icon: Award, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+              { id: 'careers', name: 'Career Manager', icon: MapPin, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
+              { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-400/10' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 group ${
+                  activeTab === tab.id 
+                    ? `${tab.bg} ${tab.color} border border-white/10 shadow-lg` 
+                    : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? tab.color : 'text-slate-500 group-hover:text-slate-300'}`} />
+                  <span className="text-sm font-bold tracking-wide">{tab.name}</span>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === tab.id ? 'translate-x-0' : '-translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'}`} />
               </button>
             ))}
           </div>
         </aside>
 
-        {/* Content */}
-        <div className="flex-1 w-full space-y-8">
+        {/* Content Area */}
+        <div className="flex-grow">
           <AnimatePresence mode="wait">
             {activeTab === 'tools' && (
-              <motion.div key="tools" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
-                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-cyan-400" /> Add New Tool</h2>
-                  <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <input name="title" required placeholder="Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <input name="category" required placeholder="Category" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <input name="image_url" type="url" required placeholder="Image URL" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <input name="redirect_link" type="url" required placeholder="Redirect Link" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <input name="price" type="number" required placeholder="Price" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <input name="discount_price" type="number" placeholder="Discount Price (Optional)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500" />
-                    <textarea name="description" required placeholder="Description" rows={3} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-cyan-500 md:col-span-2 resize-none" />
-                    <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-cyan-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Add Tool</button></div>
+              <motion.div key="tools" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[80px] -mr-32 -mt-32" />
+                  <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                    <div className="p-2 bg-cyan-500/20 rounded-lg"><Plus className="w-5 h-5 text-cyan-400" /></div>
+                    Deploy New Tool
+                  </h2>
+                  <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Tool Title</label>
+                      <input name="title" required placeholder="e.g. AI Content Engine" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 focus:bg-cyan-500/5 transition-all shadow-inner" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</label>
+                      <select name="category" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all shadow-inner">
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Productivity">Productivity</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Thumbnail URL</label>
+                      <input name="image_url" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Direct Link</label>
+                      <input name="redirect_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Actual Price (₹)</label>
+                      <input name="price" type="number" required placeholder="0.00" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Discount Price (₹)</label>
+                      <input name="discount_price" type="number" placeholder="Leave empty for no discount" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="md:col-span-2 space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description</label>
+                      <textarea name="description" required placeholder="What does this tool do?" rows={3} className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all resize-none shadow-inner" />
+                    </div>
+                    <div className="md:col-span-2 flex justify-end pt-4">
+                      <button type="submit" className="bg-white text-black hover:bg-cyan-500 hover:text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95 flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Deploy Tool
+                      </button>
+                    </div>
                   </form>
                 </div>
 
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
-                  <h3 className="text-white font-bold mb-4">Existing Tools</h3>
-                  <div className="space-y-3">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-white font-bold flex items-center gap-2"><Library className="w-5 h-5 text-cyan-500" /> Active Arsenal</h3>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tools.length} Tools Online</span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {tools.map(tool => (
-                      <div key={tool.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
-                        <div className="flex items-center gap-3">
-                          <img src={tool.image_url} className="w-10 h-10 rounded-lg object-cover" />
-                          <div><p className="text-sm font-bold text-white">{tool.title}</p><p className="text-xs text-slate-500">{tool.category}</p></div>
+                      <div key={tool.id} className="group flex items-center justify-between p-5 bg-[#111] hover:bg-[#161616] rounded-3xl border border-white/5 hover:border-cyan-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                            <img src={tool.image_url} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">{tool.title}</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tool.category}</p>
+                          </div>
                         </div>
-                        <button onClick={() => handleDelete('tools_cards', tool.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete('tools_cards', tool.id)} className="p-3 bg-red-500/5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>

@@ -1,23 +1,13 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { 
+  Briefcase, BarChart, FileText, Wrench, Globe, Layout, 
+  DollarSign, Activity, Terminal, Search, Filter, ArrowRight 
+} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Wrench, 
-  Search, 
-  ExternalLink, 
-  Tag, 
-  Star, 
-  ChevronRight,
-  TrendingUp,
-  Cpu,
-  Layers,
-  Sparkles,
-  ArrowRight
-} from 'lucide-react';
-import Image from 'next/image';
 
-// Define the type for a Tool Card to ensure data consistency
 type ToolCard = {
   id: string;
   title: string;
@@ -27,180 +17,212 @@ type ToolCard = {
   category: string;
   price: number;
   discount_price?: number;
-  created_at: string;
 };
 
-const CATEGORIES = ['All', 'AI Tools', 'Marketing', 'Development', 'Design', 'Productivity'];
+const CATEGORIES = ['All', 'Infrastructure', 'Finance', 'Marketing', 'Productivity'];
 
-export default function ToolsLibrary() {
+const getIconForCategory = (category: string) => {
+  switch (category?.toLowerCase()) {
+    case 'infrastructure': return <Terminal className="w-10 h-10" />;
+    case 'finance': return <DollarSign className="w-10 h-10" />;
+    case 'marketing': return <Globe className="w-10 h-10" />;
+    case 'productivity': return <Activity className="w-10 h-10" />;
+    default: return <Wrench className="w-10 h-10" />;
+  }
+};
+
+const getBgColorForCategory = (category: string) => {
+  switch (category?.toLowerCase()) {
+    case 'infrastructure': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
+    case 'finance': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+    case 'marketing': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
+    case 'productivity': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
+    default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
+  }
+};
+
+const getHoverBorderColor = (category: string) => {
+  switch (category?.toLowerCase()) {
+    case 'infrastructure': return 'hover:border-cyan-500/50 hover:shadow-[0_0_30px_rgba(6,182,212,0.15)]';
+    case 'finance': return 'hover:border-emerald-500/50 hover:shadow-[0_0_30px_rgba(16,185,129,0.15)]';
+    case 'marketing': return 'hover:border-orange-500/50 hover:shadow-[0_0_30px_rgba(249,115,22,0.15)]';
+    case 'productivity': return 'hover:border-purple-500/50 hover:shadow-[0_0_30px_rgba(168,85,247,0.15)]';
+    default: return 'hover:border-white/20';
+  }
+}
+
+export default function Tools() {
   const [tools, setTools] = useState<ToolCard[]>([]);
-  const [filteredTools, setFilteredTools] = useState<ToolCard[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
 
   useEffect(() => {
     async function fetchTools() {
       try {
+        setIsLoading(true);
         const { data, error } = await supabase
           .from('tools_cards')
           .select('*')
           .order('created_at', { ascending: false });
-
+          
         if (error) throw error;
         setTools(data || []);
-        setFilteredTools(data || []);
-      } catch (error) {
-        console.error('Error fetching tools:', error);
+      } catch (err: any) {
+        console.error('Error fetching tools:', err.message);
+        setError('Connection interrupted. Please verify your internet or Supabase configuration.');
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     }
-
     fetchTools();
   }, []);
 
-  useEffect(() => {
-    let result = tools;
-    if (selectedCategory !== 'All') {
-      result = result.filter(t => t.category === selectedCategory);
-    }
-    if (searchQuery) {
-      result = result.filter(t => 
-        t.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        t.description.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-    }
-    setFilteredTools(result);
-  }, [searchQuery, selectedCategory, tools]);
+  const filteredTools = tools.filter(tool => {
+    const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                          tool.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = selectedCategory === 'All' || tool.category?.toLowerCase() === selectedCategory.toLowerCase();
+    return matchesSearch && matchesCategory;
+  });
 
   return (
-    <div className="min-h-screen bg-[#020202] text-white font-inter pt-32 pb-24 relative overflow-hidden">
-      {/* Dynamic Background Elements */}
-      <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_50%_50%_at_50%_50%,#000_20%,transparent_100%)] pointer-events-none" />
-
+    <div className="min-h-screen bg-[#050505] text-white pt-32 pb-24">
+      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none" />
+      
       <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
-        {/* Header Section */}
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-16"
-        >
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
-            <Sparkles className="w-4 h-4" /> Elite Resource Hub
-          </div>
-          <h1 className="text-5xl md:text-7xl font-montserrat font-bold mb-6 tracking-tight">
-            Founder's <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Toolbox</span>
-          </h1>
-          <p className="text-lg text-slate-400 max-w-2xl mx-auto leading-relaxed">
-            Curated selection of world-class tools to accelerate your startup from 0 to 1. Hand-picked for the modern entrepreneur.
-          </p>
-        </motion.div>
+        <div className="text-center mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[10px] font-bold uppercase tracking-widest mb-6"
+          >
+            <Wrench className="w-3 h-3" /> Core Infrastructure
+          </motion.div>
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-5xl md:text-7xl font-montserrat font-bold mb-6 tracking-tight"
+          >
+            Startup <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Toolkit.</span>
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-lg md:text-xl text-white/60 max-w-2xl mx-auto leading-relaxed"
+          >
+            Access the exact same frameworks and automations used by elite founders to build billion-dollar systems.
+          </motion.p>
+        </div>
 
-        {/* Search & Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-6 mb-12 items-center justify-between">
-          <div className="relative w-full md:w-96">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-            <input 
-              type="text"
-              placeholder="Search tools..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pl-12 pr-6 focus:outline-none focus:border-cyan-500/50 transition-all text-sm backdrop-blur-sm"
-            />
-          </div>
-          
-          <div className="flex flex-wrap gap-2 justify-center">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
+          <div className="flex flex-wrap gap-2">
             {CATEGORIES.map(cat => (
-              <button 
+              <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-6 py-2.5 rounded-full text-xs font-bold uppercase tracking-wider transition-all ${
+                className={`px-5 py-2 rounded-xl text-xs font-bold transition-all duration-300 ${
                   selectedCategory === cat 
-                  ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
-                  : 'bg-white/5 text-slate-400 border border-white/10 hover:bg-white/10'
+                    ? 'bg-cyan-500 text-black shadow-[0_0_20px_rgba(6,182,212,0.4)]' 
+                    : 'bg-white/5 text-white/60 hover:bg-white/10'
                 }`}
               >
                 {cat}
               </button>
             ))}
           </div>
+          <div className="relative w-full md:w-80">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+            <input 
+              type="text" 
+              placeholder="Search tools..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-cyan-500 transition-all"
+            />
+          </div>
         </div>
 
-        {/* Tools Grid */}
-        {loading ? (
+        {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-96 rounded-3xl bg-white/5 animate-pulse border border-white/10" />
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-80 bg-white/5 rounded-[2.5rem] animate-pulse border border-white/5" />
             ))}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20 bg-red-500/10 border border-red-500/20 rounded-3xl">
+            <p className="text-red-400 font-bold mb-4">{error}</p>
+            <button onClick={() => window.location.reload()} className="text-xs font-bold uppercase tracking-widest text-white underline underline-offset-4">Retry Connection</button>
+          </div>
+        ) : filteredTools.length === 0 ? (
+          <div className="text-center py-24 bg-white/5 rounded-3xl border border-white/5">
+            <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Search className="w-8 h-8 text-white/20" />
+            </div>
+            <h3 className="text-xl font-bold mb-2">No tools matching your criteria</h3>
+            <p className="text-white/40 text-sm">Try adjusting your filters or search query.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredTools.map((tool, idx) => (
-              <motion.div
-                key={tool.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: idx * 0.1 }}
-                className="group relative bg-[#0a0a0a] border border-white/10 rounded-[32px] overflow-hidden hover:border-cyan-500/50 transition-all duration-500 hover:shadow-[0_0_40px_rgba(6,182,212,0.1)]"
-              >
-                {/* Image Section */}
-                <div className="relative aspect-[16/10] overflow-hidden">
-                  <Image 
-                    src={tool.image_url} 
-                    alt={tool.title} 
-                    fill 
-                    className="object-cover transition-transform duration-700 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-60" />
-                  <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[10px] font-bold text-cyan-400 uppercase tracking-tighter">
-                    {tool.category}
-                  </div>
-                </div>
-
-                {/* Content Section */}
-                <div className="p-8">
-                  <h3 className="text-2xl font-bold mb-3 font-montserrat group-hover:text-cyan-400 transition-colors">{tool.title}</h3>
-                  <p className="text-slate-400 text-sm leading-relaxed mb-6 line-clamp-3">
-                    {tool.description}
-                  </p>
-                  
-                  <div className="flex items-center justify-between mb-8">
-                    <div className="flex flex-col">
-                      {tool.discount_price ? (
-                        <>
-                          <span className="text-slate-500 text-xs line-through">₹{tool.price}</span>
-                          <span className="text-2xl font-black text-white">₹{tool.discount_price}</span>
-                        </>
-                      ) : (
-                        <span className="text-2xl font-black text-white">₹{tool.price}</span>
-                      )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            <AnimatePresence>
+              {filteredTools.map((tool, index) => (
+                <motion.div
+                  key={tool.id}
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  layout
+                >
+                  <Link 
+                    href={tool.redirect_link || "#"} 
+                    target="_blank"
+                    className={`group block h-full bg-[#0a0a0f] border border-white/10 p-8 rounded-[2.5rem] transition-all duration-500 relative overflow-hidden ${getHoverBorderColor(tool.category)}`}
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                    
+                    <div className="flex justify-between items-start mb-8 relative z-10">
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border ${getBgColorForCategory(tool.category)} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                        {tool.image_url ? (
+                          <img src={tool.image_url} alt={tool.title} className="w-10 h-10 object-contain rounded-md" />
+                        ) : (
+                          getIconForCategory(tool.category)
+                        )}
+                      </div>
+                      
+                      <div className="flex flex-col items-end gap-1">
+                        <div className={`text-[11px] font-black px-4 py-1.5 rounded-full uppercase tracking-tighter border ${
+                          (tool.discount_price === 0 || (!tool.discount_price && tool.price === 0))
+                            ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/30' 
+                            : 'bg-white/5 text-white/80 border-white/10'
+                        }`}>
+                          {tool.discount_price !== undefined && tool.discount_price !== null ? (
+                            tool.discount_price === 0 ? 'Free' : `₹${tool.discount_price}`
+                          ) : (
+                            tool.price === 0 ? 'Free' : `₹${tool.price}`
+                          )}
+                        </div>
+                        {tool.discount_price !== undefined && tool.discount_price !== null && tool.price > tool.discount_price && (
+                          <span className="text-[10px] text-white/30 line-through font-bold">₹{tool.price}</span>
+                        )}
+                      </div>
                     </div>
-                    <Link 
-                      href={tool.redirect_link}
-                      target="_blank"
-                      className="flex items-center gap-2 bg-white text-black px-5 py-2.5 rounded-xl text-xs font-bold hover:bg-cyan-400 transition-colors"
-                    >
-                      GET TOOL <ExternalLink className="w-3 h-3" />
-                    </Link>
-                  </div>
-
-                  <div className="flex items-center gap-2 text-[10px] font-bold text-slate-500 uppercase tracking-[2px]">
-                    <Clock className="w-3 h-3" /> Updated: {new Date(tool.created_at).toLocaleDateString()}
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
-
-        {/* Empty State */}
-        {!loading && filteredTools.length === 0 && (
-          <div className="text-center py-24 bg-white/5 border border-dashed border-white/10 rounded-[40px]">
-            <Layers className="w-16 h-16 text-slate-700 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-slate-400">No tools found matching your criteria.</h3>
+                    
+                    <div className="mb-3 relative z-10">
+                      <span className="text-[10px] uppercase tracking-widest font-black text-cyan-500/60 group-hover:text-cyan-400 transition-colors">{tool.category || 'Utility'}</span>
+                    </div>
+                    
+                    <h2 className="text-2xl font-bold mb-4 text-white font-montserrat leading-tight group-hover:text-cyan-400 transition-colors relative z-10">{tool.title}</h2>
+                    <p className="text-white/50 text-sm font-inter leading-relaxed mb-8 relative z-10">{tool.description}</p>
+                    
+                    <div className="mt-auto flex items-center gap-2 text-xs font-bold text-white group-hover:text-cyan-400 transition-all relative z-10">
+                      Access Tool <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </div>
