@@ -17,7 +17,6 @@ export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers'>('tools');
   const [loading, setLoading] = useState(false);
 
-  // Data states
   const [tools, setTools] = useState<any[]>([]);
   const [courses, setCourses] = useState<any[]>([]);
   const [stories, setStories] = useState<any[]>([]);
@@ -87,10 +86,16 @@ export default function AdminPortal() {
     try {
       const { error } = await supabase.from(table).delete().eq('id', id);
       if (error) throw error;
-      alert("Item removed successfully!");
-      fetchContent();
+      
+      // Update local state immediately for better UX
+      if (table === 'tools_cards') setTools(prev => prev.filter(t => t.id !== id));
+      else if (table === 'courses') setCourses(prev => prev.filter(c => c.id !== id));
+      else if (table === 'job_postings') setJobs(prev => prev.filter(j => j.id !== id));
+      else if (table === 'success_stories') setStories(prev => prev.filter(s => s.id !== id));
+      
+      alert("Item removed successfully from the website.");
     } catch (err: any) {
-      alert("Error removing item: " + err.message);
+      alert("Error: " + err.message);
     }
   };
 
@@ -255,11 +260,14 @@ export default function AdminPortal() {
         
         <div className="flex items-center gap-6">
           <div className="hidden lg:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mr-4">
-            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> System Online</div>
-            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Database Encrypted</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Status</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Secure Connection</div>
           </div>
+          <button onClick={fetchContent} className="p-2 text-slate-400 hover:text-white transition-colors" title="Reload Data">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
           <button onClick={handleLogout} className="flex items-center gap-2 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all">
-            <LogOut className="w-4 h-4" /> Exit Session
+            <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </nav>
@@ -304,7 +312,7 @@ export default function AdminPortal() {
                    <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[80px] -mr-32 -mt-32" />
                   <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
                     <div className="p-2 bg-cyan-500/20 rounded-lg"><Plus className="w-5 h-5 text-cyan-400" /></div>
-                    Deploy New Tool
+                    Add New Startup Tool
                   </h2>
                   <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
                     <div className="space-y-1.5">
@@ -350,8 +358,8 @@ export default function AdminPortal() {
 
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
                   <div className="flex items-center justify-between mb-8">
-                    <h3 className="text-white font-bold flex items-center gap-2"><Library className="w-5 h-5 text-cyan-500" /> Active Arsenal</h3>
-                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tools.length} Tools Online</span>
+                    <h3 className="text-white font-bold flex items-center gap-2"><Library className="w-5 h-5 text-cyan-500" /> Tools on Website</h3>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tools.length} Tools Visible</span>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {tools.map(tool => (

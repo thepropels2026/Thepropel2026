@@ -7,6 +7,8 @@ import {
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { RefreshCw } from 'lucide-react';
 
 type ToolCard = {
   id: string;
@@ -133,15 +135,24 @@ export default function Tools() {
               </button>
             ))}
           </div>
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-            <input 
-              type="text" 
-              placeholder="Search tools..." 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-cyan-500 transition-all"
-            />
+          <div className="flex items-center gap-4 w-full md:w-auto">
+            <div className="relative flex-grow md:w-80">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+              <input 
+                type="text" 
+                placeholder="Search tools..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-cyan-500 transition-all"
+              />
+            </div>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="p-3 bg-white/5 border border-white/10 rounded-2xl text-white/60 hover:text-cyan-400 transition-colors"
+              title="Refresh Tools"
+            >
+              <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
+            </button>
           </div>
         </div>
 
@@ -183,9 +194,15 @@ export default function Tools() {
                     <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                     
                     <div className="flex justify-between items-start mb-8 relative z-10">
-                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border ${getBgColorForCategory(tool.category)} shadow-inner group-hover:scale-110 transition-transform duration-500`}>
+                      <div className={`w-16 h-16 rounded-2xl flex items-center justify-center border ${getBgColorForCategory(tool.category)} shadow-inner group-hover:scale-110 transition-transform duration-500 overflow-hidden`}>
                         {tool.image_url ? (
-                          <img src={tool.image_url} alt={tool.title} className="w-10 h-10 object-contain rounded-md" />
+                          <Image 
+                            src={tool.image_url} 
+                            alt={tool.title} 
+                            width={64} 
+                            height={64} 
+                            className="w-full h-full object-cover" 
+                          />
                         ) : (
                           getIconForCategory(tool.category)
                         )}
