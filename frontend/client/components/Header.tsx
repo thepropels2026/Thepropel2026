@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link'; // Next.js link for optimized client-side navigation
 import { useAuth } from './AuthContext'; // Access global authentication state
 // Import icons from lucide-react for visual navigation cues
-import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X } from 'lucide-react';
+import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin } from 'lucide-react';
 import Image from 'next/image';
 
 /**
@@ -25,7 +25,7 @@ export default function Header() {
         
         {/* Logo and Brand Identity Section */}
         <Link href="/" className="flex items-center gap-2 md:gap-3">
-          <img src="/logo.png" alt="The Propels Logo" className="h-8 md:h-10 w-auto object-contain" />
+          <Image src="/logo.png" alt="The Propels Logo" width={48} height={48} className="h-10 w-10 md:h-12 md:w-12 object-contain brightness-125 filter drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]" />
           <span className="font-montserrat text-lg md:text-xl font-extrabold tracking-wider uppercase text-white">THE PROPELS</span>
         </Link>
 

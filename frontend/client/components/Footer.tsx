@@ -1,6 +1,6 @@
 import Link from 'next/link'; // Next.js link for client-side navigation
 // Import icons from lucide-react for social media and contact information
-import { Instagram, Linkedin, Twitter, Facebook, Youtube, MapPin, Mail, Phone } from 'lucide-react';
+import { Mail, Phone, MapPin, Linkedin, Twitter, Instagram, ArrowUpRight, ShieldCheck, Globe, Zap, Facebook, Youtube } from 'lucide-react';
 
 /**
  * Footer component: The bottom section of the application.
@@ -16,7 +16,7 @@ export default function Footer() {
         <div className="col-span-1 md:col-span-1 flex flex-col items-start">
           {/* Logo and Brand Name */}
           <Link href="/" className="flex items-center gap-3 font-montserrat text-2xl font-extrabold tracking-wider mb-4">
-            <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" />
+            <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain brightness-125 filter drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]" />
             The Propels
           </Link>
           {/* Brand Tagline */}
