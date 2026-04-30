@@ -1,212 +1,80 @@
-"use client"; // Enable client-side rendering for interactivity (state, hooks)
+"use client";
 import React, { useState, useEffect } from 'react';
-// Import a wide variety of icons for the admin dashboard
-import { ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, Download, Eye, Mail, Phone, Linkedin, User, FileText, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion'; // Animation library for UI transitions
-import { supabase } from '../../lib/supabase'; // Initialize Supabase client
+import { 
+  ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, 
+  Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
+  Download, Eye, Mail, Phone, Linkedin, User, FileText, 
+  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, Library
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import Image from 'next/image';
+import { supabase } from '../../lib/supabase';
 
-/**
- * AdminPortal: The central hub for managing platform content and user applications.
- * Requires admin authentication (simulated via email check).
- */
 export default function AdminPortal() {
-  // Authentication and error state
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [error, setError] = useState('');
-  // Active dashboard tab state
-  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications'>('tools');
+  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'kb'>('tools');
+  const [loading, setLoading] = useState(false);
 
-  // Define the structure of an Application object
-  type Application = {
-    id: string;
-    full_name: string;
-    email: string;
-    phone: string;
-    linkedin_url: string;
-    experience: string;
-    cover_letter: string;
-    resume_url: string;
-    photo_url: string;
-    status: string;
-    created_at: string;
-    job_postings?: { title: string; department: string; location: string };
-  };
-  
-  // State management for applications list
-  const [applications, setApplications] = useState<Application[]>([]);
-  const [appsLoading, setAppsLoading] = useState(false);
-  const [appSearch, setAppSearch] = useState('');
-  const [selectedApp, setSelectedApp] = useState<Application | null>(null);
+  const [tools, setTools] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
+  const [applications, setApplications] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [kb, setKb] = useState<any[]>([]);
 
-  // Check local storage for existing admin session on component mount
+  const [isUploading, setIsUploading] = useState(false);
+
   useEffect(() => {
     const adminSession = localStorage.getItem('adminSession');
-    // Simple email-based auth verification (can be upgraded to full JWT/Auth session)
     if (adminSession === 'sushantsharma2805@gmail.com') {
       setIsAdmin(true);
     }
   }, []);
 
-  /**
-   * fetchApplications: Retrieves all job applications from the Supabase database.
-   * Includes related job posting information (title, department, location).
-   */
-  const fetchApplications = async () => {
-    setAppsLoading(true);
+  const fetchContent = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*, job_postings(title, department, location)')
-        .order('created_at', { ascending: false }); // Sort by newest first
-      
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (err) {
-      console.error('Error fetching applications:', err);
+      if (activeTab === 'tools') {
+        const { data, error } = await supabase.from('tools_cards').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setTools(data || []);
+      } else if (activeTab === 'courses') {
+        const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setCourses(data || []);
+      } else if (activeTab === 'stories') {
+        const { data, error } = await supabase.from('success_stories').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setStories(data || []);
+      } else if (activeTab === 'applications') {
+        const { data, error } = await supabase.from('applications').select('*, job_postings(title)').order('created_at', { ascending: false });
+        if (error) throw error;
+        setApplications(data || []);
+      } else if (activeTab === 'careers') {
+        const { data, error } = await supabase.from('job_postings').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setJobs(data || []);
+      } else if (activeTab === 'kb') {
+        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setKb(data || []);
+      }
+    } catch (err: any) {
+      console.error(`Error fetching ${activeTab}:`, err.message);
     } finally {
-      setAppsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Re-fetch applications whenever the 'applications' tab becomes active
   useEffect(() => {
-    if (activeTab === 'applications') fetchApplications();
-  }, [activeTab]);
+    if (isAdmin) fetchContent();
+  }, [activeTab, isAdmin]);
 
-  /**
-   * updateStatus: Updates the hiring status of a specific application.
-   */
-  const updateStatus = async (id: string, status: string) => {
-    // Update status in the database
-    await supabase.from('applications').update({ status }).eq('id', id);
-    // Update local state to reflect the change immediately in the UI
-    setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
-  };
-
-  /**
-   * downloadAdminPDF: Generates a professional PDF summary for a candidate profile.
-   * Uses jsPDF to create a branded, formatted document for internal review.
-   */
-  const downloadAdminPDF = async (app: Application) => {
-    const { jsPDF } = await import('jspdf'); // Dynamic import for performance
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const pageW = doc.internal.pageSize.getWidth();
-    const margin = 20;
-    const contentW = pageW - margin * 2;
-
-    // Drawing a dark branded header
-    doc.setFillColor(2, 6, 23); // Slate-950
-    doc.rect(0, 0, pageW, 35, 'F');
-    // Accent sidebar on the header
-    doc.setFillColor(8, 145, 178); // Cyan-600
-    doc.rect(0, 0, 4, 35, 'F');
-    
-    // Header text content
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(16);
-    doc.setTextColor(255, 255, 255);
-    doc.text('The Propels', margin + 4, 14);
-    
-    doc.setFontSize(8);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(148, 163, 184);
-    doc.text('ADMIN — CANDIDATE PROFILE SUMMARY', margin + 4, 22);
-    doc.text(`Generated: ${new Date().toLocaleString()}`, pageW - margin, 22, { align: 'right' });
-
-    // Status badge visualization in PDF
-    const statusColors: Record<string, [number, number, number]> = {
-      pending: [245, 158, 11], reviewed: [59, 130, 246], accepted: [16, 185, 129], rejected: [239, 68, 68]
-    };
-    const [sr, sg, sb] = statusColors[app.status] || statusColors.pending;
-    doc.setFillColor(sr, sg, sb);
-    doc.roundedRect(pageW - margin - 28, 6, 28, 10, 2, 2, 'F');
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7);
-    doc.setTextColor(255, 255, 255);
-    doc.text((app.status || 'pending').toUpperCase(), pageW - margin - 14, 13, { align: 'center' });
-
-    // Role and Application metadata section
-    doc.setTextColor(30, 41, 59);
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(14);
-    doc.text(app.job_postings?.title || 'Unknown Role', margin, 52);
-    
-    doc.setFontSize(9);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 116, 139);
-    doc.text(`${app.job_postings?.department || ''} · ${app.job_postings?.location || ''} · Applied: ${new Date(app.created_at).toLocaleDateString()}`, margin, 59);
-
-    // Separator line
-    doc.setDrawColor(226, 232, 240);
-    doc.line(margin, 65, pageW - margin, 65);
-
-    // Utility function to draw formatted field labels and values
-    let y = 74;
-    const field = (label: string, value: string) => {
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(7.5);
-      doc.setTextColor(100, 116, 139);
-      doc.text(label.toUpperCase(), margin, y);
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(10.5);
-      doc.setTextColor(15, 23, 42);
-      doc.text(value || '—', margin, y + 5.5);
-      y += 15;
-    };
-
-    // Populate candidate fields
-    field('Candidate Name', app.full_name);
-    field('Email Address', app.email);
-    field('Phone Number', app.phone);
-    field('LinkedIn Profile', app.linkedin_url || '—');
-    field('Years of Experience', app.experience);
-
-    // Cover Letter section with multi-line text wrapping
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    doc.text('COVER LETTER / WHY THEY ARE A FIT', margin, y);
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(10);
-    doc.setTextColor(15, 23, 42);
-    const split = doc.splitTextToSize(app.cover_letter || '—', contentW);
-    doc.text(split, margin, y);
-    y += split.length * 5.5 + 10;
-
-    // Document links (clickable in PDF)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(7.5);
-    doc.setTextColor(100, 116, 139);
-    doc.text('DOCUMENT LINKS', margin, y);
-    y += 6;
-    doc.setFont('helvetica', 'normal');
-    doc.setFontSize(9);
-    doc.setTextColor(8, 145, 178);
-    if (app.resume_url) { doc.textWithLink('View Resume →', margin, y, { url: app.resume_url }); y += 7; }
-    if (app.photo_url) { doc.textWithLink('View Photo →', margin, y, { url: app.photo_url }); y += 7; }
-
-    // PDF Footer
-    y += 5;
-    doc.setDrawColor(226, 232, 240);
-    doc.line(margin, y, pageW - margin, y);
-    y += 7;
-    doc.setFontSize(7.5);
-    doc.setTextColor(148, 163, 184);
-    doc.text('Confidential — For internal use only. The Propels Admin Portal.', margin, y, { maxWidth: contentW });
-
-    // Trigger file download
-    doc.save(`Candidate_${app.full_name.replace(/\s+/g, '_')}.pdf`);
-  };
-
-  /**
-   * handleLogin: Verifies the email input against the authorized admin list.
-   */
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (emailInput.toLowerCase() === 'sushantsharma2805@gmail.com') {
-      // Create session in local storage for persistence
       localStorage.setItem('adminSession', emailInput.toLowerCase());
       setIsAdmin(true);
       setError('');
@@ -215,419 +83,572 @@ export default function AdminPortal() {
     }
   };
 
-  /**
-   * handleLogout: Ends the admin session.
-   */
   const handleLogout = () => {
     localStorage.removeItem('adminSession');
     setIsAdmin(false);
   };
 
-  /**
-   * handleAddStory: Publishes a new founder success story to the database.
-   */
-  const handleAddStory = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const storyData = Object.fromEntries(formData.entries());
-
-    // Attempt to parse the roadmap JSON input
-    let parsedRoadmap = [];
+  const handleDelete = async (table: string, id: string) => {
+    if (!confirm("Are you sure you want to remove this item?")) return;
     try {
-      parsedRoadmap = JSON.parse(storyData.roadmap as string || '[]');
-    } catch (err) {
-      console.warn("Invalid JSON in roadmap");
-    }
-
-    try {
-      // Insert story data into Supabase
-      const { error } = await supabase.from('success_stories').insert({
-        founder_name: storyData.founder_name,
-        startup_name: storyData.startup_name,
-        niche: storyData.niche,
-        metric: storyData.metric,
-        metric_label: storyData.metric_label,
-        summary: storyData.summary,
-        avatar_url: storyData.avatar_url,
-        media_url: storyData.media_url,
-        media_type: storyData.media_type,
-        roadmap: parsedRoadmap
-      });
-
+      const { error } = await supabase.from(table).delete().eq('id', id);
       if (error) throw error;
-      alert("Success Story Added!");
-      (e.target as HTMLFormElement).reset(); // Clear form on success
+      
+      // Update local state immediately for better UX
+      if (table === 'tools_cards') setTools(prev => prev.filter(t => t.id !== id));
+      else if (table === 'courses') setCourses(prev => prev.filter(c => c.id !== id));
+      else if (table === 'job_postings') setJobs(prev => prev.filter(j => j.id !== id));
+      else if (table === 'success_stories') setStories(prev => prev.filter(s => s.id !== id));
+      else if (table === 'knowledge_base') setKb(prev => prev.filter(k => k.id !== id));
+      
+      alert("Item removed successfully from the website.");
     } catch (err: any) {
-      alert("Error adding story: " + err.message);
+      alert("Error: " + err.message);
     }
   };
 
-  // RENDER: Authentication Screen (displayed if not authorized)
+  // UPLOAD HANDLER
+  const handleFileUpload = async (file: File, bucket: string): Promise<string> => {
+    setIsUploading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file);
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return publicUrl;
+    } catch (err: any) {
+      alert("Upload failed: " + err.message);
+      return '';
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // HANDLERS
+  const handleAddTool = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    const file = (data.image_file as File);
+    
+    try {
+      let imageUrl = '';
+      if (file && file.size > 0) {
+        imageUrl = await handleFileUpload(file, 'tools');
+      }
+
+      const { error } = await supabase.from('tools_cards').insert({
+        title: data.title,
+        description: data.description,
+        image_url: imageUrl || (data.image_url as string),
+        redirect_link: data.redirect_link,
+        category: data.category,
+        price: parseFloat(data.price as string) || 0,
+        discount_price: data.discount_price ? parseFloat(data.discount_price as string) : null,
+      });
+      if (error) throw error;
+      alert("Tool added!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleAddCourse = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    const file = (data.image_file as File);
+
+    try {
+      let imageUrl = '';
+      if (file && file.size > 0) {
+        imageUrl = await handleFileUpload(file, 'courses');
+      }
+
+      const { error } = await supabase.from('courses').insert({
+        title: data.title,
+        image_url: imageUrl || (data.image_url as string),
+        mentor: data.mentor,
+        description: data.description,
+        actual_price: parseFloat(data.actual_price as string) || 0,
+        discounted_price: parseFloat(data.discounted_price as string) || 0,
+        enroll_link: data.enroll_link,
+      });
+      if (error) throw error;
+      alert("Course added!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleAddJob = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    try {
+      const { error } = await supabase.from('job_postings').insert({
+        title: data.title,
+        description: data.description,
+        role: data.role,
+        qualification: data.qualification,
+        eligibility: data.eligibility,
+        stipend: data.stipend,
+        work_duration: data.work_duration,
+        location: data.location,
+        mode: data.mode,
+        is_active: true
+      });
+      if (error) throw error;
+      alert("Job posted!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleAddStory = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    const avatarFile = (data.avatar_file as File);
+    const mediaFile = (data.media_file as File);
+
+    try {
+      let avatarUrl = data.avatar_url as string;
+      let mediaUrl = data.media_url as string;
+
+      if (avatarFile && avatarFile.size > 0) avatarUrl = await handleFileUpload(avatarFile, 'stories');
+      if (mediaFile && mediaFile.size > 0) mediaUrl = await handleFileUpload(mediaFile, 'stories');
+
+      const { error } = await supabase.from('success_stories').insert({
+        founder_name: data.founder_name,
+        startup_name: data.startup_name,
+        niche: data.niche,
+        metric: data.metric,
+        metric_label: data.metric_label,
+        summary: data.summary,
+        avatar_url: avatarUrl,
+        media_url: mediaUrl,
+        media_type: data.media_type || 'image',
+      });
+      if (error) throw error;
+      alert("Story added!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const handleAddKb = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const data = Object.fromEntries(formData.entries());
+    const file = (data.kb_file as File);
+
+    try {
+      let fileUrl = '';
+      if (file && file.size > 0) {
+        fileUrl = await handleFileUpload(file, 'kb');
+      }
+
+      const { error } = await supabase.from('knowledge_base').insert({
+        title: data.title,
+        description: data.description,
+        download_link: fileUrl || (data.download_link as string),
+      });
+      if (error) throw error;
+      alert("Resource added to Knowledge Base!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
+  const updateAppStatus = async (id: string, status: string) => {
+    await supabase.from('applications').update({ status }).eq('id', id);
+    setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+  };
+
+  const downloadPDF = async (app: any) => {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF();
+    doc.setFontSize(20);
+    doc.text("Candidate Profile", 20, 20);
+    doc.setFontSize(12);
+    doc.text(`Name: ${app.full_name}`, 20, 40);
+    doc.text(`Email: ${app.email}`, 20, 50);
+    doc.text(`Role: ${app.job_postings?.title || 'N/A'}`, 20, 60);
+    doc.text(`Experience: ${app.experience}`, 20, 70);
+    doc.text(`Status: ${app.status}`, 20, 80);
+    doc.save(`${app.full_name}_Profile.pdf`);
+  };
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-[#020202] text-slate-300 flex items-center justify-center font-sans p-4 relative overflow-hidden">
-        {/* Background visual effects */}
         <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-        
-        <motion.div 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10"
-        >
-          {/* Security Icon */}
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-2xl p-8 shadow-2xl relative z-10">
           <div className="flex justify-center mb-6">
             <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center border border-red-500/20 shadow-[0_0_20px_rgba(239,68,68,0.2)]">
               <ShieldAlert className="w-8 h-8 text-red-500" />
             </div>
           </div>
-          {/* Login Prompts */}
           <h1 className="text-2xl font-bold text-center text-white mb-2 tracking-tight">Restricted Area</h1>
           <p className="text-center text-sm text-slate-400 mb-8">Enter authorized administrator credentials to proceed.</p>
-          
-          {/* Login Form */}
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Admin Email</label>
-              <input 
-                type="email" 
-                required
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-                placeholder="admin@thepropels.com"
-                className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white placeholder-slate-600 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all"
-              />
+              <input type="email" required value={emailInput} onChange={(e) => setEmailInput(e.target.value)} placeholder="admin@thepropels.com" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 transition-all" />
             </div>
             {error && <p className="text-red-400 text-xs font-semibold">{error}</p>}
-            <button type="submit" className="w-full bg-white text-black hover:bg-slate-200 font-bold py-3 rounded-xl transition-all shadow-[0_0_15px_rgba(255,255,255,0.1)]">
-              Authenticate
-            </button>
+            <button type="submit" className="w-full bg-white text-black hover:bg-slate-200 font-bold py-3 rounded-xl transition-all">Authenticate</button>
           </form>
         </motion.div>
       </div>
     );
   }
 
-  // RENDER: Main Admin Dashboard UI
   return (
-    <div className="min-h-screen bg-[#020202] text-slate-300 font-sans relative pb-20">
-      {/* Background visual effects */}
+    <div className="min-h-screen bg-[#020202] text-slate-300 font-sans relative pb-20 overflow-x-hidden">
       <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
-      
-      {/* Top Command Center Header */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 z-50 flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <Terminal className="w-5 h-5 text-cyan-400" />
-          <span className="font-bold text-white tracking-widest text-sm">PROPELS_COMMAND_CENTER</span>
-        </div>
+      <div className="absolute top-0 left-0 w-full h-[500px] bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none" />
+
+      {/* Modern Fixed Navbar */}
+      <nav className="fixed top-0 left-0 right-0 h-20 bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-white/10 z-50 flex items-center justify-between px-8">
         <div className="flex items-center gap-4">
-          {/* Secure Session Indicator */}
-          <div className="hidden sm:flex items-center gap-2 text-xs font-mono text-cyan-400 bg-cyan-400/10 px-3 py-1.5 rounded-full border border-cyan-400/20">
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            SECURE SESSION
+          <div className="w-10 h-10 bg-cyan-500 rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.4)] group cursor-pointer">
+             <Image src="/logo.png" alt="Logo" width={24} height={24} className="group-hover:scale-110 transition-transform" />
           </div>
-          {/* Logout Button */}
-          <button onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors flex items-center gap-2 text-sm font-semibold">
-            <LogOut className="w-4 h-4" /> Exit
+          <div>
+            <span className="font-montserrat text-xl font-black tracking-tighter uppercase text-white block leading-none">THE PROPELS</span>
+            <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[3px] mt-1 block">Command Center</span>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="hidden lg:flex items-center gap-6 text-[10px] font-bold uppercase tracking-widest text-slate-500 mr-4">
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" /> Live Status</div>
+            <div className="flex items-center gap-2"><div className="w-1.5 h-1.5 rounded-full bg-cyan-500" /> Secure Connection</div>
+          </div>
+          <button onClick={fetchContent} className="p-2 text-slate-400 hover:text-white transition-colors" title="Reload Data">
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          </button>
+          <button onClick={handleLogout} className="flex items-center gap-2 bg-white/5 hover:bg-red-500/10 hover:text-red-400 border border-white/10 px-4 py-2 rounded-xl text-xs font-bold transition-all">
+            <LogOut className="w-4 h-4" /> Sign Out
           </button>
         </div>
       </nav>
 
-      {/* Main Dashboard Grid */}
-      <main className="pt-28 px-4 sm:px-6 md:px-12 max-w-6xl mx-auto relative z-10 flex gap-8 flex-col md:flex-row items-start">
+      <main className="max-w-7xl mx-auto pt-32 px-6 lg:px-12 flex flex-col lg:flex-row gap-10">
         
-        {/* Sidebar Navigation: Active Tab Selection */}
-        <aside className="w-full md:w-64 shrink-0 top-24 sticky z-20">
-          <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-4 flex flex-col gap-2 shadow-xl">
-            {/* Tools Tab Button */}
-            <button 
-              onClick={() => setActiveTab('tools')}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'tools' ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
-            >
-              <div className="flex items-center gap-3"><Wrench className="w-4 h-4" /> Tools Library</div>
-              {activeTab === 'tools' && <ChevronRight className="w-4 h-4" />}
-            </button>
-            {/* Courses Tab Button */}
-            <button 
-              onClick={() => setActiveTab('courses')}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'courses' ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
-            >
-              <div className="flex items-center gap-3"><Video className="w-4 h-4" /> Course Manager</div>
-              {activeTab === 'courses' && <ChevronRight className="w-4 h-4" />}
-            </button>
-            {/* Stories Tab Button */}
-            <button 
-              onClick={() => setActiveTab('stories')}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'stories' ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
-            >
-              <div className="flex items-center gap-3"><Award className="w-4 h-4" /> Stories Manager</div>
-              {activeTab === 'stories' && <ChevronRight className="w-4 h-4" />}
-            </button>
-            {/* Applications Tab Button */}
-            <button 
-              onClick={() => setActiveTab('applications')}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'applications' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
-            >
-              <div className="flex items-center gap-3"><Briefcase className="w-4 h-4" /> Applications</div>
-              {activeTab === 'applications' && <ChevronRight className="w-4 h-4" />}
-            </button>
+        {/* Futuristic Sidebar Navigation */}
+        <aside className="w-full lg:w-72 shrink-0">
+          <div className="sticky top-32 space-y-2 bg-[#0a0a0a] border border-white/10 p-3 rounded-3xl shadow-2xl">
+            {[
+              { id: 'tools', name: 'Startup Tools', icon: Wrench, color: 'text-cyan-400', bg: 'bg-cyan-400/10' },
+              { id: 'courses', name: 'Course Manager', icon: Video, color: 'text-orange-400', bg: 'bg-orange-400/10' },
+              { id: 'stories', name: 'Success Stories', icon: Award, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+              { id: 'careers', name: 'Career Manager', icon: MapPin, color: 'text-yellow-400', bg: 'bg-yellow-400/10' },
+              { id: 'kb', name: 'Knowledge Base', icon: BookOpen, color: 'text-blue-400', bg: 'bg-blue-400/10' },
+              { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-emerald-400', bg: 'bg-emerald-400/10' }
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={`w-full flex items-center justify-between p-4 rounded-2xl transition-all duration-300 group ${
+                  activeTab === tab.id 
+                    ? `${tab.bg} ${tab.color} border border-white/10 shadow-lg` 
+                    : 'text-slate-500 hover:bg-white/5 hover:text-slate-300'
+                }`}
+              >
+                <div className="flex items-center gap-4">
+                  <tab.icon className={`w-5 h-5 ${activeTab === tab.id ? tab.color : 'text-slate-500 group-hover:text-slate-300'}`} />
+                  <span className="text-sm font-bold tracking-wide">{tab.name}</span>
+                </div>
+                <ChevronRight className={`w-4 h-4 transition-transform ${activeTab === tab.id ? 'translate-x-0' : '-translate-x-2 opacity-0 group-hover:opacity-100 group-hover:translate-x-0'}`} />
+              </button>
+            ))}
           </div>
         </aside>
 
-        {/* Dynamic Content Area: Switches based on activeTab */}
-        <div className="flex-1 w-full">
+        {/* Content Area */}
+        <div className="flex-grow">
           <AnimatePresence mode="wait">
-            
-            {/* TOOLS MANAGEMENT SECTION */}
             {activeTab === 'tools' && (
-              <motion.div key="tools" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e]">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Wrench className="w-5 h-5 text-cyan-400" /> Add New Tool
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-1">Deploy a new startup tool to the public library.</p>
+              <motion.div key="tools" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+                   <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-500/5 rounded-full blur-[80px] -mr-32 -mt-32" />
+                  <h2 className="text-2xl font-bold text-white mb-8 flex items-center gap-3 relative z-10">
+                    <div className="p-2 bg-cyan-500/20 rounded-lg"><Plus className="w-5 h-5 text-cyan-400" /></div>
+                    Add New Startup Tool
+                  </h2>
+                  <form onSubmit={handleAddTool} className="grid grid-cols-1 md:grid-cols-2 gap-6 relative z-10">
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Tool Title</label>
+                      <input name="title" required placeholder="e.g. AI Content Engine" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 focus:bg-cyan-500/5 transition-all shadow-inner" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Category</label>
+                      <select name="category" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all shadow-inner">
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Marketing">Marketing</option>
+                        <option value="Productivity">Productivity</option>
+                      </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Upload Image (Preferred)</label>
+                      <input name="image_file" type="file" accept="image/*" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                      <p className="text-[9px] text-slate-600 mt-1 italic">Or paste URL below</p>
+                      <input name="image_url" type="url" placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-xs text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Direct Link</label>
+                      <input name="redirect_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Actual Price (₹)</label>
+                      <input name="price" type="number" required placeholder="0.00" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Discount Price (₹)</label>
+                      <input name="discount_price" type="number" placeholder="Leave empty for no discount" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                    </div>
+                    <div className="md:col-span-2 space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Description</label>
+                      <textarea name="description" required placeholder="What does this tool do?" rows={3} className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all resize-none shadow-inner" />
+                    </div>
+                    <div className="md:col-span-2 flex justify-end pt-4">
+                      <button type="submit" className="bg-white text-black hover:bg-cyan-500 hover:text-white px-10 py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(255,255,255,0.1)] active:scale-95 flex items-center gap-2">
+                        <Plus className="w-4 h-4" /> Deploy Tool
+                      </button>
+                    </div>
+                  </form>
+                </div>
+
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-white font-bold flex items-center gap-2"><Library className="w-5 h-5 text-cyan-500" /> Tools on Website</h3>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tools.length} Tools Visible</span>
                   </div>
-                  <div className="p-6">
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Database integration ready for hookup!"); }}>
-                      {/* Placeholder for tool addition form */}
-                      <p>Form UI here...</p>
-                    </form>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {tools.map(tool => (
+                      <div key={tool.id} className="group flex items-center justify-between p-5 bg-[#111] hover:bg-[#161616] rounded-3xl border border-white/5 hover:border-cyan-500/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-xl overflow-hidden border border-white/10 shadow-lg">
+                            <img src={tool.image_url} className="w-full h-full object-cover" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors">{tool.title}</p>
+                            <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tool.category}</p>
+                          </div>
+                        </div>
+                        <button onClick={() => handleDelete('tools_cards', tool.id)} className="p-3 bg-red-500/5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* COURSES MANAGEMENT SECTION */}
             {activeTab === 'courses' && (
-              <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e]">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Video className="w-5 h-5 text-orange-400" /> Course Manager
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-1">Add new lecture modules to existing courses.</p>
-                  </div>
-                  <div className="p-6">
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Database integration ready for hookup!"); }}>
-                      {/* Placeholder for course addition form */}
-                      <p>Form UI here...</p>
-                    </form>
+              <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-orange-400" /> Add New Course</h2>
+                  <form onSubmit={handleAddCourse} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input name="title" required placeholder="Course Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                    <input name="mentor" required placeholder="Mentor Name" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Upload Thumbnail (Preferred)</label>
+                      <input name="image_file" type="file" accept="image/*" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2.5 text-sm text-white outline-none focus:border-orange-500 transition-all" />
+                      <p className="text-[9px] text-slate-600 mt-1 italic">Or paste URL below</p>
+                      <input name="image_url" type="url" placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-xs text-white outline-none focus:border-orange-500 transition-all" />
+                    </div>
+                    <input name="enroll_link" type="url" required placeholder="Enroll Link" className="bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-orange-500 transition-all" />
+                    <input name="actual_price" type="number" required placeholder="Actual Price (₹)" className="bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-orange-500 transition-all" />
+                    <input name="discounted_price" type="number" required placeholder="Discounted Price (₹)" className="bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-orange-500 transition-all" />
+                    <textarea name="description" required placeholder="Course Description" rows={3} className="bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-orange-500 md:col-span-2 resize-none" />
+                    <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-orange-600 text-white px-10 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center gap-2"><Plus className="w-4 h-4" /> Deploy Course</button></div>
+                  </form>
+                </div>
+
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                  <h3 className="text-white font-bold mb-4">Existing Courses</h3>
+                  <div className="space-y-3">
+                    {courses.map(course => (
+                      <div key={course.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <img src={course.image_url} className="w-10 h-10 rounded-lg object-cover" />
+                          <div><p className="text-sm font-bold text-white">{course.title}</p><p className="text-xs text-slate-500">{course.mentor}</p></div>
+                        </div>
+                        <button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* SUCCESS STORIES MANAGEMENT SECTION */}
+            {activeTab === 'careers' && (
+              <motion.div key="careers" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-yellow-400" /> Post New Job</h2>
+                  <form onSubmit={handleAddJob} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input name="title" required placeholder="Job Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <input name="role" required placeholder="Department (e.g. Engineering)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <input name="location" required placeholder="Location" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <input name="mode" required placeholder="Mode (Full-Time / Remote)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <input name="stipend" required placeholder="Salary / Stipend Range" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <input name="work_duration" required placeholder="Duration" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500" />
+                    <textarea name="description" required placeholder="Job Description" rows={2} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500 md:col-span-2 resize-none" />
+                    <textarea name="qualification" required placeholder="Qualifications" rows={2} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-yellow-500 md:col-span-2 resize-none" />
+                    <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-yellow-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Post Job</button></div>
+                  </form>
+                </div>
+
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                  <h3 className="text-white font-bold mb-4">Active Postings</h3>
+                  <div className="space-y-3">
+                    {jobs.map(job => (
+                      <div key={job.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <Briefcase className="w-6 h-6 text-yellow-500" />
+                          <div><p className="text-sm font-bold text-white">{job.title}</p><p className="text-xs text-slate-500">{job.location} · {job.role}</p></div>
+                        </div>
+                        <button onClick={() => handleDelete('job_postings', job.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'stories' && (
-              <motion.div key="stories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
-                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e]">
-                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                      <Award className="w-5 h-5 text-purple-400" /> Stories Manager
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-1">Publish a new founder success story to the platform.</p>
-                  </div>
-                  
-                  <div className="p-6">
-                    {/* Story Publication Form */}
-                    <form className="space-y-5" onSubmit={handleAddStory}>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Founder Name</label>
-                          <input name="founder_name" type="text" required placeholder="e.g. Aarav Patel" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Startup Name</label>
-                          <input name="startup_name" type="text" required placeholder="e.g. NexusAI" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Niche</label>
-                          <select name="niche" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors">
-                            <option>AI</option>
-                            <option>E-commerce</option>
-                            <option>SaaS</option>
-                          </select>
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Avatar URL</label>
-                          <input name="avatar_url" type="url" required placeholder="https://images.unsplash.com/..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                        </div>
-                      </div>
+              <motion.div key="stories" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-purple-400" /> Add Success Story</h2>
+                  <form onSubmit={handleAddStory} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input name="founder_name" required placeholder="Founder Name" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500" />
+                    <input name="startup_name" required placeholder="Startup Name" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500" />
+                    <input name="niche" required placeholder="Niche (AI / E-commerce / SaaS)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500" />
+                    <input name="metric" required placeholder="Metric (e.g. 50k+)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-purple-500" />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Founder Avatar (Optional)</label>
+                      <input name="avatar_file" type="file" accept="image/*" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-xs text-white outline-none focus:border-purple-500 transition-all" />
+                      <input name="avatar_url" type="url" placeholder="Or Avatar URL" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-[10px] text-white outline-none mt-2" />
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Story Media (Image/Video)</label>
+                      <input name="media_file" type="file" accept="image/*,video/*" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-xs text-white outline-none focus:border-purple-500 transition-all" />
+                      <input name="media_url" type="url" placeholder="Or Media URL" className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-2 text-[10px] text-white outline-none mt-2" />
+                    </div>
+                    <textarea name="summary" required placeholder="Founder Summary" rows={3} className="bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-purple-500 md:col-span-2 resize-none shadow-inner" />
+                    <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-purple-600 text-white px-10 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center gap-2"><Plus className="w-4 h-4" /> Publish Story</button></div>
+                  </form>
+                </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Key Metric</label>
-                          <input name="metric" type="text" required placeholder="e.g. ₹2.5L MRR" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                  <h3 className="text-white font-bold mb-4">Success Stories</h3>
+                  <div className="space-y-3">
+                    {stories.map(story => (
+                      <div key={story.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <img src={story.avatar_url} className="w-10 h-10 rounded-full object-cover" />
+                          <div><p className="text-sm font-bold text-white">{story.founder_name}</p><p className="text-xs text-slate-500">{story.startup_name}</p></div>
                         </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Metric Label</label>
-                          <input name="metric_label" type="text" required placeholder="e.g. Reached in 6 months" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                        </div>
+                        <button onClick={() => handleDelete('success_stories', story.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Media URL</label>
-                          <input name="media_url" type="url" required placeholder="https://images.unsplash.com/..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors" />
-                        </div>
-                        <div className="space-y-2">
-                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Media Type</label>
-                          <select name="media_type" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors">
-                            <option value="image">Image</option>
-                            <option value="video">Video</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Summary</label>
-                        <textarea name="summary" required rows={2} placeholder="Brief summary of their success..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors resize-none" />
-                      </div>
-
-                      <div className="space-y-2">
-                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Roadmap (JSON Array)</label>
-                        <textarea name="roadmap" required rows={4} placeholder='[{"title":"Idea", "description":"...", "icon":"Lightbulb"}]' defaultValue='[{"title":"Idea Validation", "description":"Used the Business Plan Evaluator tool.", "icon":"Lightbulb"}]' className="w-full font-mono bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-purple-500 transition-colors resize-none" />
-                      </div>
-
-                      <div className="pt-4 border-t border-white/10 flex justify-end">
-                        <button type="submit" className="bg-purple-500 text-white hover:bg-purple-600 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(168,85,247,0.3)]">
-                          <Plus className="w-4 h-4" /> Publish Story
-                        </button>
-                      </div>
-                    </form>
+                    ))}
                   </div>
                 </div>
               </motion.div>
             )}
 
-            {/* JOB APPLICATIONS MANAGEMENT SECTION */}
+            {activeTab === 'kb' && (
+              <motion.div key="kb" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-blue-400" /> Add Knowledge Base Resource</h2>
+                  <form onSubmit={handleAddKb} className="grid grid-cols-1 gap-5">
+                    <input name="title" required placeholder="Resource Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-blue-500" />
+                    <textarea name="description" required placeholder="Brief Description" rows={2} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-blue-500 resize-none" />
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-slate-500">Upload Document</label>
+                      <input name="kb_file" type="file" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                      <p className="text-[9px] text-slate-600 mt-1">Or paste link: <input name="download_link" type="url" placeholder="https://..." className="bg-transparent border-b border-white/10 ml-2 outline-none text-white w-48" /></p>
+                    </div>
+                    <div className="flex justify-end"><button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Add Resource</button></div>
+                  </form>
+                </div>
+
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                  <h3 className="text-white font-bold mb-4">Current Resources</h3>
+                  <div className="space-y-3">
+                    {kb.map(item => (
+                      <div key={item.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                        <div className="flex items-center gap-3">
+                          <BookOpen className="w-6 h-6 text-blue-500" />
+                          <div><p className="text-sm font-bold text-white">{item.title}</p></div>
+                        </div>
+                        <button onClick={() => handleDelete('knowledge_base', item.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
             {activeTab === 'applications' && (
               <motion.div key="applications" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
-                  {/* Applications List Header */}
-                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e] flex items-center justify-between gap-4 flex-wrap">
+                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e] flex items-center justify-between">
                     <div>
-                      <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                        <Briefcase className="w-5 h-5 text-emerald-400" /> Applications
-                      </h2>
-                      <p className="text-xs text-slate-400 mt-1">{applications.length} total submission{applications.length !== 1 ? 's' : ''}</p>
+                      <h2 className="text-lg font-bold text-white">Job Applications</h2>
+                      <p className="text-xs text-slate-500">{applications.length} submissions</p>
                     </div>
-                    {/* Search and Refresh Tools */}
-                    <div className="flex items-center gap-3">
-                      <input
-                        value={appSearch}
-                        onChange={e => setAppSearch(e.target.value)}
-                        placeholder="Search by name, email..."
-                        className="bg-[#111] border border-white/10 text-white text-sm rounded-xl px-4 py-2 placeholder-slate-600 focus:outline-none focus:border-emerald-500 w-52 transition-all"
-                      />
-                      <button onClick={fetchApplications} title="Refresh" className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
-                        <RefreshCw className="w-4 h-4" />
-                      </button>
-                    </div>
+                    <button onClick={fetchContent} className="p-2 text-slate-400 hover:text-white"><RefreshCw className="w-4 h-4" /></button>
                   </div>
-
-                  <div className="p-6">
-                    {/* Conditional rendering for loading state, empty state, and data list */}
-                    {appsLoading ? (
-                      <div className="flex justify-center py-16">
-                        <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
+                  <div className="p-6 space-y-4">
+                    {applications.map(app => (
+                      <div key={app.id} className="bg-[#111] border border-white/5 rounded-xl p-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold">{app.full_name ? app.full_name[0] : 'U'}</div>
+                          <div><p className="text-sm font-bold text-white">{app.full_name}</p><p className="text-xs text-slate-500">{app.job_postings?.title || 'Unknown Role'} · {app.experience}</p></div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <select value={app.status || 'pending'} onChange={e => updateAppStatus(app.id, e.target.value)} className="bg-black/40 text-xs border border-white/10 rounded-lg px-2 py-1 outline-none text-white">
+                            <option value="pending">Pending</option>
+                            <option value="reviewed">Reviewed</option>
+                            <option value="accepted">Accepted</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
+                          <button onClick={() => downloadPDF(app)} className="p-2 bg-white/5 rounded-lg hover:text-white"><Download className="w-4 h-4" /></button>
+                        </div>
                       </div>
-                    ) : applications.filter(a =>
-                        a.full_name?.toLowerCase().includes(appSearch.toLowerCase()) ||
-                        a.email?.toLowerCase().includes(appSearch.toLowerCase()) ||
-                        a.job_postings?.title?.toLowerCase().includes(appSearch.toLowerCase())
-                      ).length === 0 ? (
-                      <div className="text-center py-16 text-slate-500">
-                        <Briefcase className="w-12 h-12 mx-auto mb-3 opacity-30" />
-                        <p className="font-semibold">No applications found.</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-4">
-                        {/* Map and filter application data to display individual rows */}
-                        {applications
-                          .filter(a =>
-                            a.full_name?.toLowerCase().includes(appSearch.toLowerCase()) ||
-                            a.email?.toLowerCase().includes(appSearch.toLowerCase()) ||
-                            a.job_postings?.title?.toLowerCase().includes(appSearch.toLowerCase())
-                          )
-                          .map(app => {
-                            // Dynamic status styles for the select dropdown
-                            const statusStyles: Record<string, string> = {
-                              pending: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-                              reviewed: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-                              accepted: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-                              rejected: 'bg-red-500/10 text-red-400 border-red-500/20',
-                            };
-                            return (
-                              <div key={app.id} className="bg-[#111] border border-white/8 rounded-xl p-5 flex flex-col sm:flex-row gap-4 sm:items-center justify-between hover:border-emerald-500/30 transition-colors">
-                                {/* Candidate Information Section */}
-                                <div className="flex items-center gap-4">
-                                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-500/20 to-cyan-500/20 border border-white/10 flex items-center justify-center shrink-0">
-                                    {app.photo_url ? (
-                                      <img src={app.photo_url} alt={app.full_name} className="w-10 h-10 rounded-full object-cover" />
-                                    ) : (
-                                      <User className="w-5 h-5 text-slate-400" />
-                                    )}
-                                  </div>
-                                  <div>
-                                    <p className="font-bold text-white text-sm">{app.full_name}</p>
-                                    <p className="text-xs text-slate-400">{app.job_postings?.title || 'Unknown Role'} · {app.experience}</p>
-                                    <div className="flex items-center gap-3 mt-1">
-                                      <a href={`mailto:${app.email}`} className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-1 transition-colors">
-                                        <Mail className="w-3 h-3" />{app.email}
-                                      </a>
-                                      {app.linkedin_url && (
-                                        <a href={app.linkedin_url} target="_blank" rel="noreferrer" className="text-xs text-slate-500 hover:text-cyan-400 flex items-center gap-1 transition-colors">
-                                          <Linkedin className="w-3 h-3" /> LinkedIn
-                                        </a>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-
-                                {/* Status Management and Document Actions */}
-                                <div className="flex items-center gap-3 shrink-0">
-                                  {/* Status Selector */}
-                                  <select
-                                    value={app.status || 'pending'}
-                                    onChange={e => updateStatus(app.id, e.target.value)}
-                                    className={`text-xs font-bold border rounded-lg px-2 py-1.5 bg-transparent cursor-pointer outline-none ${statusStyles[app.status] || statusStyles.pending}`}
-                                  >
-                                    <option value="pending">Pending</option>
-                                    <option value="reviewed">Reviewed</option>
-                                    <option value="accepted">Accepted</option>
-                                    <option value="rejected">Rejected</option>
-                                  </select>
-                                  {/* Resume View Link */}
-                                  {app.resume_url && (
-                                    <a href={app.resume_url} target="_blank" rel="noreferrer" title="View Resume" className="p-2 bg-white/5 hover:bg-cyan-500/10 text-slate-400 hover:text-cyan-400 rounded-lg transition-colors">
-                                      <FileText className="w-4 h-4" />
-                                    </a>
-                                  )}
-                                  {/* PDF Download Button */}
-                                  <button
-                                    onClick={() => downloadAdminPDF(app)}
-                                    title="Download Admin PDF"
-                                    className="p-2 bg-white/5 hover:bg-emerald-500/10 text-slate-400 hover:text-emerald-400 rounded-lg transition-colors"
-                                  >
-                                    <Download className="w-4 h-4" />
-                                  </button>
-                                </div>
-                              </div>
-                            );
-                          })
-                        }
-                      </div>
-                    )}
+                    ))}
                   </div>
                 </div>
               </motion.div>
             )}
-
           </AnimatePresence>
         </div>
       </main>
     </div>
   );
 }
-

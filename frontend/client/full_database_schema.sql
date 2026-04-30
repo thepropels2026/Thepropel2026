@@ -105,9 +105,12 @@ CREATE TABLE IF NOT EXISTS public.knowledge_base (
 -- STORAGE BUCKETS
 -- ==========================================
 -- Run these one by one or ensure storage schema exists
-INSERT INTO storage.buckets (id, name, public) 
-VALUES ('applications', 'applications', true)
-ON CONFLICT (id) DO NOTHING;
+-- Storage Buckets for Uploads
+INSERT INTO storage.buckets (id, name, public) VALUES ('applications', 'applications', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('tools', 'tools', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('courses', 'courses', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('stories', 'stories', true) ON CONFLICT (id) DO NOTHING;
+INSERT INTO storage.buckets (id, name, public) VALUES ('kb', 'kb', true) ON CONFLICT (id) DO NOTHING;
 
 -- ==========================================
 -- RLS POLICIES (BASIC PUBLIC ACCESS)
@@ -130,19 +133,24 @@ CREATE POLICY "Allow admin read" ON public.applications FOR SELECT USING (true);
 -- Success Stories
 ALTER TABLE public.success_stories ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.success_stories FOR SELECT USING (true);
-CREATE POLICY "Allow admin insert" ON public.success_stories FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow admin all" ON public.success_stories FOR ALL USING (true);
 
 -- Tools
 ALTER TABLE public.tools_cards ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.tools_cards FOR SELECT USING (true);
-CREATE POLICY "Allow admin insert" ON public.tools_cards FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow admin all" ON public.tools_cards FOR ALL USING (true);
 
 -- Courses
 ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.courses FOR SELECT USING (true);
-CREATE POLICY "Allow admin insert" ON public.courses FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow admin all" ON public.courses FOR ALL USING (true);
 
 -- Knowledge Base
 ALTER TABLE public.knowledge_base ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.knowledge_base FOR SELECT USING (true);
-CREATE POLICY "Allow admin insert" ON public.knowledge_base FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow admin all" ON public.knowledge_base FOR ALL USING (true);
+
+-- Job Postings
+ALTER TABLE public.job_postings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read" ON public.job_postings FOR SELECT USING (true);
+CREATE POLICY "Allow admin all" ON public.job_postings FOR ALL USING (true);

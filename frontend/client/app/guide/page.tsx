@@ -31,10 +31,7 @@ export default function GuideLmsPage() {
   ];
 
   return (
-    // Wrap entire guide section in a light-themed container
     <div className="min-h-screen bg-slate-50 text-slate-900 font-inter pb-20 pt-24">
-      
-      {/* Guide Internal Navigation Header sticky below main header */}
       <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 shadow-sm">
         <div className="max-w-6xl mx-auto flex overflow-x-auto hide-scrollbar">
           {tabs.map((tab) => (
@@ -68,7 +65,6 @@ export default function GuideLmsPage() {
           {activeTab === 'Blueprint' && <BlueprintTab />}
         </motion.div>
       </div>
-
     </div>
   );
 }
@@ -385,8 +381,8 @@ function CoursesTab() {
                   
                   <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
                      <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest line-through">₹{course.actual_price}</span>
-                        <span className="text-lg font-montserrat font-extrabold text-teal-600">Cost: ₹{course.discounted_price}</span>
+                        <span className="text-[12px] text-red-500 font-black uppercase tracking-widest line-through decoration-red-600 decoration-2 mb-1">₹{course.actual_price}</span>
+                        <span className="text-2xl font-montserrat font-black text-slate-900 tracking-tighter">₹{course.discounted_price}</span>
                      </div>
                      <a href={course.enroll_link} target="_blank" rel="noreferrer" className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
                         Enroll Now
@@ -423,13 +419,16 @@ function KnowledgeBaseTab() {
     fetchKB();
   }, []);
 
-  const displayFiles = resources.length > 0 ? resources.map(r => ({
-    id: r.id,
-    title: r.title,
-    desc: r.description,
-    download_link: r.download_link,
-    icon: FileText
-  })) : kbFiles;
+  const displayFiles = resources.length > 0 ? resources.map(r => {
+    const isPdf = r.download_link?.toLowerCase().endsWith('.pdf');
+    return {
+      id: r.id,
+      title: r.title,
+      desc: r.description,
+      download_link: r.download_link,
+      icon: isPdf ? FileText : BookOpen
+    };
+  }) : kbFiles;
   
   const filteredFiles = displayFiles.filter(f => 
     f.title.toLowerCase().includes(searchQuery.toLowerCase()) || 

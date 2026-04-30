@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { TrendingUp, Award, Zap, ArrowRight, PlayCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
+import Image from 'next/image';
 
 type Niche = 'All' | 'AI' | 'E-commerce' | 'SaaS';
 
@@ -119,10 +120,11 @@ export default function SuccessStories() {
                   <Link href={`/success-stories/${story.id}`} className="group relative bg-[#0a0a0f] border border-white/10 rounded-[2rem] hover:border-cyan-500/30 transition-colors duration-500 overflow-hidden cursor-pointer shadow-xl flex flex-col h-full block">
                     {/* Media Section */}
                     <div className="w-full h-56 md:h-64 relative overflow-hidden bg-black/50">
-                      <img 
+                      <Image 
                         src={story.media_url} 
                         alt={`${story.founder_name}'s journey`} 
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
                       />
                       {story.media_type === 'video' && (
                         <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
@@ -143,7 +145,13 @@ export default function SuccessStories() {
                       {/* Avatar */}
                       <div className="flex items-end gap-4 mb-6">
                         <div className="w-20 h-20 rounded-2xl bg-[#0a0a0f] p-1 shadow-2xl relative z-20 group-hover:-translate-y-2 transition-transform duration-500">
-                          <img src={story.avatar_url} alt={story.founder_name} className="w-full h-full object-cover rounded-xl" />
+                          <Image 
+                            src={story.avatar_url} 
+                            alt={story.founder_name} 
+                            width={80} 
+                            height={80} 
+                            className="w-full h-full object-cover rounded-xl" 
+                          />
                         </div>
                         <div className="pb-1">
                           <h3 className="font-bold text-xl font-montserrat text-white">{story.founder_name}</h3>
