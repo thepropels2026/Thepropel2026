@@ -126,28 +126,24 @@ export default function Tools() {
                       getIconForCategory(tool.category)
                     )}
                   </div>
-                  {tool.price > 0 ? (
-                    <div className="flex flex-col items-end gap-1">
-                      {tool.discount_price && tool.discount_price > 0 && tool.discount_price < tool.price ? (
-                        <>
-                          <span className="text-[10px] font-bold px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 uppercase tracking-wider">
-                            ${tool.discount_price}
-                          </span>
-                          <span className="text-[10px] font-bold text-gray-500 line-through">
-                            ${tool.price}
-                          </span>
-                        </>
+                  
+                  {/* Pricing Badge */}
+                  <div className="flex flex-col items-end gap-1">
+                    <span className={`text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider border ${
+                      tool.discount_price === 0 || (!tool.discount_price && tool.price === 0) 
+                        ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' 
+                        : 'bg-white/5 text-white/80 border-white/10'
+                    }`}>
+                      {tool.discount_price !== undefined && tool.discount_price !== null ? (
+                        tool.discount_price === 0 ? 'Free' : `₹${tool.discount_price}`
                       ) : (
-                        <span className="text-[10px] font-bold px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white/80 uppercase tracking-wider">
-                          ${tool.price}
-                        </span>
+                        tool.price === 0 ? 'Free' : `₹${tool.price}`
                       )}
-                    </div>
-                  ) : (
-                    <span className="text-[10px] font-bold px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 uppercase tracking-wider">
-                      Free
                     </span>
-                  )}
+                    {tool.discount_price !== undefined && tool.discount_price !== null && tool.price > tool.discount_price && (
+                      <span className="text-[10px] text-slate-500 line-through">₹{tool.price}</span>
+                    )}
+                  </div>
                 </div>
                 
                 <div className="mb-2 flex items-center gap-2">
