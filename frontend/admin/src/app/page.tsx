@@ -34,9 +34,15 @@ export default function AdminPortal() {
     job_postings?: { title: string; department: string; location: string };
   };
   
-  // State management for applications list
+  // State management for content lists
   const [applications, setApplications] = useState<Application[]>([]);
-  const [appsLoading, setAppsLoading] = useState(false);
+  const [tools, setTools] = useState<any[]>([]);
+  const [courses, setCourses] = useState<any[]>([]);
+  const [stories, setStories] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<any[]>([]);
+  const [knowledge, setKnowledge] = useState<any[]>([]);
+  
+  const [loading, setLoading] = useState(false);
   const [appSearch, setAppSearch] = useState('');
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
 
@@ -50,30 +56,66 @@ export default function AdminPortal() {
   }, []);
 
   /**
-   * fetchApplications: Retrieves all job applications from the Supabase database.
-   * Includes related job posting information (title, department, location).
+   * fetchContent: Retrieves content from Supabase based on the active tab.
    */
-  const fetchApplications = async () => {
-    setAppsLoading(true);
+  const fetchContent = async () => {
+    setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('applications')
-        .select('*, job_postings(title, department, location)')
-        .order('created_at', { ascending: false }); // Sort by newest first
-      
-      if (error) throw error;
-      setApplications(data || []);
-    } catch (err) {
-      console.error('Error fetching applications:', err);
+      if (activeTab === 'applications') {
+        const { data, error } = await supabase
+          .from('applications')
+          .select('*, job_postings(title, department, location)')
+          .order('created_at', { ascending: false });
+        if (error) throw error;
+        setApplications(data || []);
+      } else if (activeTab === 'tools') {
+        const { data, error } = await supabase.from('tools_cards').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setTools(data || []);
+      } else if (activeTab === 'courses') {
+        const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setCourses(data || []);
+      } else if (activeTab === 'stories') {
+        const { data, error } = await supabase.from('success_stories').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setStories(data || []);
+      } else if (activeTab === 'careers') {
+        const { data, error } = await supabase.from('job_postings').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setJobs(data || []);
+      } else if (activeTab === 'knowledge') {
+        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setKnowledge(data || []);
+      }
+    } catch (err: any) {
+      console.error(`Error fetching ${activeTab}:`, err.message);
     } finally {
-      setAppsLoading(false);
+      setLoading(false);
     }
   };
 
-  // Re-fetch applications whenever the 'applications' tab becomes active
+  // Re-fetch content whenever the active tab changes
   useEffect(() => {
-    if (activeTab === 'applications') fetchApplications();
-  }, [activeTab]);
+    if (isAdmin) fetchContent();
+  }, [activeTab, isAdmin]);
+
+  /**
+   * handleDelete: Removes an item from the database.
+   */
+  const handleDelete = async (table: string, id: string) => {
+    if (!confirm("Are you sure you want to remove this item?")) return;
+    
+    try {
+      const { error } = await supabase.from(table).delete().eq('id', id);
+      if (error) throw error;
+      alert("Item removed successfully!");
+      fetchContent(); // Refresh the list
+    } catch (err: any) {
+      alert("Error removing item: " + err.message);
+    }
+  };
 
   /**
    * updateStatus: Updates the hiring status of a specific application.
@@ -284,6 +326,7 @@ export default function AdminPortal() {
       if (error) throw error;
       alert("Tool added successfully!");
       (e.target as HTMLFormElement).reset();
+      fetchContent(); // Refresh the list
     } catch (err: any) {
       alert("Error adding tool: " + err.message);
     }
@@ -307,6 +350,7 @@ export default function AdminPortal() {
       if (error) throw error;
       alert("Course added successfully!");
       (e.target as HTMLFormElement).reset();
+      fetchContent(); // Refresh the list
     } catch (err: any) {
       alert("Error adding course: " + err.message);
     }
@@ -332,6 +376,7 @@ export default function AdminPortal() {
       if (error) throw error;
       alert("Job posted successfully!");
       (e.target as HTMLFormElement).reset();
+      fetchContent(); // Refresh the list
     } catch (err: any) {
       alert("Error posting job: " + err.message);
     }
@@ -351,6 +396,7 @@ export default function AdminPortal() {
       if (error) throw error;
       alert("Knowledge Base resource added successfully!");
       (e.target as HTMLFormElement).reset();
+      fetchContent(); // Refresh the list
     } catch (err: any) {
       alert("Error adding resource: " + err.message);
     }
@@ -540,6 +586,40 @@ export default function AdminPortal() {
                     </form>
                   </div>
                 </div>
+
+                {/* List of current tools for removal */}
+                <div className="mt-8 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-4 bg-[#0e0e0e] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Current Library Tools</h3>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-slate-500 font-mono">{tools.length} TOOLS</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {loading && tools.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 animate-pulse text-sm">Loading tools...</div>
+                    ) : tools.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 text-sm">No tools found.</div>
+                    ) : (
+                      tools.map((tool) => (
+                        <div key={tool.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <img src={tool.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/5" />
+                            <div>
+                              <h4 className="text-sm font-bold text-white">{tool.title}</h4>
+                              <p className="text-[10px] text-slate-500">{tool.category} · ${tool.price}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete('tools_cards', tool.id)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Remove Tool"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -595,6 +675,40 @@ export default function AdminPortal() {
                         </button>
                       </div>
                     </form>
+                  </div>
+                </div>
+
+                {/* List of current courses for removal */}
+                <div className="mt-8 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-4 bg-[#0e0e0e] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Current Courses</h3>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-slate-500 font-mono">{courses.length} COURSES</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {loading && courses.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 animate-pulse text-sm">Loading courses...</div>
+                    ) : courses.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 text-sm">No courses found.</div>
+                    ) : (
+                      courses.map((course) => (
+                        <div key={course.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <img src={course.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/5" />
+                            <div>
+                              <h4 className="text-sm font-bold text-white">{course.title}</h4>
+                              <p className="text-[10px] text-slate-500">{course.mentor} · ${course.discounted_price}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete('courses', course.id)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Remove Course"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </motion.div>
@@ -681,6 +795,40 @@ export default function AdminPortal() {
                     </form>
                   </div>
                 </div>
+
+                {/* List of current stories for removal */}
+                <div className="mt-8 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-4 bg-[#0e0e0e] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Current Stories</h3>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-slate-500 font-mono">{stories.length} STORIES</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {loading && stories.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 animate-pulse text-sm">Loading stories...</div>
+                    ) : stories.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 text-sm">No stories found.</div>
+                    ) : (
+                      stories.map((story) => (
+                        <div key={story.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <img src={story.avatar_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/5" />
+                            <div>
+                              <h4 className="text-sm font-bold text-white">{story.startup_name}</h4>
+                              <p className="text-[10px] text-slate-500">{story.founder_name} · {story.niche}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete('success_stories', story.id)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Remove Story"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -704,7 +852,7 @@ export default function AdminPortal() {
                         placeholder="Search by name, email..."
                         className="bg-[#111] border border-white/10 text-white text-sm rounded-xl px-4 py-2 placeholder-slate-600 focus:outline-none focus:border-emerald-500 w-52 transition-all"
                       />
-                      <button onClick={fetchApplications} title="Refresh" className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
+                      <button onClick={fetchContent} title="Refresh" className="p-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-xl transition-colors">
                         <RefreshCw className="w-4 h-4" />
                       </button>
                     </div>
@@ -712,7 +860,7 @@ export default function AdminPortal() {
 
                   <div className="p-6">
                     {/* Conditional rendering for loading state, empty state, and data list */}
-                    {appsLoading ? (
+                    {loading ? (
                       <div className="flex justify-center py-16">
                         <div className="w-10 h-10 border-4 border-emerald-500/30 border-t-emerald-500 rounded-full animate-spin" />
                       </div>
@@ -870,6 +1018,42 @@ export default function AdminPortal() {
                     </form>
                   </div>
                 </div>
+
+                {/* List of current jobs for removal */}
+                <div className="mt-8 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-4 bg-[#0e0e0e] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Current Job Postings</h3>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-slate-500 font-mono">{jobs.length} JOBS</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {loading && jobs.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 animate-pulse text-sm">Loading jobs...</div>
+                    ) : jobs.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 text-sm">No jobs found.</div>
+                    ) : (
+                      jobs.map((job) => (
+                        <div key={job.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                              <Briefcase className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-white">{job.title}</h4>
+                              <p className="text-[10px] text-slate-500">{job.location} · {job.mode}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete('job_postings', job.id)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Remove Job"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
               </motion.div>
             )}
 
@@ -905,6 +1089,42 @@ export default function AdminPortal() {
                         </button>
                       </div>
                     </form>
+                  </div>
+                </div>
+
+                {/* List of current knowledge items for removal */}
+                <div className="mt-8 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-4 bg-[#0e0e0e] flex justify-between items-center">
+                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">Current Resources</h3>
+                    <span className="text-[10px] bg-white/5 px-2 py-0.5 rounded text-slate-500 font-mono">{knowledge.length} ITEMS</span>
+                  </div>
+                  <div className="divide-y divide-white/5">
+                    {loading && knowledge.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 animate-pulse text-sm">Loading resources...</div>
+                    ) : knowledge.length === 0 ? (
+                      <div className="p-10 text-center text-slate-500 text-sm">No resources found.</div>
+                    ) : (
+                      knowledge.map((k) => (
+                        <div key={k.id} className="p-4 flex items-center justify-between hover:bg-white/[0.02] transition-colors group">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center">
+                              <Download className="w-5 h-5 text-slate-500" />
+                            </div>
+                            <div>
+                              <h4 className="text-sm font-bold text-white">{k.title}</h4>
+                              <p className="text-[10px] text-slate-500 truncate max-w-[200px]">{k.description}</p>
+                            </div>
+                          </div>
+                          <button 
+                            onClick={() => handleDelete('knowledge_base', k.id)}
+                            className="p-2 text-slate-500 hover:text-red-400 hover:bg-red-400/10 rounded-lg transition-all"
+                            title="Remove Resource"
+                          >
+                            <ShieldAlert className="w-4 h-4" />
+                          </button>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </div>
               </motion.div>
