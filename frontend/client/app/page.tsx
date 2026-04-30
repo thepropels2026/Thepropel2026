@@ -1,6 +1,7 @@
 "use client";
+import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic } from 'lucide-react';
+import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench } from 'lucide-react';
 import { motion } from 'framer-motion'; 
 import Image from 'next/image';
 import { supabase } from '../lib/supabase'; 
