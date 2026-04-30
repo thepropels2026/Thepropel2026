@@ -2,13 +2,13 @@
   "name": "thepropels-root",
   "version": "1.0.0",
   "scripts": {
-    "dev": "cd client && npm install && npm run dev",
-    "dev:admin": "cd admin && npm install && npm run dev",
-    "dev:server": "cd server && python main.py",
-    "install:all": "npm install && cd client && npm install && cd ../admin && npm install",
-    "build": "cd client && npm install && npm run build",
-    "build:client": "cd client && npm run build",
-    "build:admin": "cd admin && npm run build"
+    "dev": "cd frontend/client && npm install && npm run dev",
+    "dev:admin": "cd frontend/admin && npm install && npm run dev",
+    "dev:server": "cd backend/server && python main.py",
+    "install:all": "npm install && cd frontend/client && npm install && cd ../admin && npm install",
+    "build": "cd frontend/client && npm install && npm run build",
+    "build:client": "cd frontend/client && npm run build",
+    "build:admin": "cd frontend/admin && npm run build"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.105.0"
