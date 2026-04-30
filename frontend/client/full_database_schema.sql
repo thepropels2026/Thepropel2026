@@ -22,10 +22,14 @@ CREATE TABLE IF NOT EXISTS public.profiles (
 CREATE TABLE IF NOT EXISTS public.job_postings (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
     title TEXT NOT NULL,
-    department TEXT NOT NULL,
-    location TEXT NOT NULL,
     description TEXT NOT NULL,
-    requirements TEXT NOT NULL,
+    role TEXT NOT NULL,
+    qualification TEXT NOT NULL,
+    eligibility TEXT NOT NULL,
+    stipend TEXT NOT NULL,
+    work_duration TEXT NOT NULL,
+    location TEXT NOT NULL,
+    mode TEXT NOT NULL,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
@@ -71,6 +75,29 @@ CREATE TABLE IF NOT EXISTS public.tools_cards (
     redirect_link TEXT NOT NULL,
     category TEXT NOT NULL,
     price DECIMAL(10, 2) DEFAULT 0.00,
+    discount_price DECIMAL(10, 2),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- 6. COURSES (Guide Page)
+CREATE TABLE IF NOT EXISTS public.courses (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title TEXT NOT NULL,
+    image_url TEXT NOT NULL,
+    mentor TEXT NOT NULL,
+    description TEXT NOT NULL,
+    actual_price DECIMAL(10, 2) DEFAULT 0.00,
+    discounted_price DECIMAL(10, 2) DEFAULT 0.00,
+    enroll_link TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- 7. KNOWLEDGE BASE (Guide Page)
+CREATE TABLE IF NOT EXISTS public.knowledge_base (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL,
+    download_link TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
@@ -108,3 +135,14 @@ CREATE POLICY "Allow admin insert" ON public.success_stories FOR INSERT WITH CHE
 -- Tools
 ALTER TABLE public.tools_cards ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.tools_cards FOR SELECT USING (true);
+CREATE POLICY "Allow admin insert" ON public.tools_cards FOR INSERT WITH CHECK (true);
+
+-- Courses
+ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read" ON public.courses FOR SELECT USING (true);
+CREATE POLICY "Allow admin insert" ON public.courses FOR INSERT WITH CHECK (true);
+
+-- Knowledge Base
+ALTER TABLE public.knowledge_base ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read" ON public.knowledge_base FOR SELECT USING (true);
+CREATE POLICY "Allow admin insert" ON public.knowledge_base FOR INSERT WITH CHECK (true);

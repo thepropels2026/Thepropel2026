@@ -7,10 +7,14 @@ import { motion, AnimatePresence } from 'framer-motion';
 type Job = {
   id: string;
   title: string;
-  department: string;
-  location: string;
   description: string;
-  requirements: string;
+  role: string;
+  qualification: string;
+  eligibility: string;
+  stipend: string;
+  work_duration: string;
+  location: string;
+  mode: string;
   created_at: string;
 };
 
@@ -18,28 +22,27 @@ const MOCK_JOBS: Job[] = [
   {
     id: 'mock-1',
     title: 'Senior Frontend Engineer',
-    department: 'Engineering',
+    role: 'Engineering',
     location: 'Remote (India)',
+    mode: 'Full-Time',
+    stipend: '$100k - $120k',
+    work_duration: 'Permanent',
     description: 'We are looking for a Senior Frontend Engineer to lead the development of our core web platform using React and Next.js. You will work closely with design and product teams to deliver a world-class user experience for our founder community.',
-    requirements: '5+ years of React experience.\nStrong understanding of Next.js, Tailwind CSS, and performance optimization.\nExperience with Framer Motion is a plus.\nPassion for building products that empower entrepreneurs.',
+    qualification: '5+ years of React experience.\nStrong understanding of Next.js, Tailwind CSS, and performance optimization.',
+    eligibility: 'Must be legally authorized to work in India or willing to relocate.',
     created_at: new Date().toISOString(),
   },
   {
     id: 'mock-2',
     title: 'Venture Associate',
-    department: 'Investments',
+    role: 'Investments',
     location: 'Gurugram, HR',
+    mode: 'Full-Time',
+    stipend: '₹12L - ₹15L',
+    work_duration: 'Permanent',
     description: 'Join our investment team to source, evaluate, and support early-stage startups. You will conduct market research, due diligence, and help portfolio companies scale from zero to one.',
-    requirements: 'MBA or equivalent experience.\n2+ years in VC, private equity, or a high-growth startup.\nStrong analytical and networking skills.\nDeep curiosity about the startup ecosystem.',
-    created_at: new Date().toISOString(),
-  },
-  {
-    id: 'mock-3',
-    title: 'Growth Marketing Manager',
-    department: 'Marketing',
-    location: 'Remote',
-    description: 'Lead our user acquisition strategy and scale our founder ecosystem. You will run multi-channel campaigns across social media, email, and paid ads to bring the next wave of ambitious entrepreneurs to The Propels.',
-    requirements: '3+ years in growth marketing for a tech startup or agency.\nProven track record of scaling user bases and optimizing CAC.\nData-driven mindset with strong copywriting skills.',
+    qualification: 'MBA or equivalent experience.\n2+ years in VC, private equity, or a high-growth startup.',
+    eligibility: 'Open to fresh graduates with exceptional academic records.',
     created_at: new Date().toISOString(),
   },
 ];
@@ -150,7 +153,7 @@ export default function CareersPage() {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(100, 116, 139);
-        doc.text(`${selectedJob.department} · ${selectedJob.location}`, margin, 55);
+        doc.text(`${selectedJob.role} · ${selectedJob.location}`, margin, 55);
         doc.setDrawColor(226, 232, 240);
         doc.line(margin, 61, pageW - margin, 61);
         let y = 71;
@@ -268,7 +271,7 @@ export default function CareersPage() {
       doc.setFontSize(9);
       doc.setFont('helvetica', 'normal');
       doc.setTextColor(100, 116, 139);
-      doc.text(`${selectedJob.department} · ${selectedJob.location}`, margin, 55);
+      doc.text(`${selectedJob.role} · ${selectedJob.location}`, margin, 55);
 
       // Divider
       doc.setDrawColor(226, 232, 240);
@@ -404,13 +407,13 @@ export default function CareersPage() {
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
                       <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
-                        {job.department}
+                        {job.role}
                       </span>
                       <span className="flex items-center gap-1 text-xs font-bold text-slate-500 uppercase tracking-wider">
                         <MapPin className="w-3.5 h-3.5" /> {job.location}
                       </span>
                       <span className="flex items-center gap-1 text-xs font-bold text-slate-500 uppercase tracking-wider">
-                        <Clock className="w-3.5 h-3.5" /> Full Time
+                        <Clock className="w-3.5 h-3.5" /> {job.mode}
                       </span>
                     </div>
                     <h2 className="text-2xl font-bold font-montserrat text-slate-900 group-hover:text-cyan-700 transition-colors mb-2">
@@ -459,12 +462,21 @@ export default function CareersPage() {
             >
               <div className="p-8 border-b border-slate-100 flex justify-between items-start sticky top-0 bg-white/80 backdrop-blur-md z-20">
                 <div>
-                  <div className="flex gap-2 mb-3">
+                  <div className="flex gap-2 mb-3 flex-wrap">
                     <span className="px-3 py-1 bg-cyan-50 text-cyan-700 text-xs font-bold uppercase tracking-wider rounded-lg">
-                      {selectedJob.department}
+                      {selectedJob.role}
                     </span>
                     <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
                       <MapPin className="w-3.5 h-3.5 inline mr-1 -mt-0.5" />{selectedJob.location}
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
+                      {selectedJob.mode}
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
+                      Stipend: {selectedJob.stipend}
+                    </span>
+                    <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
+                      Duration: {selectedJob.work_duration}
                     </span>
                   </div>
                   <h2 className="text-3xl font-extrabold font-montserrat text-slate-900">{selectedJob.title}</h2>
@@ -476,12 +488,16 @@ export default function CareersPage() {
               
               <div className="p-8 overflow-y-auto flex-1 text-slate-600 leading-relaxed space-y-8">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">About the Role</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Job Description</h3>
                   <p className="whitespace-pre-wrap">{selectedJob.description}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Requirements</h3>
-                  <p className="whitespace-pre-wrap">{selectedJob.requirements}</p>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Qualification</h3>
+                  <p className="whitespace-pre-wrap">{selectedJob.qualification}</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Eligibility</h3>
+                  <p className="whitespace-pre-wrap">{selectedJob.eligibility}</p>
                 </div>
               </div>
 

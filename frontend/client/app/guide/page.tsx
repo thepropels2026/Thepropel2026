@@ -7,6 +7,7 @@ import {
   ChevronRight, Circle, Play, CheckSquare
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { supabase } from '../../lib/supabase';
 
 // Mock Knowledge Base Data
 const kbFiles = [
@@ -311,12 +312,43 @@ function LearningTab() {
 // 3. COURSES TAB
 // ------------------------------------------------------------------
 function CoursesTab() {
+  const [courses, setCourses] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchCourses() {
+      try {
+        const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setCourses(data || []);
+      } catch (err) {
+        console.error("Error fetching courses:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchCourses();
+  }, []);
+
   const mockCourses = [
-    { title: 'Y-Combinator Application Masterclass', category: 'Incubation', grad: 'from-blue-500 to-indigo-600' },
-    { title: 'Zero to One: SaaS Product Strategy', category: 'Product', grad: 'from-orange-400 to-pink-500' },
-    { title: 'Financial Modeling for Pre-Seed Founders', category: 'Finance', grad: 'from-emerald-500 to-teal-700' },
-    { title: 'Growth Hacking your first 1,000 Users', category: 'Marketing', grad: 'from-purple-500 to-fuchsia-600' },
+    { title: 'Y-Combinator Application Masterclass', category: 'Incubation', grad: 'from-blue-500 to-indigo-600', actual_price: 2999, discounted_price: 0, enroll_link: '#' },
+    { title: 'Zero to One: SaaS Product Strategy', category: 'Product', grad: 'from-orange-400 to-pink-500', actual_price: 1999, discounted_price: 0, enroll_link: '#' },
+    { title: 'Financial Modeling for Pre-Seed Founders', category: 'Finance', grad: 'from-emerald-500 to-teal-700', actual_price: 4999, discounted_price: 0, enroll_link: '#' },
+    { title: 'Growth Hacking your first 1,000 Users', category: 'Marketing', grad: 'from-purple-500 to-fuchsia-600', actual_price: 1499, discounted_price: 0, enroll_link: '#' },
   ];
+
+  const displayCourses = courses.length > 0 ? courses.map((c, i) => {
+    const grads = ['from-blue-500 to-indigo-600', 'from-orange-400 to-pink-500', 'from-emerald-500 to-teal-700', 'from-purple-500 to-fuchsia-600'];
+    return {
+      title: c.title,
+      category: 'Masterclass',
+      grad: grads[i % grads.length],
+      actual_price: c.actual_price,
+      discounted_price: c.discounted_price,
+      enroll_link: c.enroll_link,
+      description: c.description
+    };
+  }) : mockCourses;
 
   return (
     <div>
@@ -331,7 +363,11 @@ function CoursesTab() {
        </div>
 
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockCourses.map((course, i) => (
+          {loading ? (
+             <div className="col-span-full py-10 flex justify-center">
+               <div className="w-8 h-8 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div>
+             </div>
+          ) : displayCourses.map((course, i) => (
             <div key={i} className="group bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300">
                {/* Abstract Gradient Thumbnail */}
                <div className={`h-40 bg-gradient-to-tr ${course.grad} relative p-6 flex items-end overflow-hidden`}>
@@ -345,16 +381,16 @@ function CoursesTab() {
                
                <div className="p-6 flex flex-col flex-grow">
                   <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight group-hover:text-cyan-600 transition-colors">{course.title}</h3>
-                  <p className="text-sm text-slate-500 mb-6 flex-grow">Comprehensive templates and walkthrough videos included to accelerate your journey.</p>
+                  <p className="text-sm text-slate-500 mb-6 flex-grow">{course.description || 'Comprehensive templates and walkthrough videos included to accelerate your journey.'}</p>
                   
                   <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
                      <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest line-through">₹2,999</span>
-                        <span className="text-lg font-montserrat font-extrabold text-teal-600">Cost: ₹0</span>
+                        <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest line-through">₹{course.actual_price}</span>
+                        <span className="text-lg font-montserrat font-extrabold text-teal-600">Cost: ₹{course.discounted_price}</span>
                      </div>
-                     <button className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md">
+                     <a href={course.enroll_link} target="_blank" rel="noreferrer" className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
                         Enroll Now
-                     </button>
+                     </a>
                   </div>
                </div>
             </div>
@@ -369,8 +405,33 @@ function CoursesTab() {
 // ------------------------------------------------------------------
 function KnowledgeBaseTab() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [resources, setResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchKB() {
+      try {
+        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setResources(data || []);
+      } catch (err) {
+        console.error("Error fetching knowledge base:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchKB();
+  }, []);
+
+  const displayFiles = resources.length > 0 ? resources.map(r => ({
+    id: r.id,
+    title: r.title,
+    desc: r.description,
+    download_link: r.download_link,
+    icon: FileText
+  })) : kbFiles;
   
-  const filteredFiles = kbFiles.filter(f => 
+  const filteredFiles = displayFiles.filter(f => 
     f.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     f.desc.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -411,9 +472,15 @@ function KnowledgeBaseTab() {
                 <h3 className="font-bold text-slate-800 text-lg group-hover:text-cyan-700 transition-colors">{file.title}</h3>
                 <p className="text-slate-500 text-sm mt-1">{file.desc}</p>
               </div>
-              <button className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
-                <Download className="w-4 h-4" /> Download
-              </button>
+              {file.download_link ? (
+                <a href={file.download_link} target="_blank" rel="noreferrer" className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
+                  <Download className="w-4 h-4" /> Download
+                </a>
+              ) : (
+                <button className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
+                  <Download className="w-4 h-4" /> Download
+                </button>
+              )}
             </motion.div>
           ))
         ) : (

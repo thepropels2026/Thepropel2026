@@ -13,6 +13,7 @@ type ToolCard = {
   redirect_link: string;
   category: string;
   price: number;
+  discount_price?: number;
 };
 
 // Helper function to pick an icon based on category
@@ -126,9 +127,22 @@ export default function Tools() {
                     )}
                   </div>
                   {tool.price > 0 ? (
-                    <span className="text-[10px] font-bold px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white/80 uppercase tracking-wider">
-                      ${tool.price}
-                    </span>
+                    <div className="flex flex-col items-end gap-1">
+                      {tool.discount_price && tool.discount_price > 0 && tool.discount_price < tool.price ? (
+                        <>
+                          <span className="text-[10px] font-bold px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full text-green-400 uppercase tracking-wider">
+                            ${tool.discount_price}
+                          </span>
+                          <span className="text-[10px] font-bold text-gray-500 line-through">
+                            ${tool.price}
+                          </span>
+                        </>
+                      ) : (
+                        <span className="text-[10px] font-bold px-3 py-1 bg-white/5 border border-white/10 rounded-full text-white/80 uppercase tracking-wider">
+                          ${tool.price}
+                        </span>
+                      )}
+                    </div>
                   ) : (
                     <span className="text-[10px] font-bold px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 rounded-full text-cyan-400 uppercase tracking-wider">
                       Free

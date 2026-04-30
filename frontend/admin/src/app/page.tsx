@@ -1,8 +1,9 @@
 "use client"; // Enable client-side rendering for interactivity (state, hooks)
 import React, { useState, useEffect } from 'react';
 // Import a wide variety of icons for the admin dashboard
-import { ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, Download, Eye, Mail, Phone, Linkedin, User, FileText, RefreshCw } from 'lucide-react';
+import { ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, Download, Eye, Mail, Phone, Linkedin, User, FileText, RefreshCw, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion'; // Animation library for UI transitions
+import Image from 'next/image';
 import { supabase } from '../lib/supabase'; // Initialize Supabase client
 
 /**
@@ -15,7 +16,7 @@ export default function AdminPortal() {
   const [emailInput, setEmailInput] = useState('');
   const [error, setError] = useState('');
   // Active dashboard tab state
-  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications'>('tools');
+  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'knowledge'>('tools');
 
   // Define the structure of an Application object
   type Application = {
@@ -262,6 +263,100 @@ export default function AdminPortal() {
     }
   };
 
+  /**
+   * Data Insertion Handlers for Tools, Courses, Careers, and Knowledge Base
+   */
+  const handleAddTool = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const toolData = Object.fromEntries(formData.entries());
+
+    try {
+      const { error } = await supabase.from('tools_cards').insert({
+        title: toolData.title,
+        description: toolData.description,
+        image_url: toolData.image_url,
+        redirect_link: toolData.redirect_link,
+        category: toolData.category,
+        price: toolData.price ? parseFloat(toolData.price as string) : 0,
+        discount_price: toolData.discount_price ? parseFloat(toolData.discount_price as string) : null,
+      });
+      if (error) throw error;
+      alert("Tool added successfully!");
+      (e.target as HTMLFormElement).reset();
+    } catch (err: any) {
+      alert("Error adding tool: " + err.message);
+    }
+  };
+
+  const handleAddCourse = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const courseData = Object.fromEntries(formData.entries());
+
+    try {
+      const { error } = await supabase.from('courses').insert({
+        title: courseData.title,
+        image_url: courseData.image_url,
+        mentor: courseData.mentor,
+        description: courseData.description,
+        actual_price: courseData.actual_price ? parseFloat(courseData.actual_price as string) : 0,
+        discounted_price: courseData.discounted_price ? parseFloat(courseData.discounted_price as string) : 0,
+        enroll_link: courseData.enroll_link,
+      });
+      if (error) throw error;
+      alert("Course added successfully!");
+      (e.target as HTMLFormElement).reset();
+    } catch (err: any) {
+      alert("Error adding course: " + err.message);
+    }
+  };
+
+  const handleAddJob = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const jobData = Object.fromEntries(formData.entries());
+
+    try {
+      const { error } = await supabase.from('job_postings').insert({
+        title: jobData.title,
+        description: jobData.description,
+        role: jobData.role,
+        qualification: jobData.qualification,
+        eligibility: jobData.eligibility,
+        stipend: jobData.stipend,
+        work_duration: jobData.work_duration,
+        location: jobData.location,
+        mode: jobData.mode,
+      });
+      if (error) throw error;
+      alert("Job posted successfully!");
+      (e.target as HTMLFormElement).reset();
+    } catch (err: any) {
+      alert("Error posting job: " + err.message);
+    }
+  };
+
+  const handleAddKnowledge = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const kData = Object.fromEntries(formData.entries());
+
+    try {
+      const { error } = await supabase.from('knowledge_base').insert({
+        title: kData.title,
+        description: kData.description,
+        download_link: kData.download_link,
+      });
+      if (error) throw error;
+      alert("Knowledge Base resource added successfully!");
+      (e.target as HTMLFormElement).reset();
+    } catch (err: any) {
+      alert("Error adding resource: " + err.message);
+    }
+  };
+
+
   // RENDER: Authentication Screen (displayed if not authorized)
   if (!isAdmin) {
     return (
@@ -309,15 +404,13 @@ export default function AdminPortal() {
 
   // RENDER: Main Admin Dashboard UI
   return (
-    <div className="min-h-screen bg-[#020202] text-slate-300 font-sans relative pb-20">
-      {/* Background visual effects */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.015)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.015)_1px,transparent_1px)] bg-[size:40px_40px] pointer-events-none" />
+    <div className="min-h-screen bg-transparent text-slate-300 font-sans relative pb-20">
       
-      {/* Top Command Center Header */}
-      <nav className="fixed top-0 left-0 right-0 h-16 bg-[#0a0a0a]/80 backdrop-blur-md border-b border-white/10 z-50 flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
-          <Terminal className="w-5 h-5 text-cyan-400" />
-          <span className="font-bold text-white tracking-widest text-sm">PROPELS_COMMAND_CENTER</span>
+      {/* Top Command Center Header - Styled like Client Header */}
+      <nav className="fixed top-0 left-0 right-0 h-16 glass-nav z-50 flex items-center justify-between px-6 transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#00F2FF] after:via-cyan-600/20 after:to-[#FF5F00]">
+        <div className="flex items-center gap-2 md:gap-3">
+          <Image src="/logo.png" alt="The Propels Logo" width={48} height={48} className="h-10 w-10 md:h-12 md:w-12 object-contain brightness-125 filter drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]" />
+          <span className="font-montserrat text-lg md:text-xl font-extrabold tracking-wider uppercase text-white hidden sm:block">THE PROPELS <span className="text-cyan-400 text-sm">ADMIN</span></span>
         </div>
         <div className="flex items-center gap-4">
           {/* Secure Session Indicator */}
@@ -333,7 +426,7 @@ export default function AdminPortal() {
       </nav>
 
       {/* Main Dashboard Grid */}
-      <main className="pt-28 px-4 sm:px-6 md:px-12 max-w-6xl mx-auto relative z-10 flex gap-8 flex-col md:flex-row items-start">
+      <main className="pt-24 px-4 sm:px-6 md:px-12 max-w-6xl mx-auto relative z-10 flex gap-8 flex-col md:flex-row items-start">
         
         {/* Sidebar Navigation: Active Tab Selection */}
         <aside className="w-full md:w-64 shrink-0 top-24 sticky z-20">
@@ -367,8 +460,24 @@ export default function AdminPortal() {
               onClick={() => setActiveTab('applications')}
               className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'applications' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
             >
-              <div className="flex items-center gap-3"><Briefcase className="w-4 h-4" /> Applications</div>
+              <div className="flex items-center gap-3"><FileText className="w-4 h-4" /> Applications</div>
               {activeTab === 'applications' && <ChevronRight className="w-4 h-4" />}
+            </button>
+            {/* Careers Tab Button */}
+            <button 
+              onClick={() => setActiveTab('careers')}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'careers' ? 'bg-pink-500/10 text-pink-400 border border-pink-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
+            >
+              <div className="flex items-center gap-3"><Briefcase className="w-4 h-4" /> Careers</div>
+              {activeTab === 'careers' && <ChevronRight className="w-4 h-4" />}
+            </button>
+            {/* Knowledge Base Tab Button */}
+            <button 
+              onClick={() => setActiveTab('knowledge')}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'knowledge' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
+            >
+              <div className="flex items-center gap-3"><Search className="w-4 h-4" /> Knowledge Base</div>
+              {activeTab === 'knowledge' && <ChevronRight className="w-4 h-4" />}
             </button>
           </div>
         </aside>
@@ -388,9 +497,46 @@ export default function AdminPortal() {
                     <p className="text-xs text-slate-400 mt-1">Deploy a new startup tool to the public library.</p>
                   </div>
                   <div className="p-6">
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Database integration ready for hookup!"); }}>
-                      {/* Placeholder for tool addition form */}
-                      <p>Form UI here...</p>
+                    <form className="space-y-5" onSubmit={handleAddTool}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Title</label>
+                          <input name="title" type="text" required placeholder="e.g. Canva" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Category</label>
+                          <input name="category" type="text" required placeholder="e.g. Design" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Image URL</label>
+                          <input name="image_url" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Redirect Link</label>
+                          <input name="redirect_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Actual Price</label>
+                          <input name="price" type="number" step="0.01" defaultValue="0" required className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Discount Price</label>
+                          <input name="discount_price" type="number" step="0.01" placeholder="Optional" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Description</label>
+                        <textarea name="description" required rows={3} placeholder="Brief description of the tool..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition-colors resize-none" />
+                      </div>
+                      <div className="pt-4 border-t border-white/10 flex justify-end">
+                        <button type="submit" className="bg-cyan-500 text-white hover:bg-cyan-600 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                          <Plus className="w-4 h-4" /> Add Tool
+                        </button>
+                      </div>
                     </form>
                   </div>
                 </div>
@@ -408,9 +554,46 @@ export default function AdminPortal() {
                     <p className="text-xs text-slate-400 mt-1">Add new lecture modules to existing courses.</p>
                   </div>
                   <div className="p-6">
-                    <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); alert("Database integration ready for hookup!"); }}>
-                      {/* Placeholder for course addition form */}
-                      <p>Form UI here...</p>
+                    <form className="space-y-5" onSubmit={handleAddCourse}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Course Title</label>
+                          <input name="title" type="text" required placeholder="e.g. Next.js Masterclass" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mentor</label>
+                          <input name="mentor" type="text" required placeholder="e.g. John Doe" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Image URL</label>
+                          <input name="image_url" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Enroll Link</label>
+                          <input name="enroll_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Actual Price</label>
+                          <input name="actual_price" type="number" step="0.01" defaultValue="0" required className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Discounted Price</label>
+                          <input name="discounted_price" type="number" step="0.01" defaultValue="0" required className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Description</label>
+                        <textarea name="description" required rows={3} placeholder="Course description..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-orange-500 transition-colors resize-none" />
+                      </div>
+                      <div className="pt-4 border-t border-white/10 flex justify-end">
+                        <button type="submit" className="bg-orange-500 text-white hover:bg-orange-600 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(249,115,22,0.3)]">
+                          <Plus className="w-4 h-4" /> Add Course
+                        </button>
+                      </div>
                     </form>
                   </div>
                 </div>
@@ -620,6 +803,108 @@ export default function AdminPortal() {
                         }
                       </div>
                     )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* CAREERS / JOBS MANAGEMENT SECTION */}
+            {activeTab === 'careers' && (
+              <motion.div key="careers" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e]">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Briefcase className="w-5 h-5 text-pink-400" /> Job Postings
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1">Add new job openings for the Careers page.</p>
+                  </div>
+                  <div className="p-6">
+                    <form className="space-y-5" onSubmit={handleAddJob}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Job Title</label>
+                          <input name="title" type="text" required placeholder="e.g. Senior Developer" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Role</label>
+                          <input name="role" type="text" required placeholder="e.g. Engineering" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Location</label>
+                          <input name="location" type="text" required placeholder="e.g. Remote, NY" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Mode</label>
+                          <input name="mode" type="text" required placeholder="e.g. Full-Time" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Stipend / Salary</label>
+                          <input name="stipend" type="text" required placeholder="e.g. $100k - $120k" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Work Duration</label>
+                          <input name="work_duration" type="text" required placeholder="e.g. Permanent" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Qualification</label>
+                        <input name="qualification" type="text" required placeholder="e.g. BS in Computer Science" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Eligibility</label>
+                        <textarea name="eligibility" required rows={2} placeholder="Who is eligible..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors resize-none" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Job Description</label>
+                        <textarea name="description" required rows={3} placeholder="Job description..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-pink-500 transition-colors resize-none" />
+                      </div>
+                      <div className="pt-4 border-t border-white/10 flex justify-end">
+                        <button type="submit" className="bg-pink-500 text-white hover:bg-pink-600 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(236,72,153,0.3)]">
+                          <Plus className="w-4 h-4" /> Post Job
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* KNOWLEDGE BASE MANAGEMENT SECTION */}
+            {activeTab === 'knowledge' && (
+              <motion.div key="knowledge" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}>
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                  <div className="border-b border-white/10 px-6 py-5 bg-[#0e0e0e]">
+                    <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                      <Search className="w-5 h-5 text-blue-400" /> Knowledge Base Resources
+                    </h2>
+                    <p className="text-xs text-slate-400 mt-1">Upload and manage PDFs or documents for the Guide page.</p>
+                  </div>
+                  <div className="p-6">
+                    <form className="space-y-5" onSubmit={handleAddKnowledge}>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Resource Title</label>
+                          <input name="title" type="text" required placeholder="e.g. Seed Pitch Deck Template" className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Download Link (PDF URL)</label>
+                          <input name="download_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Description</label>
+                        <textarea name="description" required rows={3} placeholder="Briefly describe the resource..." className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-blue-500 transition-colors resize-none" />
+                      </div>
+                      <div className="pt-4 border-t border-white/10 flex justify-end">
+                        <button type="submit" className="bg-blue-500 text-white hover:bg-blue-600 px-6 py-2.5 rounded-xl font-bold text-sm flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(59,130,246,0.3)]">
+                          <Plus className="w-4 h-4" /> Add Resource
+                        </button>
+                      </div>
+                    </form>
                   </div>
                 </div>
               </motion.div>
