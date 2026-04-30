@@ -314,20 +314,30 @@ export default function AdminPortal() {
     const toolData = Object.fromEntries(formData.entries());
 
     try {
+      const price = parseFloat(toolData.price as string);
+      const discountPriceRaw = toolData.discount_price as string;
+      const discount_price = (discountPriceRaw && !isNaN(parseFloat(discountPriceRaw))) ? parseFloat(discountPriceRaw) : null;
+
       const { error } = await supabase.from('tools_cards').insert({
         title: toolData.title,
         description: toolData.description,
         image_url: toolData.image_url,
         redirect_link: toolData.redirect_link,
         category: toolData.category,
-        price: toolData.price ? parseFloat(toolData.price as string) : 0,
-        discount_price: toolData.discount_price ? parseFloat(toolData.discount_price as string) : null,
+        price: isNaN(price) ? 0 : price,
+        discount_price: discount_price,
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Supabase Error adding tool:", error);
+        throw new Error(error.message + (error.details ? " - " + error.details : ""));
+      }
+      
       alert("Tool added successfully!");
       (e.target as HTMLFormElement).reset();
-      fetchContent(); // Refresh the list
+      fetchContent();
     } catch (err: any) {
+      console.error("Catch Error adding tool:", err);
       alert("Error adding tool: " + err.message);
     }
   };
@@ -338,20 +348,29 @@ export default function AdminPortal() {
     const courseData = Object.fromEntries(formData.entries());
 
     try {
+      const actualPrice = parseFloat(courseData.actual_price as string);
+      const discountedPrice = parseFloat(courseData.discounted_price as string);
+
       const { error } = await supabase.from('courses').insert({
         title: courseData.title,
         image_url: courseData.image_url,
         mentor: courseData.mentor,
         description: courseData.description,
-        actual_price: courseData.actual_price ? parseFloat(courseData.actual_price as string) : 0,
-        discounted_price: courseData.discounted_price ? parseFloat(courseData.discounted_price as string) : 0,
+        actual_price: isNaN(actualPrice) ? 0 : actualPrice,
+        discounted_price: isNaN(discountedPrice) ? 0 : discountedPrice,
         enroll_link: courseData.enroll_link,
       });
-      if (error) throw error;
+      
+      if (error) {
+        console.error("Supabase Error adding course:", error);
+        throw new Error(error.message + (error.details ? " - " + error.details : ""));
+      }
+      
       alert("Course added successfully!");
       (e.target as HTMLFormElement).reset();
-      fetchContent(); // Refresh the list
+      fetchContent();
     } catch (err: any) {
+      console.error("Catch Error adding course:", err);
       alert("Error adding course: " + err.message);
     }
   };
@@ -504,7 +523,7 @@ export default function AdminPortal() {
             {/* Applications Tab Button */}
             <button 
               onClick={() => setActiveTab('applications')}
-              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'applications' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
+              className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === 'applications' ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200 border border-transparent'}`}
             >
               <div className="flex items-center gap-3"><FileText className="w-4 h-4" /> Applications</div>
               {activeTab === 'applications' && <ChevronRight className="w-4 h-4" />}
