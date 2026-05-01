@@ -78,132 +78,140 @@ export default function CareersPage() {
   const uniqueLocations = ['All', ...Array.from(new Set(jobs.map(j => j.location)))];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 relative overflow-hidden">
-      {/* Fixed background decor */}
-      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
-      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-16 pb-24 relative overflow-hidden">
+      {/* Soft Decorative Elements */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
       
-      {/* BOX 1: Main Heading - Pinned to the top below header */}
-      <div className="sticky top-[100px] z-[45] bg-slate-50/80 backdrop-blur-md pt-6 pb-4 border-b border-slate-200 shadow-sm">
-        <div className="max-w-4xl mx-auto text-center px-6">
-          <h1 className="text-3xl md:text-4xl font-montserrat font-medium mb-3 tracking-tight text-slate-900">
-            Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 font-bold">Future of Startups</span>
-          </h1>
-          <p className="text-[11px] text-slate-600 font-medium uppercase tracking-widest">
-            Ambitious builders, thinkers, and innovators scaling global unicorns.
-          </p>
-        </div>
-      </div>
-
-      <div className="max-w-[1600px] mx-auto px-6 relative z-10 mt-8">
-        {/* 3-Column Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-          
-          {/* BOX 2: LEFT SIDEBAR - Career Center (Stick to screen) */}
-          <div className="lg:col-span-3 sticky top-[240px] space-y-4">
-            <div className="bg-white border border-slate-200 p-6 rounded-[1rem] shadow-sm">
-              <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Career Center</h3>
-              <div className="space-y-4">
-                <button className="flex items-center gap-3 w-full text-left group">
-                  <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Briefcase className="w-4 h-4" />
-                  </div>
-                  <span className="text-[13px] font-bold text-slate-800">Job Tracker</span>
-                </button>
-                <button className="flex items-center gap-3 w-full text-left group">
-                  <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Users className="w-4 h-4" />
-                  </div>
-                  <span className="text-[13px] font-bold text-slate-800">My Career</span>
-                </button>
-                <button className="flex items-center gap-3 w-full text-left group">
-                  <div className="p-2 bg-slate-50 rounded-xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Clock className="w-4 h-4" />
-                  </div>
-                  <span className="text-[13px] font-bold text-slate-800">Preferences</span>
-                </button>
-              </div>
-            </div>
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
+            <Building className="w-4 h-4" /> Join The Propulsion Team
           </div>
+          <h1 className="text-4xl md:text-6xl font-montserrat font-extrabold mb-6 tracking-tight text-slate-900">
+            Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
+          </h1>
+          <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+            We're looking for ambitious builders, thinkers, and innovators to help us scale the next generation of global unicorns.
+          </p>
+        </motion.div>
 
-          {/* CENTER COLUMN - Filters (BOX 4) & Job Cards */}
-          <div className="lg:col-span-6 space-y-0">
-            {/* BOX 4: Filter Section - STICKY (Right below heading box) */}
-            {!loading && jobs.length > 0 && (
-              <div className="sticky top-[240px] z-[40] grid grid-cols-2 gap-3 mb-0 bg-white/95 backdrop-blur-md p-5 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm transition-all">
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
-                  <select 
-                    value={filters.role}
-                    onChange={(e) => setFilters({...filters, role: e.target.value})}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
-                  >
-                    {uniqueRoles.map(role => <option key={role} value={role}>{role}</option>)}
-                  </select>
-                </div>
-                <div className="space-y-1">
-                  <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
-                  <select 
-                    value={filters.location}
-                    onChange={(e) => setFilters({...filters, location: e.target.value})}
-                    className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-[10px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
-                  >
-                    {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
-                  </select>
-                </div>
-              </div>
-            )}
+        {/* Filter Section */}
+        {!loading && jobs.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200 shadow-sm max-w-5xl mx-auto"
+          >
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
+              <select 
+                value={filters.role}
+                onChange={(e) => setFilters({...filters, role: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                {uniqueRoles.map(role => <option key={role} value={role}>{role}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
+              <select 
+                value={filters.location}
+                onChange={(e) => setFilters({...filters, location: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Stipend</label>
+              <select 
+                value={filters.pay}
+                onChange={(e) => setFilters({...filters, pay: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                <option value="All">All Pay</option>
+                <option value="10k">₹10k+</option>
+                <option value="20k">₹20k+</option>
+                <option value="Unpaid">Unpaid</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
+              <select 
+                value={filters.duration}
+                onChange={(e) => setFilters({...filters, duration: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                <option value="All">All Durations</option>
+                <option value="1 Month">1 Month</option>
+                <option value="3 Months">3 Months</option>
+                <option value="6 Months">6 Months</option>
+              </select>
+            </div>
+          </motion.div>
+        )}
 
-            {/* Job List - THE ONLY SCROLLING PART */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+          {/* Main Job List */}
+          <div className="lg:col-span-8">
             {loading ? (
-              <div className="flex justify-center py-20 bg-white border border-slate-200 rounded-b-[1rem]">
-                <div className="w-10 h-10 border-4 border-slate-100 border-t-cyan-600 rounded-full animate-spin" />
+              <div className="flex justify-center py-20">
+                <div className="w-12 h-12 border-4 border-slate-200 border-t-cyan-600 rounded-full animate-spin" />
               </div>
             ) : (
-              <div className="flex flex-col -space-y-[1px]">
+              <div className="flex flex-col gap-6">
                 {filteredJobs.length === 0 ? (
-                  <div className="text-center py-20 bg-white border border-slate-200 rounded-b-[1rem] shadow-sm">
-                    <Briefcase className="w-12 h-12 text-slate-200 mx-auto mb-4" />
-                    <h3 className="text-base font-bold text-slate-800">No Matching Roles</h3>
+                  <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                    <Briefcase className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+                    <h3 className="text-xl font-bold text-slate-800 mb-2">No Matching Roles</h3>
+                    <p className="text-slate-500">Try adjusting your filters or search query.</p>
                   </div>
                 ) : (
                   filteredJobs.map((job, index) => (
                     <Link key={job?.id} href={`/careers/${job?.id}`}>
-                      <div className={`group bg-white border border-slate-200 p-6 transition-all cursor-pointer flex flex-col justify-between gap-6 relative overflow-hidden ${index === filteredJobs.length - 1 ? 'rounded-b-[1rem]' : ''}`}>
-                        <div className="absolute top-4 right-4 flex items-center gap-1 px-2 py-0.5 bg-cyan-50 rounded-full text-[7px] font-black text-cyan-600 uppercase tracking-widest border border-cyan-100">
-                          <span className="w-1 h-1 bg-cyan-500 rounded-full animate-pulse" /> Hiring
+                      <motion.div 
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden"
+                      >
+                        {/* Active Pulse Decor */}
+                        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-cyan-50 rounded-full text-[9px] font-black text-cyan-600 uppercase tracking-widest border border-cyan-100">
+                          <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse" /> Actively Hiring
                         </div>
 
-                        <div className="space-y-3">
-                          <div className="flex flex-wrap gap-2">
-                            <span className="px-3 py-0.5 bg-slate-900 text-white rounded-full text-[7px] font-black uppercase tracking-wider">
+                        <div className="flex-1 space-y-4">
+                          <div className="flex flex-wrap gap-3">
+                            <span className="px-4 py-1 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-md">
                               {job.role}
                             </span>
-                            <span className="text-[8px] text-slate-400 font-bold uppercase tracking-widest flex items-center gap-1">
-                              <MapPin className="w-2.5 h-2.5" /> {job.location}
-                            </span>
+                            <div className="flex gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.1em]">
+                              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {job.location}</span>
+                              <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> 10+ Applicants</span>
+                            </div>
                           </div>
                           
                           <div>
-                            <h2 className="text-lg font-bold text-slate-900 group-hover:text-cyan-600 transition-colors mb-1 font-montserrat">
+                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors mb-2 font-montserrat">
                               {job.title}
                             </h2>
-                            <p className="text-slate-500 text-[11px] leading-relaxed line-clamp-2 font-medium">
+                            <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 max-w-2xl font-medium">
                               {job.description}
                             </p>
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between pt-4 border-t border-slate-50">
-                          <div className="flex flex-col">
-                            <span className="text-[8px] text-slate-400 font-black uppercase tracking-widest">Package</span>
-                            <span className="text-sm font-extrabold text-slate-900">{job.stipend}</span>
+                        <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end gap-6 shrink-0 pt-6 md:pt-0 border-t md:border-t-0 border-slate-100">
+                          <div className="flex flex-col md:items-end">
+                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Estimated Package</span>
+                            <span className="text-xl font-extrabold text-slate-900">{job.stipend}</span>
                           </div>
-                          <div className="bg-slate-50 group-hover:bg-cyan-600 text-slate-900 group-hover:text-white px-5 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest transition-all flex items-center gap-2">
-                            Details <ArrowRight className="w-3 h-3" />
+                          <div className="bg-slate-50 group-hover:bg-cyan-600 text-slate-900 group-hover:text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-sm group-hover:shadow-cyan-200 flex items-center justify-center gap-2">
+                            View Role <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     </Link>
                   ))
                 )}
@@ -211,27 +219,61 @@ export default function CareersPage() {
             )}
           </div>
 
-          {/* BOX 3: RIGHT SIDEBAR - Premium Access (Stick to screen) */}
-          <div className="lg:col-span-3 sticky top-[240px]">
-            <div className="bg-slate-900 p-6 rounded-[1rem] text-white shadow-xl relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/20 rounded-full -mr-12 -mt-12 blur-2xl group-hover:scale-150 transition-transform duration-700" />
-              <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-cyan-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest mb-3">
-                  PRO MEMBER
-                </div>
-                <h3 className="text-lg font-black mb-1 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400 font-bold">Career</span></h3>
-                <p className="text-slate-400 text-[10px] mb-6 leading-relaxed font-medium">Exclusive insights & priority applications.</p>
-                <div className="flex items-end gap-1 mb-6">
-                  <span className="text-2xl font-black">₹0/-</span>
-                  <span className="text-slate-400 text-[8px] font-bold uppercase mb-1">/ Mo</span>
-                </div>
-                <button className="w-full bg-white text-slate-900 py-3 rounded-xl font-black text-[9px] uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-lg active:scale-95">
-                  Get Access
+          {/* Sidebar Section */}
+          <div className="lg:col-span-4 space-y-6">
+            {/* Options Card */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              className="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-sm sticky top-24"
+            >
+              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Career Center</h3>
+              <div className="space-y-6">
+                <button className="flex items-center gap-4 w-full text-left group">
+                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Briefcase className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-black text-black">Job Tracker</span>
+                </button>
+                <button className="flex items-center gap-4 w-full text-left group">
+                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Users className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-black text-black">My Career</span>
+                </button>
+                <button className="flex items-center gap-4 w-full text-left group">
+                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Clock className="w-5 h-5" />
+                  </div>
+                  <span className="text-lg font-black text-black">Preferences</span>
                 </button>
               </div>
-            </div>
-          </div>
+            </motion.div>
 
+            {/* Premium Card */}
+            <motion.div 
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.2 }}
+              className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:scale-150 transition-transform duration-700" />
+              <div className="relative z-10">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest mb-4">
+                  PRO MEMBER
+                </div>
+                <h3 className="text-2xl font-black mb-2 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400">Career</span> to the Moon</h3>
+                <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">Unlock exclusive job insights, priority applications, and direct mentorship.</p>
+                <div className="flex items-end gap-2 mb-8">
+                  <span className="text-4xl font-black">₹0/-</span>
+                  <span className="text-slate-400 text-xs font-bold uppercase mb-1.5">/ Month</span>
+                </div>
+                <button className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-lg active:scale-95">
+                  Get Premium Access
+                </button>
+              </div>
+            </motion.div>
+          </div>
         </div>
       </div>
     </div>
