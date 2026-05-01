@@ -79,56 +79,52 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-16 pb-24 relative overflow-hidden">
-      {/* Soft Decorative Elements */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
+      {/* Soft Decorative Elements - Reduced Opacity/Animations */}
+      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-[10px] font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Propulsion Team
           </div>
           <h1 className="text-4xl md:text-6xl font-montserrat font-extrabold mb-6 tracking-tight text-slate-900">
             Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
+          <p className="text-base text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
             We're looking for ambitious builders, thinkers, and innovators to help us scale the next generation of global unicorns.
           </p>
-        </motion.div>
+        </div>
 
         {/* Filter Section */}
         {!loading && jobs.length > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200 shadow-sm max-w-5xl mx-auto"
-          >
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200 shadow-sm max-w-5xl mx-auto">
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
               <select 
                 value={filters.role}
                 onChange={(e) => setFilters({...filters, role: e.target.value})}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
               >
                 {uniqueRoles.map(role => <option key={role} value={role}>{role}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
               <select 
                 value={filters.location}
                 onChange={(e) => setFilters({...filters, location: e.target.value})}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
               >
                 {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Stipend</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Stipend</label>
               <select 
                 value={filters.pay}
                 onChange={(e) => setFilters({...filters, pay: e.target.value})}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
               >
                 <option value="All">All Pay</option>
                 <option value="10k">₹10k+</option>
@@ -137,11 +133,11 @@ export default function CareersPage() {
               </select>
             </div>
             <div className="space-y-1.5">
-              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
+              <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
               <select 
                 value={filters.duration}
                 onChange={(e) => setFilters({...filters, duration: e.target.value})}
-                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2 text-[11px] font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
               >
                 <option value="All">All Durations</option>
                 <option value="1 Month">1 Month</option>
@@ -149,10 +145,10 @@ export default function CareersPage() {
                 <option value="6 Months">6 Months</option>
               </select>
             </div>
-          </motion.div>
+          </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           {/* Main Job List */}
           <div className="lg:col-span-8">
             {loading ? (
@@ -165,30 +161,25 @@ export default function CareersPage() {
                   <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
                     <Briefcase className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-slate-800 mb-2">No Matching Roles</h3>
-                    <p className="text-slate-500">Try adjusting your filters or search query.</p>
+                    <p className="text-sm text-slate-500">Try adjusting your filters or search query.</p>
                   </div>
                 ) : (
                   filteredJobs.map((job, index) => (
                     <Link key={job?.id} href={`/careers/${job?.id}`}>
-                      <motion.div 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.1 }}
-                        className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden"
-                      >
+                      <div className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden">
                         {/* Active Pulse Decor */}
-                        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-cyan-50 rounded-full text-[9px] font-black text-cyan-600 uppercase tracking-widest border border-cyan-100">
-                          <span className="w-1.5 h-1.5 bg-cyan-500 rounded-full animate-pulse" /> Actively Hiring
+                        <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-cyan-50 rounded-full text-[8px] font-black text-cyan-600 uppercase tracking-widest border border-cyan-100">
+                          <span className="w-1 h-1 bg-cyan-500 rounded-full animate-pulse" /> Actively Hiring
                         </div>
 
                         <div className="flex-1 space-y-4">
                           <div className="flex flex-wrap gap-3">
-                            <span className="px-4 py-1 bg-slate-900 text-white rounded-full text-[9px] font-black uppercase tracking-wider shadow-md">
+                            <span className="px-4 py-1 bg-slate-900 text-white rounded-full text-[8px] font-black uppercase tracking-wider shadow-md">
                               {job.role}
                             </span>
-                            <div className="flex gap-4 text-[10px] text-slate-400 font-bold uppercase tracking-[0.1em]">
-                              <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {job.location}</span>
-                              <span className="flex items-center gap-1.5"><Users className="w-3.5 h-3.5" /> 10+ Applicants</span>
+                            <div className="flex gap-4 text-[9px] text-slate-400 font-bold uppercase tracking-[0.1em]">
+                              <span className="flex items-center gap-1.5"><MapPin className="w-3 h-3" /> {job.location}</span>
+                              <span className="flex items-center gap-1.5"><Users className="w-3 h-3" /> 10+ Applicants</span>
                             </div>
                           </div>
                           
@@ -196,7 +187,7 @@ export default function CareersPage() {
                             <h2 className="text-2xl md:text-3xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors mb-2 font-montserrat">
                               {job.title}
                             </h2>
-                            <p className="text-slate-500 text-sm leading-relaxed line-clamp-2 max-w-2xl font-medium">
+                            <p className="text-slate-500 text-[13px] leading-relaxed line-clamp-2 max-w-2xl font-medium">
                               {job.description}
                             </p>
                           </div>
@@ -204,14 +195,14 @@ export default function CareersPage() {
 
                         <div className="w-full md:w-auto flex flex-col sm:flex-row md:flex-col items-stretch sm:items-center md:items-end gap-6 shrink-0 pt-6 md:pt-0 border-t md:border-t-0 border-slate-100">
                           <div className="flex flex-col md:items-end">
-                            <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest mb-1">Estimated Package</span>
-                            <span className="text-xl font-extrabold text-slate-900">{job.stipend}</span>
+                            <span className="text-[9px] text-slate-400 font-black uppercase tracking-widest mb-1">Estimated Package</span>
+                            <span className="text-lg font-extrabold text-slate-900">{job.stipend}</span>
                           </div>
-                          <div className="bg-slate-50 group-hover:bg-cyan-600 text-slate-900 group-hover:text-white px-8 py-3.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-sm group-hover:shadow-cyan-200 flex items-center justify-center gap-2">
+                          <div className="bg-slate-50 group-hover:bg-cyan-600 text-slate-900 group-hover:text-white px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all shadow-sm group-hover:shadow-cyan-200 flex items-center justify-center gap-2">
                             View Role <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                           </div>
                         </div>
-                      </motion.div>
+                      </div>
                     </Link>
                   ))
                 )}
@@ -219,60 +210,51 @@ export default function CareersPage() {
             )}
           </div>
 
-          {/* Sidebar Section */}
-          <div className="lg:col-span-4 space-y-6">
+          {/* Sidebar Section - Sticky implementation */}
+          <div className="lg:col-span-4 space-y-6 sticky top-[80px]">
             {/* Options Card */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              className="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-sm sticky top-24"
-            >
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Career Center</h3>
+            <div className="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-sm">
+              <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Career Center</h3>
               <div className="space-y-6">
                 <button className="flex items-center gap-4 w-full text-left group">
-                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Briefcase className="w-5 h-5" />
+                  <div className="p-2.5 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Briefcase className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-lg font-black text-black">Job Tracker</span>
+                  <span className="text-base font-black text-black">Job Tracker</span>
                 </button>
                 <button className="flex items-center gap-4 w-full text-left group">
-                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Users className="w-5 h-5" />
+                  <div className="p-2.5 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Users className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-lg font-black text-black">My Career</span>
+                  <span className="text-base font-black text-black">My Career</span>
                 </button>
                 <button className="flex items-center gap-4 w-full text-left group">
-                  <div className="p-3 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
-                    <Clock className="w-5 h-5" />
+                  <div className="p-2.5 bg-slate-50 rounded-2xl group-hover:bg-slate-900 group-hover:text-white transition-all shadow-sm">
+                    <Clock className="w-4.5 h-4.5" />
                   </div>
-                  <span className="text-lg font-black text-black">Preferences</span>
+                  <span className="text-base font-black text-black">Preferences</span>
                 </button>
               </div>
-            </motion.div>
+            </div>
 
             {/* Premium Card */}
-            <motion.div 
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group"
-            >
+            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500 text-white rounded-full text-[9px] font-black uppercase tracking-widest mb-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest mb-4">
                   PRO MEMBER
                 </div>
-                <h3 className="text-2xl font-black mb-2 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400">Career</span> to the Moon</h3>
-                <p className="text-slate-400 text-sm mb-8 leading-relaxed font-medium">Unlock exclusive job insights, priority applications, and direct mentorship.</p>
+                <h3 className="text-xl font-black mb-2 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400">Career</span></h3>
+                <p className="text-slate-400 text-[12px] mb-8 leading-relaxed font-medium">Unlock exclusive job insights, priority applications, and direct mentorship.</p>
                 <div className="flex items-end gap-2 mb-8">
-                  <span className="text-4xl font-black">₹0/-</span>
-                  <span className="text-slate-400 text-xs font-bold uppercase mb-1.5">/ Month</span>
+                  <span className="text-3xl font-black">₹0/-</span>
+                  <span className="text-slate-400 text-[10px] font-bold uppercase mb-1">/ Month</span>
                 </div>
-                <button className="w-full bg-white text-slate-900 py-4 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-lg active:scale-95">
+                <button className="w-full bg-white text-slate-900 py-3.5 rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-cyan-400 transition-all shadow-lg active:scale-95">
                   Get Premium Access
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         </div>
       </div>
