@@ -78,13 +78,13 @@ export default function CareersPage() {
   const uniqueLocations = ['All', ...Array.from(new Set(jobs.map(j => j.location)))];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-16 pb-24 relative overflow-hidden">
-      {/* Soft Decorative Elements - Fixed background */}
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-8 pb-24 relative overflow-hidden">
+      {/* Fixed background decor */}
       <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
-        <div className="text-center mb-12">
+        <div className="text-center mb-16">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-[10px] font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Propulsion Team
           </div>
@@ -96,9 +96,9 @@ export default function CareersPage() {
           </p>
         </div>
 
-        {/* Filter Section - STICKY TOP */}
+        {/* Filter Section - STICKY TOP (Corrected Offset) */}
         {!loading && jobs.length > 0 && (
-          <div className="sticky top-[80px] z-[40] grid grid-cols-2 md:grid-cols-4 gap-4 mb-0 bg-white/80 backdrop-blur-md p-6 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm max-w-5xl mx-auto">
+          <div className="sticky top-[110px] z-[40] grid grid-cols-2 md:grid-cols-4 gap-4 mb-0 bg-white/90 backdrop-blur-md p-6 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm max-w-5xl mx-auto transition-all">
             <div className="space-y-1.5">
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
               <select 
@@ -149,7 +149,7 @@ export default function CareersPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Job List - Rectangular and Tightly Stacked */}
+          {/* Main Job List */}
           <div className="lg:col-span-8">
             {loading ? (
               <div className="flex justify-center py-20">
@@ -210,8 +210,8 @@ export default function CareersPage() {
             )}
           </div>
 
-          {/* Sidebar Section - Fixed Top Position */}
-          <div className="lg:col-span-4 space-y-6 sticky top-[80px]">
+          {/* Sidebar Section - STICKY TOP (Corrected Offset) */}
+          <div className="lg:col-span-4 space-y-6 sticky top-[110px]">
             {/* Options Card */}
             <div className="bg-white border border-slate-200 p-8 rounded-[1rem] shadow-sm">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Career Center</h3>
