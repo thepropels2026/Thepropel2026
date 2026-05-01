@@ -78,30 +78,29 @@ export default function CareersPage() {
   const uniqueLocations = ['All', ...Array.from(new Set(jobs.map(j => j.location)))];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-8 pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pb-24 relative overflow-hidden">
       {/* Fixed background decor */}
       <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       
-      <div className="max-w-[1600px] mx-auto px-6 relative z-10">
-        {/* Main Heading Area */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-[10px] font-bold uppercase tracking-widest mb-6 shadow-sm">
-            <Building className="w-4 h-4" /> Join The Propulsion Team
-          </div>
-          <h1 className="text-4xl md:text-5xl font-montserrat font-medium mb-6 tracking-tight text-slate-900">
-            Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
+      {/* BOX 1: Main Heading - Pinned to the top below header */}
+      <div className="sticky top-[100px] z-[45] bg-slate-50/80 backdrop-blur-md pt-6 pb-4 border-b border-slate-200 shadow-sm">
+        <div className="max-w-4xl mx-auto text-center px-6">
+          <h1 className="text-3xl md:text-4xl font-montserrat font-medium mb-3 tracking-tight text-slate-900">
+            Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600 font-bold">Future of Startups</span>
           </h1>
-          <p className="text-sm text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed uppercase tracking-wider">
+          <p className="text-[11px] text-slate-600 font-medium uppercase tracking-widest">
             Ambitious builders, thinkers, and innovators scaling global unicorns.
           </p>
         </div>
+      </div>
 
+      <div className="max-w-[1600px] mx-auto px-6 relative z-10 mt-8">
         {/* 3-Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
-          {/* LEFT SIDEBAR - Career Center */}
-          <div className="lg:col-span-3 sticky top-[110px] space-y-4">
+          {/* BOX 2: LEFT SIDEBAR - Career Center (Stick to screen) */}
+          <div className="lg:col-span-3 sticky top-[240px] space-y-4">
             <div className="bg-white border border-slate-200 p-6 rounded-[1rem] shadow-sm">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Career Center</h3>
               <div className="space-y-4">
@@ -127,11 +126,11 @@ export default function CareersPage() {
             </div>
           </div>
 
-          {/* CENTER COLUMN - Filters & Job Cards */}
+          {/* CENTER COLUMN - Filters (BOX 4) & Job Cards */}
           <div className="lg:col-span-6 space-y-0">
-            {/* Filter Section - STICKY TOP */}
+            {/* BOX 4: Filter Section - STICKY (Right below heading box) */}
             {!loading && jobs.length > 0 && (
-              <div className="sticky top-[110px] z-[40] grid grid-cols-2 gap-3 mb-0 bg-white/95 backdrop-blur-md p-5 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm transition-all">
+              <div className="sticky top-[240px] z-[40] grid grid-cols-2 gap-3 mb-0 bg-white/95 backdrop-blur-md p-5 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm transition-all">
                 <div className="space-y-1">
                   <label className="text-[8px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
                   <select 
@@ -155,7 +154,7 @@ export default function CareersPage() {
               </div>
             )}
 
-            {/* Job List */}
+            {/* Job List - THE ONLY SCROLLING PART */}
             {loading ? (
               <div className="flex justify-center py-20 bg-white border border-slate-200 rounded-b-[1rem]">
                 <div className="w-10 h-10 border-4 border-slate-100 border-t-cyan-600 rounded-full animate-spin" />
@@ -212,15 +211,15 @@ export default function CareersPage() {
             )}
           </div>
 
-          {/* RIGHT SIDEBAR - Premium Access */}
-          <div className="lg:col-span-3 sticky top-[110px]">
+          {/* BOX 3: RIGHT SIDEBAR - Premium Access (Stick to screen) */}
+          <div className="lg:col-span-3 sticky top-[240px]">
             <div className="bg-slate-900 p-6 rounded-[1rem] text-white shadow-xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/20 rounded-full -mr-12 -mt-12 blur-2xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-2 px-2 py-0.5 bg-cyan-500 text-white rounded-full text-[7px] font-black uppercase tracking-widest mb-3">
                   PRO MEMBER
                 </div>
-                <h3 className="text-lg font-black mb-1 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400">Career</span></h3>
+                <h3 className="text-lg font-black mb-1 font-montserrat uppercase leading-tight">Propel Your <span className="text-cyan-400 font-bold">Career</span></h3>
                 <p className="text-slate-400 text-[10px] mb-6 leading-relaxed font-medium">Exclusive insights & priority applications.</p>
                 <div className="flex items-end gap-1 mb-6">
                   <span className="text-2xl font-black">₹0/-</span>
