@@ -33,6 +33,12 @@ export default function JobDetailsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
+  // Auth States
+  const [verificationId, setVerificationId] = useState<ConfirmationResult | null>(null);
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
   // Form State
   const [formData, setFormData] = useState({
     fullName: '',
@@ -78,10 +84,57 @@ export default function JobDetailsPage() {
     if (id) fetchJobDetails();
   }, [id]);
 
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!job) return;
+  const setupRecaptcha = () => {
+    if (!(window as any).recaptchaVerifier) {
+      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          console.log("Recaptcha resolved");
+        }
+      });
+    }
+  };
 
+  const handleSendOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.phone.startsWith('+')) {
+      alert("Please enter phone number with country code (e.g. +91...)");
+      return;
+    }
+    
+    setIsSubmitting(true);
+    try {
+      setupRecaptcha();
+      const appVerifier = (window as any).recaptchaVerifier;
+      const confirmation = await signInWithPhoneNumber(auth, formData.phone, appVerifier);
+      setVerificationId(confirmation);
+      setIsOtpSent(true);
+    } catch (err: any) {
+      console.error("OTP Error:", err);
+      alert("Error sending OTP: " + err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!verificationId) return;
+
+    setIsVerifying(true);
+    try {
+      await verificationId.confirm(otp);
+      // OTP Verified, now submit the application
+      await finalizeApplication();
+    } catch (err) {
+      alert("Invalid OTP code. Please try again.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const finalizeApplication = async () => {
+    if (!job) return;
     setIsSubmitting(true);
     try {
       // 1. Submit to Database
@@ -102,7 +155,22 @@ export default function JobDetailsPage() {
 
       if (error) throw error;
 
-      // 2. Generate Enhanced PDF Receipt
+      // 2. Send Confirmation Email via Resend API
+      try {
+        await fetch('/api/send-email', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: formData.email,
+            fullName: formData.fullName,
+            jobTitle: job.title
+          })
+        });
+      } catch (emailErr) {
+        console.error("Email notification failed:", emailErr);
+      }
+
+      // 3. Generate Enhanced PDF Receipt
       const { jsPDF } = await import('jspdf');
       const doc = new jsPDF();
       
@@ -349,8 +417,9 @@ export default function JobDetailsPage() {
                       Close Window
                     </button>
                   </div>
-                ) : (
-                  <form onSubmit={handleApply} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                ) : !isOtpSent ? (
+                  <form onSubmit={handleSendOtp} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
+                    <div id="recaptcha-container"></div>
                     <div className="space-y-1.5 md:col-span-1">
                       <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
                       <input required placeholder="Sushant Sharma" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
@@ -360,7 +429,7 @@ export default function JobDetailsPage() {
                       <input required type="email" placeholder="name@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
                     </div>
                     <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone Number</label>
+                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone (with +91)</label>
                       <input required placeholder="+91 00000 00000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
                     </div>
                     <div className="space-y-1.5 md:col-span-1">
@@ -386,8 +455,30 @@ export default function JobDetailsPage() {
                     
                     <button type="submit" disabled={isSubmitting} className="md:col-span-2 bg-slate-900 text-white py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-cyan-600 transition-all shadow-xl disabled:opacity-50 mt-2 flex items-center justify-center gap-3 text-[10px]">
                       {isSubmitting ? (
-                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Transmission...</>
-                      ) : 'Submit Application & Get Receipt'}
+                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending OTP...</>
+                      ) : 'Verify Phone via OTP'}
+                    </button>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="space-y-6 py-8 text-center">
+                    <div className="space-y-4">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Enter 6-Digit OTP Sent to {formData.phone}</label>
+                      <input 
+                        required 
+                        maxLength={6}
+                        placeholder="000000" 
+                        value={otp} 
+                        onChange={e => setOtp(e.target.value)} 
+                        className="w-48 mx-auto bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-center text-3xl font-black tracking-[0.5em] outline-none focus:border-cyan-500 transition-all text-slate-900 shadow-lg" 
+                      />
+                    </div>
+                    <button type="submit" disabled={isVerifying} className="w-full max-w-xs mx-auto bg-cyan-600 text-white py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-slate-900 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3 text-[10px]">
+                      {isVerifying ? (
+                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Verifying...</>
+                      ) : 'Confirm OTP & Submit Application'}
+                    </button>
+                    <button type="button" onClick={() => setIsOtpSent(false)} className="text-[10px] font-bold text-slate-400 uppercase hover:text-cyan-600 transition-colors">
+                      Change Phone Number
                     </button>
                   </form>
                 )}
