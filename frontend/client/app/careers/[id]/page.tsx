@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
 import { 
-  MapPin, Briefcase, Clock, ArrowLeft, Building, 
+  MapPin, Briefcase, Clock, ArrowLeft, ArrowRight, Building, 
   CheckCircle2, Download, Users, Calendar, ShieldCheck, 
-  Mail, Phone, Linkedin, Send, FileText 
+  Mail, Phone, Linkedin, Send, FileText, X 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 

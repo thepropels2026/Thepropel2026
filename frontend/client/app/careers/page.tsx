@@ -1,7 +1,8 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { supabase } from '../../lib/supabase';
-import { MapPin, Briefcase, Clock, ArrowRight, X, Building, CheckCircle2, Download } from 'lucide-react';
+import { MapPin, Briefcase, Clock, ArrowRight, X, Building, CheckCircle2, Download, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 type Job = {
@@ -113,7 +114,7 @@ export default function CareersPage() {
               </div>
             ) : (
               jobs.map((job, index) => (
-                <Link key={job.id} href={`/careers/${job.id}`}>
+                <Link key={job?.id} href={`/careers/${job?.id}`}>
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
