@@ -38,6 +38,14 @@ export default function CareersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
+  // Filter States
+  const [filters, setFilters] = useState({
+    role: 'All',
+    location: 'All',
+    pay: 'All',
+    duration: 'All'
+  });
+
   useEffect(() => {
     async function fetchJobs() {
       try {
@@ -58,37 +66,25 @@ export default function CareersPage() {
     fetchJobs();
   }, []);
 
-  const handleApply = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    try {
-      const { error } = await supabase.from('applications').insert({
-        job_id: selectedJob?.id,
-        full_name: formData.fullName,
-        email: formData.email,
-        phone: formData.phone,
-        experience: formData.experience,
-        linkedin_url: formData.linkedinProfile,
-        cover_letter: formData.coverLetter,
-        status: 'pending'
-      });
-      if (error) throw error;
-      setApplySuccess(true);
-    } catch (err) {
-      alert("Error submitting application. Please try again.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+  const filteredJobs = jobs.filter(job => {
+    const roleMatch = filters.role === 'All' || job.role === filters.role;
+    const locationMatch = filters.location === 'All' || job.location === filters.location;
+    const payMatch = filters.pay === 'All' || job.stipend.includes(filters.pay);
+    const durationMatch = filters.duration === 'All' || job.work_duration.includes(filters.duration);
+    return roleMatch && locationMatch && payMatch && durationMatch;
+  });
+
+  const uniqueRoles = ['All', ...Array.from(new Set(jobs.map(j => j.role)))];
+  const uniqueLocations = ['All', ...Array.from(new Set(jobs.map(j => j.location)))];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 pt-32 pb-24 relative overflow-hidden">
+    <div className="min-h-screen bg-slate-50 text-slate-900 pt-16 pb-24 relative overflow-hidden">
       {/* Soft Decorative Elements */}
       <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-40 pointer-events-none" />
       
       <div className="max-w-5xl mx-auto px-6 relative z-10">
-        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-20">
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Propulsion Team
           </div>
@@ -100,20 +96,76 @@ export default function CareersPage() {
           </p>
         </motion.div>
 
+        {/* Filter Section */}
+        {!loading && jobs.length > 0 && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200 shadow-sm"
+          >
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
+              <select 
+                value={filters.role}
+                onChange={(e) => setFilters({...filters, role: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                {uniqueRoles.map(role => <option key={role} value={role}>{role}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Location</label>
+              <select 
+                value={filters.location}
+                onChange={(e) => setFilters({...filters, location: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                {uniqueLocations.map(loc => <option key={loc} value={loc}>{loc}</option>)}
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Stipend</label>
+              <select 
+                value={filters.pay}
+                onChange={(e) => setFilters({...filters, pay: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                <option value="All">All Pay</option>
+                <option value="10k">₹10k+</option>
+                <option value="20k">₹20k+</option>
+                <option value="Unpaid">Unpaid</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Duration</label>
+              <select 
+                value={filters.duration}
+                onChange={(e) => setFilters({...filters, duration: e.target.value})}
+                className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:border-cyan-500 transition-all shadow-sm"
+              >
+                <option value="All">All Durations</option>
+                <option value="1 Month">1 Month</option>
+                <option value="3 Months">3 Months</option>
+                <option value="6 Months">6 Months</option>
+              </select>
+            </div>
+          </motion.div>
+        )}
+
         {loading ? (
           <div className="flex justify-center py-20">
             <div className="w-12 h-12 border-4 border-slate-200 border-t-cyan-600 rounded-full animate-spin" />
           </div>
         ) : (
           <div className="flex flex-col gap-6">
-            {jobs.length === 0 ? (
+            {filteredJobs.length === 0 ? (
               <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
                 <Briefcase className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-                <h3 className="text-xl font-bold text-slate-800 mb-2">No Open Roles</h3>
-                <p className="text-slate-500">We aren't actively hiring right now, but check back soon!</p>
+                <h3 className="text-xl font-bold text-slate-800 mb-2">No Matching Roles</h3>
+                <p className="text-slate-500">Try adjusting your filters or search query.</p>
               </div>
             ) : (
-              jobs.map((job, index) => (
+              filteredJobs.map((job, index) => (
                 <Link key={job?.id} href={`/careers/${job?.id}`}>
                   <motion.div 
                     initial={{ opacity: 0, x: -20 }}
