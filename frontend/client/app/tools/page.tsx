@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
   Briefcase, BarChart, FileText, Wrench, Globe, Layout, 
-  DollarSign, Activity, Terminal, Search, Filter, ArrowRight 
+  DollarSign, Activity, Terminal, Search, Filter, ArrowRight, User 
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
