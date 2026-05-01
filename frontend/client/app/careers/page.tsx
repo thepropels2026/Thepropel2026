@@ -79,16 +79,16 @@ export default function CareersPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pt-16 pb-24 relative overflow-hidden">
-      {/* Soft Decorative Elements - Reduced Opacity/Animations */}
-      <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
+      {/* Soft Decorative Elements - Fixed background */}
+      <div className="fixed top-0 right-0 w-[600px] h-[600px] bg-cyan-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
+      <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] opacity-20 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-6 relative z-10">
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-100 text-cyan-700 text-[10px] font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Propulsion Team
           </div>
-          <h1 className="text-4xl md:text-6xl font-montserrat font-extrabold mb-6 tracking-tight text-slate-900">
+          <h1 className="text-4xl md:text-6xl font-montserrat font-medium mb-6 tracking-tight text-slate-900">
             Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
           </h1>
           <p className="text-base text-slate-600 max-w-2xl mx-auto font-medium leading-relaxed">
@@ -96,9 +96,9 @@ export default function CareersPage() {
           </p>
         </div>
 
-        {/* Filter Section */}
+        {/* Filter Section - STICKY TOP */}
         {!loading && jobs.length > 0 && (
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-10 bg-white/50 backdrop-blur-md p-6 rounded-[2rem] border border-slate-200 shadow-sm max-w-5xl mx-auto">
+          <div className="sticky top-[80px] z-[40] grid grid-cols-2 md:grid-cols-4 gap-4 mb-0 bg-white/80 backdrop-blur-md p-6 rounded-t-[1rem] border border-slate-200 border-b-0 shadow-sm max-w-5xl mx-auto">
             <div className="space-y-1.5">
               <label className="text-[9px] font-black uppercase tracking-widest text-slate-400 ml-1">Role</label>
               <select 
@@ -149,16 +149,16 @@ export default function CareersPage() {
         )}
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          {/* Main Job List */}
+          {/* Main Job List - Rectangular and Tightly Stacked */}
           <div className="lg:col-span-8">
             {loading ? (
               <div className="flex justify-center py-20">
                 <div className="w-12 h-12 border-4 border-slate-200 border-t-cyan-600 rounded-full animate-spin" />
               </div>
             ) : (
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col -space-y-[1px]">
                 {filteredJobs.length === 0 ? (
-                  <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
+                  <div className="text-center py-20 bg-white border border-slate-200 rounded-b-[1rem] shadow-sm">
                     <Briefcase className="w-16 h-16 text-slate-300 mx-auto mb-4" />
                     <h3 className="text-xl font-bold text-slate-800 mb-2">No Matching Roles</h3>
                     <p className="text-sm text-slate-500">Try adjusting your filters or search query.</p>
@@ -166,7 +166,7 @@ export default function CareersPage() {
                 ) : (
                   filteredJobs.map((job, index) => (
                     <Link key={job?.id} href={`/careers/${job?.id}`}>
-                      <div className="group bg-white border border-slate-200 p-8 rounded-[2.5rem] transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden">
+                      <div className={`group bg-white border border-slate-200 p-8 transition-all cursor-pointer flex flex-col md:flex-row items-start md:items-center justify-between gap-8 relative overflow-hidden ${index === filteredJobs.length - 1 ? 'rounded-b-[1rem]' : ''}`}>
                         {/* Active Pulse Decor */}
                         <div className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1 bg-cyan-50 rounded-full text-[8px] font-black text-cyan-600 uppercase tracking-widest border border-cyan-100">
                           <span className="w-1 h-1 bg-cyan-500 rounded-full animate-pulse" /> Actively Hiring
@@ -184,7 +184,7 @@ export default function CareersPage() {
                           </div>
                           
                           <div>
-                            <h2 className="text-2xl md:text-3xl font-black text-slate-900 group-hover:text-cyan-600 transition-colors mb-2 font-montserrat">
+                            <h2 className="text-xl md:text-2xl font-bold text-slate-900 group-hover:text-cyan-600 transition-colors mb-2 font-montserrat">
                               {job.title}
                             </h2>
                             <p className="text-slate-500 text-[13px] leading-relaxed line-clamp-2 max-w-2xl font-medium">
@@ -210,10 +210,10 @@ export default function CareersPage() {
             )}
           </div>
 
-          {/* Sidebar Section - Sticky implementation */}
+          {/* Sidebar Section - Fixed Top Position */}
           <div className="lg:col-span-4 space-y-6 sticky top-[80px]">
             {/* Options Card */}
-            <div className="bg-white border border-slate-200 p-8 rounded-[2.5rem] shadow-sm">
+            <div className="bg-white border border-slate-200 p-8 rounded-[1rem] shadow-sm">
               <h3 className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] mb-8">Career Center</h3>
               <div className="space-y-6">
                 <button className="flex items-center gap-4 w-full text-left group">
@@ -238,7 +238,7 @@ export default function CareersPage() {
             </div>
 
             {/* Premium Card */}
-            <div className="bg-slate-900 p-8 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group">
+            <div className="bg-slate-900 p-8 rounded-[1rem] text-white shadow-2xl relative overflow-hidden group">
               <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/20 rounded-full -mr-16 -mt-16 blur-3xl group-hover:scale-150 transition-transform duration-700" />
               <div className="relative z-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1 bg-cyan-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest mb-4">
