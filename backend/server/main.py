@@ -3,6 +3,7 @@ import os
 import requests
 import json
 import uuid
+import resend
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -29,16 +30,16 @@ CASHFREE_MODE = os.getenv("CASHFREE_MODE", "sandbox")
 # Determine Cashfree base URL based on mode
 CASHFREE_BASE_URL = "https://sandbox.cashfree.com/pg" if CASHFREE_MODE == "sandbox" else "https://api.cashfree.com/pg"
 
+# Resend Configuration
+RESEND_API_KEY = os.getenv("RESEND_API_KEY")
+resend.api_key = RESEND_API_KEY
+
 # Configure CORS middleware settings
 app.add_middleware(
     CORSMiddleware,
-    # Allow requests from all origins (useful for development/testing)
     allow_origins=["*"],
-    # Allow sending credentials such as cookies or authorization headers
     allow_credentials=True,
-    # Allow all HTTP methods (GET, POST, PUT, DELETE, etc.)
     allow_methods=["*"],
-    # Allow all HTTP headers in the request
     allow_headers=["*"],
 )
 
@@ -48,7 +49,45 @@ class CheckoutRequest(BaseModel):
     user_email: str
     amount: float
 
-# Root endpoint to verify if the API is running
+# Utility function to send credentials email
+def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
+    try:
+        resend.Emails.send({
+            "from": "The Propels <onboarding@resend.dev>",
+            "to": [email],
+            "subject": f"Access Granted: {tool_name} Credentials Inside!",
+            "html": f"""
+                <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
+                    <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Order Confirmed!</h2>
+                    <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase. Your premium access for <strong>{tool_name}</strong> is now active.</p>
+                    
+                    <div style="background: #f8fafc; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; margin-bottom: 32px;">
+                        <p style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 12px;">Your Activation Link</p>
+                        <a href="{assigned_link}" style="color: #0891b2; font-size: 14px; font-weight: 700; text-decoration: none; word-break: break-all;">{assigned_link}</a>
+                    </div>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+                        <tr>
+                            <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Order ID</td>
+                            <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">{order_id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Total Paid</td>
+                            <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">₹{amount}</td>
+                        </tr>
+                    </table>
+                    
+                    <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">If you have any issues with your access, please reply to this email or contact support.</p>
+                    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
+                    <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
+                </div>
+            """
+        })
+        print(f"SUCCESS: Credentials email sent to {email}")
+    except Exception as e:
+        print(f"RESEND ERROR: {str(e)}")
+
+# Root endpoint
 @app.get("/")
 def read_root():
     return {"message": "Welcome to The Propels API. All systems nominal."}
@@ -56,17 +95,12 @@ def read_root():
 # Endpoint to initiate a Cashfree checkout session
 @app.post("/api/checkout")
 async def create_checkout_session(req: CheckoutRequest):
-    # 1. Fetch tool details from Supabase to verify existence
     tool_resp = supabase.table("tools_cards").select("*").eq("id", req.tool_id).execute()
     if not tool_resp.data:
         raise HTTPException(status_code=404, detail="Tool not found")
     
-    tool = tool_resp.data[0]
-    
-    # 2. Generate a unique Order ID for tracking
     order_id = f"order_{uuid.uuid4().hex[:12]}"
     
-    # 3. Request Order creation from Cashfree
     url = f"{CASHFREE_BASE_URL}/orders"
     headers = {
         "x-api-version": "2023-08-01",
@@ -82,11 +116,7 @@ async def create_checkout_session(req: CheckoutRequest):
         "customer_details": {
             "customer_id": req.user_email.replace("@", "_").replace(".", "_"),
             "customer_email": req.user_email,
-            "customer_phone": "9999999999" # Required by Cashfree
-        },
-        "order_meta": {
-            # Redirect user back to the activation page after payment
-            "return_url": f"http://localhost:3000/activate/{order_id}"
+            "customer_phone": "9999999999"
         }
     }
     
@@ -98,7 +128,6 @@ async def create_checkout_session(req: CheckoutRequest):
         print(f"ERROR: Cashfree Order Creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create payment order")
     
-    # 4. Record the pending transaction in Supabase
     supabase.table("transactions").insert({
         "cashfree_order_id": order_id,
         "user_email": req.user_email,
@@ -116,26 +145,21 @@ async def create_checkout_session(req: CheckoutRequest):
 @app.post("/api/payment-webhook")
 async def payment_webhook(request: Request):
     payload = await request.body()
-    # Parse the webhook notification data
     data = json.loads(payload)
     
     event_type = data.get("type")
     order_data = data.get("data", {}).get("order", {})
     order_id = order_data.get("order_id")
     
-    # Process only successful payment completions
     if event_type == "PAYMENT_SUCCESS_COMPLETED":
-        # 1. Retrieve the corresponding transaction
         trans_resp = supabase.table("transactions").select("*").eq("cashfree_order_id", order_id).execute()
         if not trans_resp.data:
             return {"status": "ignored"}
         
         transaction = trans_resp.data[0]
-        # Avoid duplicate processing
         if transaction["status"] == "completed":
             return {"status": "already_processed"}
             
-        # 2. Fetch the tool to access its voucher pool
         tool_resp = supabase.table("tools_cards").select("*").eq("id", transaction["tool_id"]).execute()
         tool = tool_resp.data[0]
         pool = tool.get("voucher_pool", [])
@@ -144,17 +168,23 @@ async def payment_webhook(request: Request):
             print(f"CRITICAL: Voucher Pool Empty for tool {tool['id']}")
             return {"status": "error", "message": "No vouchers available"}
             
-        # 3. Assign the next available voucher link
         assigned_link = pool.pop(0)
         
-        # 4. Update the tool's remaining vouchers in the database
         supabase.table("tools_cards").update({"voucher_pool": pool}).eq("id", tool["id"]).execute()
         
-        # 5. Finalize the transaction with the assigned link
         supabase.table("transactions").update({
             "status": "completed",
             "assigned_link": assigned_link
         }).eq("cashfree_order_id", order_id).execute()
+        
+        # SEND EMAIL WITH CREDENTIALS
+        send_credentials_email(
+            email=transaction["user_email"],
+            tool_name=tool["title"],
+            assigned_link=assigned_link,
+            amount=transaction["amount"],
+            order_id=order_id
+        )
         
         return {"status": "success"}
     
@@ -163,23 +193,16 @@ async def payment_webhook(request: Request):
 # Redirection endpoint to mask the actual coupon/promo URL
 @app.get("/api/activate/{order_id}")
 async def activate_premium(order_id: str):
-    # 1. Fetch transaction details to get the assigned link
     trans_resp = supabase.table("transactions").select("*").eq("cashfree_order_id", order_id).execute()
     if not trans_resp.data:
         raise HTTPException(status_code=404, detail="Order not found")
         
     transaction = trans_resp.data[0]
-    # Ensure the order is paid and a link is assigned
     if transaction["status"] != "completed" or not transaction["assigned_link"]:
-        # Fallback if webhook hasn't processed yet
-        raise HTTPException(status_code=400, detail="Payment not yet verified. Please wait a few seconds and refresh.")
+        raise HTTPException(status_code=400, detail="Payment not verified.")
         
-    # 2. Server-Side Redirect to the official site with the coupon
-    # This keeps the long promo URL out of the user's browser history/status bar
     return RedirectResponse(url=transaction["assigned_link"])
 
-# Execution block to run the server locally
 if __name__ == "__main__":
     import uvicorn
-    # Start the server on 0.0.0.0:8000
     uvicorn.run(app, host="0.0.0.0", port=8000)
