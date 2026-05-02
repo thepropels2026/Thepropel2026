@@ -76,6 +76,7 @@ CREATE TABLE IF NOT EXISTS public.tools_cards (
     category TEXT NOT NULL,
     price DECIMAL(10, 2) DEFAULT 0.00,
     discount_price DECIMAL(10, 2),
+    voucher_pool TEXT[] DEFAULT '{}',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
@@ -98,6 +99,19 @@ CREATE TABLE IF NOT EXISTS public.knowledge_base (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     download_link TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+);
+
+-- 8. TRANSACTIONS (Payments & Voucher Assignment)
+CREATE TABLE IF NOT EXISTS public.transactions (
+    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
+    user_id UUID, -- Optional if not using auth
+    user_email TEXT,
+    tool_id UUID REFERENCES public.tools_cards(id),
+    amount DECIMAL(10, 2),
+    assigned_link TEXT,
+    status TEXT DEFAULT 'pending', -- pending, completed, failed
+    cashfree_order_id TEXT UNIQUE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
@@ -154,3 +168,8 @@ CREATE POLICY "Allow admin all" ON public.knowledge_base FOR ALL USING (true);
 ALTER TABLE public.job_postings ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.job_postings FOR SELECT USING (true);
 CREATE POLICY "Allow admin all" ON public.job_postings FOR ALL USING (true);
+
+-- Transactions
+ALTER TABLE public.transactions ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow users to read own transactions" ON public.transactions FOR SELECT USING (true);
+CREATE POLICY "Allow backend to update transactions" ON public.transactions FOR ALL USING (true);

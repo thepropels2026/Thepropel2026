@@ -9,6 +9,7 @@ import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { RefreshCw } from 'lucide-react';
+import CheckoutModal from '../../components/CheckoutModal';
 
 type ToolCard = {
   id: string;
@@ -59,6 +60,10 @@ export default function Tools() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  
+  // Modal state
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedTool, setSelectedTool] = useState<ToolCard | null>(null);
 
   useEffect(() => {
     async function fetchTools() {
@@ -82,6 +87,11 @@ export default function Tools() {
     }
     fetchTools();
   }, []);
+
+  const handleToolClick = (tool: ToolCard) => {
+    setSelectedTool(tool);
+    setIsModalOpen(true);
+  };
 
   const filteredTools = tools.filter(tool => {
     const matchesSearch = tool.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -188,10 +198,9 @@ export default function Tools() {
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                   layout
                 >
-                  <Link 
-                    href={tool.redirect_link || "#"} 
-                    target="_blank"
-                    className={`group block h-full bg-[#0a0a0f]/40 backdrop-blur-md border border-white/10 p-0 rounded-[2.5rem] transition-all duration-500 relative overflow-hidden ${getHoverBorderColor(tool.category)}`}
+                  <div 
+                    onClick={() => handleToolClick(tool)} 
+                    className={`cursor-pointer group block h-full bg-[#0a0a0f]/40 backdrop-blur-md border border-white/10 p-0 rounded-[2.5rem] transition-all duration-500 relative overflow-hidden ${getHoverBorderColor(tool.category)}`}
                   >
                     {/* Background Glow */}
                     <div className="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/10 rounded-full blur-[60px] group-hover:bg-cyan-500/20 transition-all duration-500" />
@@ -231,7 +240,7 @@ export default function Tools() {
                         {tool.title}
                       </h2>
 
-                      {/* Enchanced Pricing Section - Moved Below Title */}
+                      {/* Pricing Section */}
                       <div className="flex items-baseline gap-4 mb-5 p-4 bg-white/5 rounded-2xl border border-white/5 group-hover:border-white/10 transition-all">
                         {tool.discount_price !== undefined && tool.discount_price !== null ? (
                           <>
@@ -269,13 +278,22 @@ export default function Tools() {
                         </div>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 </motion.div>
               ))}
             </AnimatePresence>
           </div>
         )}
       </div>
+
+      {/* Checkout Modal Overlay */}
+      {selectedTool && (
+        <CheckoutModal 
+          isOpen={isModalOpen} 
+          onClose={() => setIsModalOpen(false)} 
+          tool={selectedTool} 
+        />
+      )}
     </div>
   );
 }

@@ -36,6 +36,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
+      <head>
+        <script src="https://sdk.cashfree.com/js/v3/cashfree.js" async></script>
+      </head>
       {/* Apply configured fonts and antialiasing to the body */}
       <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} font-inter antialiased bg-background text-foreground`}>
         
