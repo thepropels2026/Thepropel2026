@@ -2,116 +2,125 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { CheckCircle, Zap, ExternalLink, Loader2, ArrowRight } from 'lucide-react';
+import { CheckCircle, Zap, ExternalLink, Loader2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
 /**
- * ActivationPage: The secure landing page after a successful purchase.
- * Features the "Invisible Coupon Injection" trigger.
+ * ActivationPage: The premium landing page after a successful purchase.
+ * Features a "System Authorized" aesthetic with consistent brand identity.
  */
 export default function ActivationPage() {
   const params = useParams();
   const orderId = params.id as string;
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
 
   useEffect(() => {
-    // Simulate a brief validation delay for UX
+    // Simulate premium handshake delay
     const timer = setTimeout(() => {
       setLoading(false);
-    }, 1500);
+    }, 2000);
     return () => clearTimeout(timer);
   }, [orderId]);
 
   const handleActivate = () => {
     // Redirect to backend masked redirector
-    // This uses a Server-Side Redirect (302) to mask the promo URL from browser history
+    // Using a relative path or environment variable is better, but following current pattern
     window.location.href = `http://localhost:8000/api/activate/${orderId}`;
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#050505] flex flex-col items-center justify-center gap-6">
+      <div className="min-h-screen bg-[#020203] flex flex-col items-center justify-center gap-10 font-inter">
         <div className="relative">
-          <div className="w-20 h-20 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
-          <Zap className="absolute inset-0 m-auto w-8 h-8 text-cyan-500 animate-pulse" />
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+            className="w-24 h-24 border-t-2 border-cyan-500 rounded-full"
+          />
+          <Zap className="absolute inset-0 m-auto w-8 h-8 text-cyan-400 animate-pulse" />
         </div>
-        <p className="text-cyan-500 font-black uppercase tracking-[0.3em] text-xs">Synchronizing Credentials...</p>
+        <div className="text-center">
+           <p className="text-cyan-400 font-black uppercase tracking-[0.4em] text-[10px] mb-2 animate-pulse">Syncing Propulsion Layer</p>
+           <p className="text-white/20 text-[9px] font-bold uppercase tracking-widest">Handshaking with Authorization Vault</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center p-6 relative overflow-hidden">
-      {/* Background Ambience */}
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.08),transparent_50%)]" />
-      <div className="absolute -top-[20%] -left-[10%] w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px]" />
+    <div className="min-h-screen bg-[#020203] text-white flex items-center justify-center p-4 md:p-8 relative overflow-hidden font-inter">
       
+      {/* --- BACKGROUND SYSTEM --- */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-5%] w-[800px] h-[800px] bg-cyan-500/[0.05] rounded-full blur-[150px] animate-pulse pointer-events-none" />
+        <div className="absolute bottom-[-10%] right-[-5%] w-[700px] h-[700px] bg-purple-500/[0.05] rounded-full blur-[150px] animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
+      </div>
+
       <motion.div 
-        initial={{ opacity: 0, y: 30, scale: 0.95 }}
-        animate={{ opacity: 1, y: 0, scale: 1 }}
-        transition={{ type: "spring", damping: 20, stiffness: 100 }}
-        className="relative max-w-2xl w-full text-center bg-[#0a0a0f] border border-white/10 rounded-[4rem] p-16 md:p-20 shadow-[0_0_100px_rgba(6,182,212,0.1)] backdrop-blur-3xl"
+        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        className="relative max-w-2xl w-full text-center bg-white/[0.02] border border-white/10 rounded-[3.5rem] p-12 md:p-20 shadow-[0_64px_128px_-32px_rgba(0,0,0,0.8)] backdrop-blur-3xl"
       >
+        {/* Inner Glow */}
+        <div className="absolute top-0 left-1/4 right-1/4 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+
         {/* Success Icon */}
-        <div className="w-28 h-28 bg-emerald-500/10 rounded-full flex items-center justify-center mx-auto mb-10 border border-emerald-500/20 shadow-[0_0_40px_rgba(16,185,129,0.15)]">
-          <CheckCircle className="w-14 h-14 text-emerald-400" />
+        <div className="w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-10 shadow-2xl group">
+          <CheckCircle className="w-12 h-12 text-emerald-400 group-hover:scale-110 transition-transform" />
         </div>
         
-        <h1 className="text-5xl md:text-6xl font-black font-montserrat mb-6 tracking-tighter leading-tight">
-          Access <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Authorized.</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] mb-6 text-white/40">
+           <Sparkles className="w-3 h-3 text-cyan-500" /> Identity Authenticated
+        </div>
+
+        <h1 className="text-5xl md:text-6xl font-black font-montserrat mb-6 tracking-tighter leading-tight italic">
+          Access <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Authorized.</span>
         </h1>
         
-        <p className="text-white/50 text-lg md:text-xl mb-12 max-w-md mx-auto font-medium leading-relaxed">
-          Your premium subscription has been successfully provisioned. Click below to initiate the secure activation sequence.
+        <p className="text-white/40 text-base md:text-lg mb-14 max-w-sm mx-auto font-medium leading-relaxed">
+          Your premium protocol has been provisioned. Initiate the final handshake to unlock your ecosystem assets.
         </p>
 
-        <div className="space-y-8">
+        <div className="space-y-10">
           <button 
             onClick={handleActivate}
-            className="group relative w-full bg-cyan-500 hover:bg-cyan-400 text-black font-black py-7 rounded-[2rem] flex items-center justify-center gap-4 transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_20px_60px_-10px_rgba(6,182,212,0.5)] overflow-hidden"
+            className="group relative w-full h-20 rounded-3xl bg-white text-black font-black flex items-center justify-center gap-4 transition-all hover:scale-[1.02] active:scale-95 shadow-[0_20px_60px_-15px_rgba(255,255,255,0.2)] overflow-hidden"
           >
-             {/* Button Shimmer */}
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full group-hover:animate-shimmer" />
-            
-            <Zap className="w-7 h-7 fill-current" />
-            <span className="text-xl tracking-tight">ACTIVATE PREMIUM NOW</span>
-            <ArrowRight className="w-7 h-7 group-hover:translate-x-2 transition-transform" />
+            <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <Zap className="w-6 h-6 relative z-10 group-hover:text-white transition-colors" />
+            <span className="text-lg uppercase tracking-widest relative z-10 group-hover:text-white transition-colors">Activate Propulsion</span>
+            <ArrowRight className="w-6 h-6 relative z-10 group-hover:text-white group-hover:translate-x-2 transition-all" />
           </button>
           
-          <div className="flex flex-col items-center gap-4">
-            <Link href="/tools" className="inline-flex items-center gap-2 text-white/30 hover:text-cyan-400 transition-all text-xs font-black uppercase tracking-[0.2em] group">
-               Return to Marketplace <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
+          <Link href="/tools" className="inline-flex items-center gap-3 text-white/20 hover:text-cyan-400 transition-all text-[10px] font-black uppercase tracking-[0.4em] group">
+             Return to Marketplace <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+          </Link>
         </div>
 
-        {/* Order Details Grid */}
-        <div className="mt-20 pt-10 border-t border-white/5 grid grid-cols-3 gap-4 md:gap-12">
-          <div className="flex flex-col items-center md:items-start">
-            <span className="text-[9px] text-white/30 uppercase font-black tracking-widest block mb-2">Order Reference</span>
-            <span className="text-xs font-mono text-white/60 bg-white/5 px-3 py-1 rounded-full border border-white/5">{orderId.slice(0, 10).toUpperCase()}</span>
+        {/* Technical Footer */}
+        <div className="mt-20 pt-10 border-t border-white/5 grid grid-cols-3 gap-6">
+          <div className="text-left">
+            <span className="text-[8px] text-white/20 uppercase font-black tracking-widest block mb-1">Ref ID</span>
+            <span className="text-[10px] font-mono text-white/40">{orderId.slice(0, 12).toUpperCase()}</span>
           </div>
-          <div className="flex flex-col items-center">
-            <span className="text-[9px] text-white/30 uppercase font-black tracking-widest block mb-2">Encryption</span>
-            <div className="flex items-center gap-1.5 text-cyan-500/80">
-              <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase">AES-256 SSL</span>
-            </div>
+          <div className="text-center">
+            <span className="text-[8px] text-white/20 uppercase font-black tracking-widest block mb-1">Security</span>
+            <span className="text-[10px] font-black text-cyan-500/60 uppercase">AES-256 SSL</span>
           </div>
-          <div className="flex flex-col items-center md:items-end">
-            <span className="text-[9px] text-white/30 uppercase font-black tracking-widest block mb-2">Access Level</span>
-            <span className="text-[10px] font-black text-white/80 bg-white/10 px-3 py-1 rounded-full uppercase tracking-tighter">Elite Premium</span>
+          <div className="text-right">
+            <span className="text-[8px] text-white/20 uppercase font-black tracking-widest block mb-1">Tier</span>
+            <span className="text-[10px] font-black text-white/60 uppercase">Elite</span>
           </div>
         </div>
       </motion.div>
       
       {/* Decorative Status Bar */}
-      <div className="absolute bottom-10 left-10 flex items-center gap-3 opacity-20">
-        <div className="flex gap-1">
-          {[1,2,3,4].map(i => <div key={i} className="w-1 h-4 bg-cyan-500" />)}
+      <div className="absolute bottom-10 left-10 flex items-center gap-4 opacity-10 pointer-events-none">
+        <div className="flex gap-1.5">
+          {[1,2,3,4,5].map(i => <div key={i} className="w-1.5 h-6 bg-cyan-500" />)}
         </div>
-        <span className="text-[10px] font-black uppercase tracking-widest">System Online</span>
+        <span className="text-[10px] font-black uppercase tracking-[0.6em]">System Online</span>
       </div>
     </div>
   );

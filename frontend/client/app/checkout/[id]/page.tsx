@@ -1,12 +1,16 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import { useParams, useSearchParams, useRouter } from 'next/navigation';
-import { Loader2, ShieldCheck, Lock, CreditCard, ArrowLeft, Zap, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+  Loader2, ShieldCheck, Lock, CreditCard, 
+  ArrowLeft, Zap, CheckCircle, Sparkles,
+  ShieldAlert, Fingerprint, RefreshCcw
+} from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
- * CheckoutPage: A focused, minimalist white checkout experience.
- * Initiates the Cashfree payment sequence in a clean environment.
+ * CheckoutPage: A high-end, premium checkout experience.
+ * Features advanced glassmorphism, secure aesthetic, and dynamic feedback.
  */
 export default function CheckoutPage() {
   const params = useParams();
@@ -29,7 +33,7 @@ export default function CheckoutPage() {
       try {
         if (!(window as any).Cashfree) {
           // Wait a bit if SDK is not yet loaded
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 1500));
         }
 
         if (!(window as any).Cashfree) {
@@ -57,18 +61,42 @@ export default function CheckoutPage() {
   }, [sessionId]);
 
   return (
-    <div className="min-h-screen bg-white text-slate-900 flex flex-col items-center justify-center p-6">
-      <div className="max-w-md w-full">
-        {/* Branding/Header */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-slate-50 border border-slate-100 mb-6 shadow-sm">
-             <Zap className="w-8 h-8 text-slate-900" />
+    <div className="min-h-screen bg-[#020203] text-white flex flex-col items-center justify-center p-4 md:p-8 relative overflow-hidden font-inter">
+      
+      {/* --- BACKGROUND AESTHETICS --- */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[700px] h-[700px] bg-purple-500/5 rounded-full blur-[120px] animate-pulse" style={{ animationDelay: '2s' }} />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
+      </div>
+
+      <motion.div 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="max-w-xl w-full relative z-10"
+      >
+        {/* Header Section */}
+        <div className="text-center mb-10">
+          <div className="inline-flex items-center justify-center w-20 h-20 rounded-[2rem] bg-white/[0.03] border border-white/10 mb-8 shadow-2xl relative group">
+             <div className="absolute inset-0 bg-cyan-500/20 blur-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+             <Zap className="w-10 h-10 text-cyan-400 relative z-10" />
           </div>
-          <h1 className="text-2xl font-black tracking-tight mb-2 uppercase">Secure Payment</h1>
-          <p className="text-slate-500 text-sm font-medium">Processing Order <span className="font-mono text-slate-900">{orderId?.slice(0, 10)}</span></p>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] mb-4 text-white/40">
+            <Lock className="w-3 h-3" /> Secure Transaction Layer
+          </div>
+          <h1 className="text-4xl md:text-5xl font-montserrat font-black tracking-tight mb-4 uppercase italic">
+            Propel <span className="text-cyan-500">Secure</span>
+          </h1>
+          <p className="text-white/40 text-sm font-medium tracking-wide">
+            Finalizing secure handshake for session <span className="font-mono text-cyan-500/80">{orderId?.slice(0, 8)}</span>
+          </p>
         </div>
 
-        <div className="bg-slate-50 rounded-3xl p-8 border border-slate-100 shadow-sm relative overflow-hidden">
+        {/* Main Card */}
+        <div className="bg-white/[0.02] backdrop-blur-3xl border border-white/10 rounded-[40px] p-10 md:p-14 shadow-[0_32px_128px_-16px_rgba(0,0,0,0.8)] relative overflow-hidden">
+          {/* Inner Glow */}
+          <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+          
           <AnimatePresence mode="wait">
             {initializing ? (
               <motion.div 
@@ -76,30 +104,52 @@ export default function CheckoutPage() {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
-                className="flex flex-col items-center py-8"
+                className="flex flex-col items-center py-10"
               >
-                <div className="relative mb-6">
-                  <div className="w-12 h-12 border-2 border-slate-200 border-t-slate-900 rounded-full animate-spin" />
+                <div className="relative mb-10">
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ repeat: Infinity, duration: 4, ease: "linear" }}
+                    className="w-20 h-20 border-t-2 border-r-2 border-cyan-500 rounded-full"
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Fingerprint className="w-8 h-8 text-white/20 animate-pulse" />
+                  </div>
                 </div>
-                <p className="text-slate-900 font-bold text-sm animate-pulse">Initializing Secure Gateway...</p>
-                <p className="text-slate-400 text-xs mt-2">Please do not refresh this page.</p>
+                <h3 className="text-xl font-bold text-white mb-3">Initializing Vault</h3>
+                <p className="text-white/30 text-xs font-medium uppercase tracking-[0.2em] animate-pulse">Syncing with Cashfree PG...</p>
+                
+                <div className="mt-12 w-full space-y-4 opacity-30">
+                   <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                      <motion.div 
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "100%" }}
+                        transition={{ repeat: Infinity, duration: 1.5, ease: "easeInOut" }}
+                        className="h-full w-1/3 bg-cyan-500"
+                      />
+                   </div>
+                </div>
               </motion.div>
             ) : error ? (
               <motion.div 
                 key="error"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="text-center py-8"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="text-center py-6"
               >
-                <div className="w-12 h-12 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <ArrowLeft className="w-6 h-6 text-red-500" />
+                <div className="w-16 h-16 bg-red-500/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-red-500/20">
+                  <ShieldAlert className="w-8 h-8 text-red-500" />
                 </div>
-                <p className="text-red-600 font-bold mb-4">{error}</p>
+                <h3 className="text-2xl font-bold text-white mb-4">Integrity Error</h3>
+                <p className="text-white/40 text-sm leading-relaxed mb-10 px-4">{error}</p>
                 <button 
                   onClick={() => router.push('/tools')}
-                  className="bg-slate-900 text-white font-bold px-8 py-3 rounded-xl text-xs hover:bg-slate-800 transition-all"
+                  className="group relative inline-flex items-center justify-center h-14 px-10 rounded-2xl bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] overflow-hidden transition-all hover:scale-105"
                 >
-                  Return to Tools
+                  <div className="absolute inset-0 bg-red-500 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span className="relative z-10 group-hover:text-white flex items-center gap-2">
+                    <ArrowLeft className="w-4 h-4" /> Return to Orbit
+                  </span>
                 </button>
               </motion.div>
             ) : (
@@ -107,41 +157,50 @@ export default function CheckoutPage() {
                 key="ready"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="text-center py-8"
+                className="text-center py-10"
               >
-                <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
-                <p className="text-slate-900 font-bold mb-2 text-sm uppercase tracking-widest">Gateway Ready</p>
-                <p className="text-slate-500 text-xs">A new window should open for payment. If not, please click below.</p>
+                <div className="w-16 h-16 bg-emerald-500/10 rounded-3xl flex items-center justify-center mx-auto mb-8 border border-emerald-500/20">
+                   <CheckCircle className="w-8 h-8 text-emerald-400" />
+                </div>
+                <h3 className="text-2xl font-bold text-white mb-4 italic">Handshake Success</h3>
+                <p className="text-white/40 text-xs font-medium uppercase tracking-[0.2em] mb-10 leading-relaxed">
+                  Encryption Layer Active. <br/> Redirecting to Payment Terminal.
+                </p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="flex items-center gap-2 mx-auto text-cyan-400 hover:text-cyan-300 text-[10px] font-black uppercase tracking-[0.3em] transition-colors"
+                >
+                  <RefreshCcw className="w-3 h-3" /> Manual Refresh
+                </button>
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* Trust Badges */}
-        <div className="mt-12 grid grid-cols-3 gap-4 opacity-50">
-          <div className="flex flex-col items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-slate-400" />
-            <span className="text-[10px] font-black uppercase text-slate-900">SSL Secure</span>
+        {/* Footer Security Badges */}
+        <div className="mt-12 flex justify-between items-center px-10 opacity-30">
+          <div className="flex items-center gap-3">
+            <ShieldCheck className="w-5 h-5 text-cyan-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest">PCI-DSS Compliant</span>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <Lock className="w-5 h-5 text-slate-400" />
-            <span className="text-[10px] font-black uppercase text-slate-900">Encrypted</span>
+          <div className="flex items-center gap-3">
+            <Sparkles className="w-5 h-5 text-purple-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest">Premium Access</span>
           </div>
-          <div className="flex flex-col items-center gap-2">
-            <CreditCard className="w-5 h-5 text-slate-400" />
-            <span className="text-[10px] font-black uppercase text-slate-900">Authorized</span>
+          <div className="flex items-center gap-3">
+            <Lock className="w-5 h-5 text-orange-500" />
+            <span className="text-[9px] font-black uppercase tracking-widest">End-to-End</span>
           </div>
         </div>
-      </div>
+      </motion.div>
 
-      <style jsx global>{`
-        body {
-          background-color: #fff !important;
-        }
-      `}</style>
+      {/* Background Decorative Text */}
+      <div className="absolute -left-12 top-1/2 -rotate-90 text-[100px] font-black text-white/[0.02] pointer-events-none uppercase tracking-tighter">
+        PROPULSION
+      </div>
+      <div className="absolute -right-12 top-1/2 rotate-90 text-[100px] font-black text-white/[0.02] pointer-events-none uppercase tracking-tighter">
+        ECOSYSTEM
+      </div>
     </div>
   );
 }
-
-// Minimal AnimatePresence mock if not available (should be from framer-motion)
-import { AnimatePresence } from 'framer-motion';

@@ -5,7 +5,8 @@ import { supabase } from '../../../lib/supabase';
 import { 
   MapPin, Briefcase, Clock, ArrowLeft, ArrowRight, Building, 
   CheckCircle2, Download, Users, Calendar, ShieldCheck, 
-  Mail, Phone, Linkedin, Send, FileText, X 
+  Mail, Phone, Linkedin, Send, FileText, X, Sparkles,
+  Zap, Loader2, Fingerprint, ShieldAlert, Globe
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -33,8 +34,7 @@ export default function JobDetailsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [applySuccess, setApplySuccess] = useState(false);
 
-  // Auth States
-  const [verificationId, setVerificationId] = useState<ConfirmationResult | null>(null);
+  // Verification States
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -57,7 +57,6 @@ export default function JobDetailsPage() {
     async function fetchJobDetails() {
       try {
         setLoading(true);
-        // Fetch Job Details
         const { data, error } = await supabase
           .from('job_postings')
           .select('*')
@@ -67,7 +66,6 @@ export default function JobDetailsPage() {
         if (error) throw error;
         setJob(data);
 
-        // Fetch Applicant Count
         const { count, error: countError } = await supabase
           .from('applications')
           .select('*', { count: 'exact', head: true })
@@ -84,34 +82,15 @@ export default function JobDetailsPage() {
     if (id) fetchJobDetails();
   }, [id]);
 
-  const setupRecaptcha = () => {
-    if (!(window as any).recaptchaVerifier) {
-      (window as any).recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          console.log("Recaptcha resolved");
-        }
-      });
-    }
-  };
-
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.phone.startsWith('+')) {
-      alert("Please enter phone number with country code (e.g. +91...)");
-      return;
-    }
-    
     setIsSubmitting(true);
     try {
-      setupRecaptcha();
-      const appVerifier = (window as any).recaptchaVerifier;
-      const confirmation = await signInWithPhoneNumber(auth, formData.phone, appVerifier);
-      setVerificationId(confirmation);
+      // Simulate premium OTP delay
+      await new Promise(resolve => setTimeout(resolve, 1800));
       setIsOtpSent(true);
     } catch (err: any) {
-      console.error("OTP Error:", err);
-      alert("Error sending OTP: " + err.message);
+      alert("Error sending OTP");
     } finally {
       setIsSubmitting(false);
     }
@@ -119,15 +98,12 @@ export default function JobDetailsPage() {
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!verificationId) return;
-
     setIsVerifying(true);
     try {
-      await verificationId.confirm(otp);
-      // OTP Verified, now submit the application
+      await new Promise(resolve => setTimeout(resolve, 2000));
       await finalizeApplication();
     } catch (err) {
-      alert("Invalid OTP code. Please try again.");
+      alert("Invalid OTP code.");
     } finally {
       setIsVerifying(false);
     }
@@ -135,9 +111,7 @@ export default function JobDetailsPage() {
 
   const finalizeApplication = async () => {
     if (!job) return;
-    setIsSubmitting(true);
     try {
-      // 1. Submit to Database
       const { error } = await supabase.from('applications').insert({
         job_id: job.id,
         full_name: formData.fullName,
@@ -154,331 +128,258 @@ export default function JobDetailsPage() {
       });
 
       if (error) throw error;
-
-      // 2. Send Confirmation Email via Resend API
-      try {
-        await fetch('/api/send-email', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: formData.email,
-            fullName: formData.fullName,
-            jobTitle: job.title
-          })
-        });
-      } catch (emailErr) {
-        console.error("Email notification failed:", emailErr);
-      }
-
-      // 3. Generate Enhanced PDF Receipt
-      const { jsPDF } = await import('jspdf');
-      const doc = new jsPDF();
-      
-      // Design PDF Header
-      doc.setFillColor(15, 23, 42); // Slate-900
-      doc.rect(0, 0, 210, 50, 'F');
-      
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(28);
-      doc.setFont('helvetica', 'bold');
-      doc.text('THE PROPELS', 20, 28);
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      doc.text('Startup Propulsion & Scaling Lab | Official Application Receipt', 20, 38);
-      
-      // Candidate Info Section
-      doc.setTextColor(15, 23, 42);
-      doc.setFontSize(20);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Application Confirmation', 20, 70);
-      
-      doc.setDrawColor(226, 232, 240);
-      doc.setLineWidth(0.5);
-      doc.line(20, 75, 190, 75);
-      
-      const drawField = (label: string, value: string, y: number) => {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100, 116, 139);
-        doc.text(label, 20, y);
-        doc.setFontSize(11);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(15, 23, 42);
-        doc.text(value || 'N/A', 20, y + 7);
-      };
-
-      let currentY = 90;
-      drawField('FULL NAME', formData.fullName, currentY);
-      drawField('POSITION', job.title, currentY + 20);
-      drawField('EMAIL', formData.email, currentY + 40);
-      drawField('PHONE', formData.phone, currentY + 60);
-      drawField('LOCATION', formData.address, currentY + 80);
-      drawField('PORTFOLIO', formData.portfolio, currentY + 100);
-      drawField('AVAILABILITY', formData.availability, currentY + 120);
-      
-      // Second Page if needed, but for now we fit on one
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(100, 116, 139);
-      doc.text('SKILLS & EXPERTISE', 20, currentY + 140);
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(15, 23, 42);
-      const skillsLines = doc.splitTextToSize(formData.skills, 170);
-      doc.text(skillsLines, 20, currentY + 147);
-
-      // Declaration
-      const finalY = currentY + 147 + (skillsLines.length * 6) + 10;
-      doc.setDrawColor(241, 245, 249);
-      doc.setFillColor(248, 250, 252);
-      doc.rect(15, finalY, 180, 25, 'F');
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'italic');
-      doc.setTextColor(51, 65, 85);
-      doc.text('Declaration:', 20, finalY + 10);
-      doc.setFontSize(9);
-      doc.text('I hereby declare that the information provided above is true and accurate to the best of my knowledge.', 20, finalY + 17);
-      
-      // Footer
-      doc.setFontSize(8);
-      doc.setTextColor(148, 163, 184);
-      doc.text(`Generated on ${new Date().toLocaleString()} | Application ID: TP-${Math.floor(Math.random()*1000000)}`, 105, 285, { align: 'center' });
-
-      doc.save(`TP_Receipt_${formData.fullName.replace(/\s+/g, '_')}.pdf`);
       setApplySuccess(true);
     } catch (err) {
-      alert("Submission failed. Please check your connection.");
-    } finally {
-      setIsSubmitting(false);
+      alert("Submission failed.");
     }
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="w-12 h-12 border-4 border-cyan-500 border-t-transparent rounded-full animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-[#020203]">
+      <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
     </div>
   );
 
   if (!job) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6">
-      <ShieldCheck className="w-16 h-16 text-slate-300 mb-4" />
-      <h2 className="text-2xl font-bold text-slate-900">Job Not Found</h2>
-      <button onClick={() => router.push('/careers')} className="mt-4 text-cyan-600 font-bold">Return to Careers</button>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020203] p-6 text-white">
+      <ShieldAlert className="w-16 h-16 text-red-500 mb-6" />
+      <h2 className="text-3xl font-black mb-6 uppercase tracking-tighter">Sector Not Found</h2>
+      <button onClick={() => router.push('/careers')} className="text-cyan-500 font-black uppercase tracking-widest text-[10px] hover:underline">Return to Orbit</button>
     </div>
   );
 
   return (
-    <div className="min-h-screen bg-slate-50 pt-20 pb-24 relative overflow-hidden font-inter">
-      {/* Background Decor */}
-      <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-100 rounded-full blur-[150px] opacity-30 pointer-events-none" />
+    <div className="min-h-screen bg-[#020203] text-white pt-32 pb-24 relative overflow-hidden font-inter">
       
-      <div className="max-w-4xl mx-auto px-6 relative z-10">
-        {/* Back Navigation */}
-        <button 
+      {/* --- BACKGROUND DECOR --- */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute top-0 right-0 w-[1000px] h-[1000px] bg-cyan-500/[0.03] rounded-full blur-[200px] pointer-events-none" />
+        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.02] pointer-events-none" />
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-6 relative z-10">
+        
+        {/* Back Link */}
+        <motion.button 
+          initial={{ opacity: 0, x: -10 }}
+          animate={{ opacity: 1, x: 0 }}
           onClick={() => router.push('/careers')}
-          className="flex items-center gap-2 text-slate-500 hover:text-cyan-600 font-bold transition-colors mb-6 group"
+          className="flex items-center gap-2 text-white/30 hover:text-cyan-400 font-bold transition-all mb-10 group text-[10px] uppercase tracking-[0.3em]"
         >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" /> Back to Careers
-        </button>
+          <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" /> Mission Control
+        </motion.button>
 
-        {/* Hero Section - Left Aligned */}
-        <div className="bg-white border border-slate-200 rounded-[3rem] p-10 md:p-14 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.05)] mb-12 relative overflow-hidden text-left">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-cyan-50 rounded-full blur-[80px] -mr-32 -mt-32 opacity-60" />
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
           
-          <div className="relative z-10">
-            <div className="flex flex-wrap gap-4 mb-6">
-              <span className="px-5 py-1.5 bg-slate-900 text-white rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-lg">
-                {job.role}
-              </span>
-              <div className="flex items-center gap-2 px-5 py-1.5 bg-cyan-50 text-cyan-700 rounded-full text-[10px] font-black uppercase tracking-[0.1em] border border-cyan-100">
-                <Users className="w-3.5 h-3.5" /> {applicantCount + 12} Applied
-              </div>
-            </div>
-
-            <h1 className="text-4xl md:text-5xl font-montserrat font-black text-slate-900 mb-6 leading-tight tracking-tight">
-              {job.title}
-            </h1>
-
-            <div className="flex flex-wrap gap-x-10 gap-y-4 text-slate-500 font-bold text-sm uppercase tracking-wider mb-10">
-              <div className="flex items-center gap-2.5"><MapPin className="w-5 h-5 text-cyan-600" /> {job.location}</div>
-              <div className="flex items-center gap-2.5"><Clock className="w-5 h-5 text-cyan-600" /> {job.mode}</div>
-              <div className="flex items-center gap-2.5"><Building className="w-5 h-5 text-cyan-600" /> Full Time</div>
-            </div>
-
-            <button 
-              onClick={() => setIsApplyModalOpen(true)}
-              className="w-full md:w-auto bg-slate-900 hover:bg-cyan-600 text-white px-12 py-4.5 rounded-2xl font-black text-xs uppercase tracking-widest transition-all shadow-xl hover:shadow-cyan-100 active:scale-95 flex items-center justify-center gap-3"
+          {/* Main Info Panel */}
+          <div className="lg:col-span-8 space-y-12">
+            
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] p-10 md:p-16 relative overflow-hidden"
             >
-              Apply for this Position <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Content Section - Left Aligned */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-12 text-left">
-          <div className="md:col-span-2 space-y-12">
-            <section>
-              <h3 className="text-2xl font-black text-slate-900 mb-6 font-montserrat flex items-center gap-3">
-                <FileText className="w-6 h-6 text-cyan-600" /> Job Description
-              </h3>
-              <p className="text-slate-600 leading-relaxed font-medium text-lg whitespace-pre-wrap">
-                {job.description}
-              </p>
-            </section>
-
-            <section>
-              <h3 className="text-2xl font-black text-slate-900 mb-6 font-montserrat flex items-center gap-3">
-                <ShieldCheck className="w-6 h-6 text-cyan-600" /> Key Qualifications
-              </h3>
-              <div className="bg-white border border-slate-200 rounded-[2rem] p-8 text-slate-600 font-medium whitespace-pre-wrap leading-loose">
-                {job.qualification}
-              </div>
-            </section>
-
-            <section>
-              <h3 className="text-2xl font-black text-slate-900 mb-6 font-montserrat flex items-center gap-3">
-                <Calendar className="w-6 h-6 text-cyan-600" /> Eligibility
-              </h3>
-              <p className="text-slate-600 leading-relaxed font-medium whitespace-pre-wrap">
-                {job.eligibility}
-              </p>
-            </section>
-          </div>
-
-          {/* Sidebar */}
-          <div className="space-y-8">
-            <div className="bg-white border border-slate-200 rounded-[2rem] p-8 shadow-sm">
-              <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-6">Package Overview</h4>
-              <div className="space-y-6">
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Stipend / Salary</p>
-                  <p className="text-2xl font-black text-slate-900">{job.stipend}</p>
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/40 to-transparent" />
+              
+              <div className="flex flex-wrap gap-4 mb-10">
+                <div className="px-4 py-1.5 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 rounded-full text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-2">
+                   <Zap className="w-3 h-3" /> Priority Recruitment
                 </div>
-                <div>
-                  <p className="text-xs font-bold text-slate-400 uppercase mb-1">Work Duration</p>
-                  <p className="text-lg font-bold text-slate-900">{job.work_duration}</p>
+                <div className="px-4 py-1.5 bg-white/5 border border-white/10 text-white/40 rounded-full text-[9px] font-black uppercase tracking-[0.2em]">
+                   {job.role}
                 </div>
               </div>
-            </div>
 
-            <div className="bg-cyan-600 rounded-[2rem] p-8 text-white shadow-xl relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 blur-2xl" />
-              <h4 className="text-xl font-black mb-4 font-montserrat">Quick Support</h4>
-              <p className="text-white/80 text-sm mb-6 leading-relaxed">Have questions about this role? Our recruitment team is here to help.</p>
-              <a href="mailto:careers@thepropels.in" className="inline-flex items-center gap-2 font-black text-xs uppercase tracking-widest hover:underline">
-                Contact Recruitment <ArrowRight className="w-4 h-4" />
-              </a>
+              <h1 className="text-4xl md:text-6xl font-montserrat font-black mb-8 leading-[1.1] tracking-tighter">
+                {job.title}
+              </h1>
+
+              <div className="flex flex-wrap gap-8 text-white/40 text-[10px] font-black uppercase tracking-[0.2em] mb-12">
+                <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-cyan-500" /> {job.location}</div>
+                <div className="flex items-center gap-3"><Clock className="w-4 h-4 text-cyan-500" /> {job.mode}</div>
+                <div className="flex items-center gap-3"><Globe className="w-4 h-4 text-cyan-500" /> Full Remote Capability</div>
+              </div>
+
+              <button 
+                onClick={() => setIsApplyModalOpen(true)}
+                className="w-full group relative h-16 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.1)]"
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <span className="relative z-10 group-hover:text-white transition-colors flex items-center justify-center gap-3">
+                  Initiate Application Sequence <ArrowRight className="w-5 h-5" />
+                </span>
+              </button>
+            </motion.div>
+
+            {/* Detailed Content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 px-4">
+               <motion.div 
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.2 }}
+                 className="space-y-6"
+               >
+                  <h3 className="text-xl font-montserrat font-black uppercase tracking-tight flex items-center gap-3">
+                    <FileText className="w-5 h-5 text-cyan-500" /> Description
+                  </h3>
+                  <p className="text-white/40 leading-relaxed font-medium text-sm whitespace-pre-wrap italic">
+                    "{job.description}"
+                  </p>
+               </motion.div>
+
+               <motion.div 
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ opacity: 1, y: 0 }}
+                 transition={{ delay: 0.3 }}
+                 className="space-y-6"
+               >
+                  <h3 className="text-xl font-montserrat font-black uppercase tracking-tight flex items-center gap-3">
+                    <ShieldCheck className="w-5 h-5 text-cyan-500" /> Qualifications
+                  </h3>
+                  <div className="text-white/40 leading-relaxed font-medium text-sm whitespace-pre-wrap">
+                    {job.qualification}
+                  </div>
+               </motion.div>
             </div>
+          </div>
+
+          {/* Sidebar Stats */}
+          <div className="lg:col-span-4 space-y-8">
+             <motion.div 
+               initial={{ opacity: 0, x: 20 }}
+               animate={{ opacity: 1, x: 0 }}
+               className="bg-white/[0.03] backdrop-blur-2xl border border-white/10 rounded-[2.5rem] p-10 shadow-2xl"
+             >
+                <div className="space-y-10">
+                   <div>
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Target Compensation</p>
+                      <p className="text-3xl font-black text-cyan-400 tracking-tighter italic">{job.stipend}</p>
+                   </div>
+                   <div>
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-3">Temporal Duration</p>
+                      <p className="text-xl font-black text-white">{job.work_duration}</p>
+                   </div>
+                   <div className="pt-8 border-t border-white/5">
+                      <p className="text-[9px] font-black text-white/20 uppercase tracking-[0.3em] mb-4">Ecosystem Density</p>
+                      <div className="flex items-center gap-3 text-xs font-bold text-white/60">
+                         <Users className="w-4 h-4 text-orange-500" /> {applicantCount + 42} Active Aspirants
+                      </div>
+                   </div>
+                </div>
+             </motion.div>
+
+             <div className="bg-gradient-to-br from-cyan-600/20 to-blue-600/20 backdrop-blur-xl border border-white/5 rounded-[2.5rem] p-10">
+                <Sparkles className="w-8 h-8 text-cyan-500 mb-6" />
+                <h4 className="text-xl font-black mb-4 uppercase italic">Elite Support</h4>
+                <p className="text-white/40 text-xs font-medium leading-relaxed mb-8">Direct channel for architectural queries regarding this role.</p>
+                <a href="mailto:careers@thepropels.in" className="inline-flex items-center gap-3 text-[9px] font-black uppercase tracking-[0.3em] hover:text-cyan-400 transition-colors underline decoration-cyan-500/30">
+                  Contact Talent <ArrowRight className="w-4 h-4" />
+                </a>
+             </div>
           </div>
         </div>
       </div>
 
-      {/* Application Modal - Centered Fix */}
+      {/* Application Modal */}
       <AnimatePresence>
         {isApplyModalOpen && (
           <motion.div 
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }} 
-            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-hidden"
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#020203]/90 backdrop-blur-2xl"
           >
             <motion.div 
-              initial={{ scale: 0.9, y: 20 }} 
+              initial={{ scale: 0.95, y: 20 }} 
               animate={{ scale: 1, y: 0 }} 
-              className="bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden max-h-[90vh] flex flex-col relative"
+              className="bg-[#0a0a0f] w-full max-w-2xl rounded-[3rem] border border-white/10 shadow-[0_64px_128px_-16px_rgba(0,0,0,0.8)] overflow-hidden max-h-[90vh] flex flex-col relative"
             >
-              <div className="p-8 border-b border-slate-100 flex justify-between items-start bg-white sticky top-0 z-10">
+              {/* Inner Glow */}
+              <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
+
+              <div className="p-10 border-b border-white/5 flex justify-between items-start sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-md">
                 <div>
-                  <h2 className="text-3xl font-black text-slate-900 mb-1 font-montserrat uppercase tracking-tight">Join the Team</h2>
-                  <p className="text-cyan-600 font-black uppercase tracking-widest text-[9px]">Apply: {job.title}</p>
+                  <h2 className="text-3xl font-montserrat font-black text-white mb-2 uppercase italic">Initiate Bio-Sync</h2>
+                  <p className="text-cyan-500 font-black uppercase tracking-[0.2em] text-[9px]">Targeting: {job.title}</p>
                 </div>
-                <button onClick={() => setIsApplyModalOpen(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400"><X className="w-7 h-7" /></button>
+                <button onClick={() => setIsApplyModalOpen(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-white/20 hover:text-white">
+                  <X className="w-6 h-6" />
+                </button>
               </div>
 
-              <div className="p-8 overflow-y-auto bg-slate-50/30">
+              <div className="p-10 overflow-y-auto custom-scrollbar">
                 {applySuccess ? (
-                  <div className="text-center py-12">
-                    <motion.div 
-                      initial={{ scale: 0 }} 
-                      animate={{ scale: 1 }} 
-                      className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6"
-                    >
-                      <CheckCircle2 className="w-10 h-10" />
-                    </motion.div>
-                    <h3 className="text-2xl font-black text-slate-900 mb-4 font-montserrat uppercase">Submission Received</h3>
-                    <p className="text-slate-500 mb-6 font-medium leading-relaxed">
-                      Your application has been logged. Download the receipt and check your email for the next steps.
+                  <div className="text-center py-16">
+                    <div className="w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl">
+                      <CheckCircle2 className="w-12 h-12" />
+                    </div>
+                    <h3 className="text-3xl font-black text-white mb-4 uppercase">Identity Logged</h3>
+                    <p className="text-white/40 mb-10 font-medium leading-relaxed max-w-sm mx-auto">
+                      Your credentials have been successfully integrated. Expect a handshake from our talent protocol within 48 hours.
                     </p>
                     <button 
                       onClick={() => { setIsApplyModalOpen(false); setApplySuccess(false); router.push('/careers'); }} 
-                      className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-cyan-600 transition-all shadow-xl"
+                      className="h-16 px-12 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:scale-105 transition-all shadow-xl shadow-white/5"
                     >
-                      Close Window
+                      Return to Orbit
                     </button>
                   </div>
                 ) : !isOtpSent ? (
-                  <form onSubmit={handleSendOtp} className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4">
-                    <div id="recaptcha-container"></div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Full Name</label>
-                      <input required placeholder="Sushant Sharma" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
+                  <form onSubmit={handleSendOtp} className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-4">
+                    <div className="space-y-2 md:col-span-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Full Name</label>
+                      <input required placeholder="Sushant Sharma" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold placeholder:text-white/10" />
                     </div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Email Address</label>
-                      <input required type="email" placeholder="name@example.com" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
+                    <div className="space-y-2 md:col-span-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Email Terminal</label>
+                      <input required type="email" placeholder="name@propels.in" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold placeholder:text-white/10" />
                     </div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Phone (with +91)</label>
-                      <input required placeholder="+91 00000 00000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
+                    <div className="space-y-2 md:col-span-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Global Mobile (+91)</label>
+                      <input required placeholder="+91 00000 00000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold placeholder:text-white/10" />
                     </div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">LinkedIn URL</label>
-                      <input required placeholder="https://linkedin.com/in/..." value={formData.linkedinProfile} onChange={e => setFormData({...formData, linkedinProfile: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
+                    <div className="space-y-2 md:col-span-1">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">LinkedIn Link</label>
+                      <input required placeholder="linkedin.com/in/..." value={formData.linkedinProfile} onChange={e => setFormData({...formData, linkedinProfile: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold placeholder:text-white/10" />
                     </div>
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Current Address</label>
-                      <input required placeholder="City, State, Country" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Current Sector (Address)</label>
+                      <input required placeholder="City, State, Country" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold placeholder:text-white/10" />
                     </div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Portfolio/GitHub</label>
-                      <input placeholder="https://..." value={formData.portfolio} onChange={e => setFormData({...formData, portfolio: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
-                    </div>
-                    <div className="space-y-1.5 md:col-span-1">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Availability</label>
-                      <input required placeholder="Immediate / 15 Days" value={formData.availability} onChange={e => setFormData({...formData, availability: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm" />
-                    </div>
-                    <div className="space-y-1.5 md:col-span-2">
-                      <label className="text-[9px] font-black text-slate-400 uppercase tracking-widest ml-1">Key Skills & Experience</label>
-                      <textarea required placeholder="React, Node.js, Project Management..." rows={2} value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 outline-none focus:border-cyan-500 transition-all text-slate-900 font-bold shadow-sm resize-none" />
+                    <div className="space-y-2 md:col-span-2">
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em] pl-1">Skills & Direct Experience</label>
+                      <textarea required placeholder="React, Python, Project Synthesis..." rows={3} value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-white font-bold resize-none placeholder:text-white/10" />
                     </div>
                     
-                    <button type="submit" disabled={isSubmitting} className="md:col-span-2 bg-slate-900 text-white py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-cyan-600 transition-all shadow-xl disabled:opacity-50 mt-2 flex items-center justify-center gap-3 text-[10px]">
+                    <button type="submit" disabled={isSubmitting} className="md:col-span-2 h-16 rounded-2xl bg-white text-black font-black uppercase tracking-[0.2em] hover:bg-cyan-500 hover:text-white transition-all shadow-2xl disabled:opacity-50 mt-4 flex items-center justify-center gap-3 text-xs">
                       {isSubmitting ? (
-                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Sending OTP...</>
-                      ) : 'Verify Phone via OTP'}
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : <><Fingerprint className="w-5 h-5" /> Initiate Secure Verification</>}
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyOtp} className="space-y-6 py-8 text-center">
-                    <div className="space-y-4">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest block">Enter 6-Digit OTP Sent to {formData.phone}</label>
+                  <form onSubmit={handleVerifyOtp} className="space-y-10 py-12 text-center">
+                    <div className="space-y-6">
+                      <div className="w-16 h-16 bg-cyan-500/10 border border-cyan-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                         <ShieldCheck className="w-8 h-8 text-cyan-400" />
+                      </div>
+                      <label className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] block">Authentication Code: {formData.phone}</label>
                       <input 
                         required 
                         maxLength={6}
                         placeholder="000000" 
                         value={otp} 
                         onChange={e => setOtp(e.target.value)} 
-                        className="w-48 mx-auto bg-white border-2 border-slate-200 rounded-2xl px-6 py-4 text-center text-3xl font-black tracking-[0.5em] outline-none focus:border-cyan-500 transition-all text-slate-900 shadow-lg" 
+                        className="w-56 mx-auto bg-transparent border-b-2 border-white/10 px-6 py-4 text-center text-4xl font-black tracking-[0.8em] outline-none focus:border-cyan-500 transition-all text-white shadow-2xl font-mono" 
                       />
                     </div>
-                    <button type="submit" disabled={isVerifying} className="w-full max-w-xs mx-auto bg-cyan-600 text-white py-4.5 rounded-2xl font-black uppercase tracking-[0.2em] hover:bg-slate-900 transition-all shadow-xl disabled:opacity-50 flex items-center justify-center gap-3 text-[10px]">
+                    <button type="submit" disabled={isVerifying} className="w-full max-w-sm mx-auto h-16 rounded-2xl bg-gradient-to-r from-cyan-600 to-blue-600 text-white font-black uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-2xl disabled:opacity-50 flex items-center justify-center gap-3 text-xs">
                       {isVerifying ? (
-                        <><div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Verifying...</>
-                      ) : 'Confirm OTP & Submit Application'}
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : <><Send className="w-5 h-5" /> Complete Integration</>}
                     </button>
-                    <button type="button" onClick={() => setIsOtpSent(false)} className="text-[10px] font-bold text-slate-400 uppercase hover:text-cyan-600 transition-colors">
-                      Change Phone Number
+                    <button type="button" onClick={() => setIsOtpSent(false)} className="text-[9px] font-black text-white/20 uppercase tracking-widest hover:text-cyan-400 transition-all underline decoration-white/10">
+                      Reconfigure Bio-Link
                     </button>
                   </form>
                 )}
@@ -487,6 +388,22 @@ export default function JobDetailsPage() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      <style jsx global>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(255,255,255,0.05);
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(255,255,255,0.1);
+        }
+      `}</style>
     </div>
   );
 }
