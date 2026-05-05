@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../../../lib/supabase';
 import { 
   MapPin, Briefcase, Clock, ArrowLeft, Building, 
   CheckCircle2, Download, Users, Sparkles, ShieldCheck,
