@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { TrendingUp, Award, Zap, ArrowRight, PlayCircle, Users, Sparkles, ShieldCheck } from 'lucide-react';
+import { TrendingUp, Award, Zap, ArrowRight, PlayCircle } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -52,62 +52,57 @@ export default function SuccessStories() {
   );
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white pt-32 pb-24 relative overflow-hidden font-inter">
-      
-      {/* --- GLOBAL GRID BACKGROUND --- */}
-      <div className="fixed inset-0 z-0 opacity-[0.1] pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+    <div className="min-h-screen bg-[#050505] text-white font-inter relative overflow-hidden pt-32 pb-24">
+      {/* Background Elements */}
+      <div className="absolute top-[10%] left-[-10%] w-[600px] h-[600px] bg-cyan-500/5 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-orange-500/5 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-6 relative z-10">
+      <div className="max-w-7xl mx-auto px-6 lg:px-12 relative z-10">
         
-        {/* --- HEADER --- */}
-        <div className="mb-20">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex flex-col items-start"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-8">
-              <TrendingUp className="w-3 h-3" /> Proven Alpha
-            </div>
-            <h1 className="text-5xl md:text-7xl font-montserrat font-black mb-8 leading-[1.1] tracking-tighter italic">
-              Elite <br/>
-              <span className="relative">
-                Success Nodes.
-                <svg className="absolute -bottom-4 left-0 w-full h-4" viewBox="0 0 300 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M5 15C50 5 100 25 150 15C200 5 250 25 295 15" stroke="#00F2FF" strokeWidth="4" strokeLinecap="round" />
-                  <path d="M5 10C50 0 100 20 150 10C200 0 250 20 295 10" stroke="#FF5F00" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
-                </svg>
-              </span>
-            </h1>
-            <p className="text-white/40 text-lg font-medium leading-relaxed max-w-2xl italic">
-              Real humans. Real revenue. Discover how ambitious nodes transformed concepts into scalable, revenue-generating businesses through the Propels protocol.
-            </p>
-          </motion.div>
-        </div>
+        {/* HERO SECTION */}
+        <motion.div 
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: "easeOut" }}
+          className="text-center mb-16"
+        >
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
+            <TrendingUp className="w-4 h-4" /> Proven Results
+          </div>
+          <h1 className="text-5xl md:text-7xl font-montserrat font-bold mb-6 tracking-tight">
+            Real Founders. <br className="hidden md:block" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-[#FF5F00]">Real Revenue.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-white/70 max-w-2xl mx-auto leading-relaxed">
+            Discover the humans behind the startups. See how ambitious students transformed their ideas into scalable, revenue-generating businesses through The Propels.
+          </p>
+        </motion.div>
 
-        {/* --- FILTER BAR --- */}
-        <div className="flex gap-4 p-2 bg-white/[0.03] rounded-[2rem] border border-white/5 w-fit mb-20 overflow-x-auto hide-scrollbar max-w-full">
+        {/* FILTER BAR */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.2, ease: "easeOut" }}
+          className="flex flex-wrap justify-center gap-4 mb-16"
+        >
           {FILTERS.map((niche) => (
             <button
               key={niche}
               onClick={() => setSelectedNiche(niche)}
-              className={`h-14 px-10 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all ${
-                selectedNiche === niche 
-                  ? 'bg-white text-black shadow-2xl' 
-                  : 'text-white/40 hover:bg-white/5'
+              className={`px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300 ${
+                selectedNiche === niche
+                  ? 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] scale-105'
+                  : 'bg-white/5 text-white/60 border border-white/10 hover:bg-white/10 hover:text-white'
               }`}
             >
               {niche}
             </button>
           ))}
-        </div>
+        </motion.div>
 
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-             {Array(3).fill(0).map((_, i) => (
-               <div key={i} className="h-[500px] rounded-[40px] bg-white/5 animate-pulse border border-white/10" />
-             ))}
+          <div className="flex justify-center items-center py-20">
+            <div className="w-12 h-12 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
           </div>
         ) : (
           <motion.div layout className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
@@ -116,75 +111,79 @@ export default function SuccessStories() {
                 <motion.div
                   layout
                   key={story.id}
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: index * 0.1 }}
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-50px" }}
+                  exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+                  transition={{ duration: 0.5, delay: index * 0.1 }}
                 >
-                  <Link href={`/success-stories/${story.id}`} className="group bg-white rounded-[40px] p-1 shadow-2xl overflow-hidden flex flex-col h-full hover:-translate-y-2 transition-all duration-500">
-                    <div className="h-64 relative overflow-hidden rounded-t-[39px]">
-                       <Image 
-                         src={story.media_url} 
-                         alt={story.founder_name} 
-                         fill
-                         className="object-cover group-hover:scale-110 transition-transform duration-700"
-                       />
-                       <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors" />
-                       <div className="absolute top-6 right-6">
-                          <span className="text-[8px] font-black px-4 py-1.5 bg-black/60 backdrop-blur-md border border-white/20 rounded-full text-white uppercase tracking-[0.2em]">
-                            {story.niche}
-                          </span>
-                       </div>
-                       {story.media_type === 'video' && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                             <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20 scale-90 group-hover:scale-100 transition-transform">
-                                <PlayCircle className="w-8 h-8 text-white" />
-                             </div>
+                  <Link href={`/success-stories/${story.id}`} className="group relative bg-[#0a0a0f] border border-white/10 rounded-[2rem] hover:border-cyan-500/30 transition-colors duration-500 overflow-hidden cursor-pointer shadow-xl flex flex-col h-full block">
+                    {/* Media Section */}
+                    <div className="w-full h-56 md:h-64 relative overflow-hidden bg-black/50">
+                      <Image 
+                        src={story.media_url} 
+                        alt={`${story.founder_name}'s journey`} 
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100"
+                      />
+                      {story.media_type === 'video' && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/20 group-hover:bg-black/0 transition-colors">
+                          <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center border border-white/20">
+                            <PlayCircle className="w-8 h-8 text-white" />
                           </div>
-                       )}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-[#0a0a0f]/40 to-transparent" />
+                      <div className="absolute top-4 right-4 z-10">
+                         <span className="text-[10px] font-bold px-4 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-full text-white/90 uppercase tracking-widest shadow-lg">
+                          {story.niche}
+                        </span>
+                      </div>
                     </div>
                     
-                    <div className="p-10 pt-0 -mt-10 relative z-10 flex flex-col flex-grow bg-white rounded-b-[39px]">
-                       <div className="flex items-end gap-5 mb-8">
-                          <div className="w-20 h-20 rounded-3xl bg-slate-100 border-4 border-white shadow-xl overflow-hidden group-hover:-translate-y-2 transition-transform duration-500">
-                             <Image 
-                               src={story.avatar_url} 
-                               alt={story.founder_name} 
-                               width={80} 
-                               height={80} 
-                               className="w-full h-full object-cover" 
-                             />
-                          </div>
-                          <div className="pb-1">
-                             <h3 className="font-black text-2xl font-montserrat text-slate-900 uppercase italic tracking-tighter leading-none mb-1">{story.founder_name}</h3>
-                             <p className="text-cyan-600 text-[10px] font-black uppercase tracking-widest">{story.startup_name}</p>
-                          </div>
-                       </div>
+                    <div className="relative z-10 flex flex-col flex-grow p-8 pt-0 -mt-8">
+                      {/* Avatar */}
+                      <div className="flex items-end gap-4 mb-6">
+                        <div className="w-20 h-20 rounded-2xl bg-[#0a0a0f] p-1 shadow-2xl relative z-20 group-hover:-translate-y-2 transition-transform duration-500">
+                          <Image 
+                            src={story.avatar_url} 
+                            alt={story.founder_name} 
+                            width={80} 
+                            height={80} 
+                            className="w-full h-full object-cover rounded-xl" 
+                          />
+                        </div>
+                        <div className="pb-1">
+                          <h3 className="font-bold text-xl font-montserrat text-white">{story.founder_name}</h3>
+                          <p className="text-cyan-400 text-sm font-semibold">{story.startup_name}</p>
+                        </div>
+                      </div>
 
-                       <div className="mb-8 flex items-center gap-4 bg-slate-50 border border-slate-100 rounded-3xl p-6 shadow-inner">
-                          <div className="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center shadow-lg shadow-orange-500/20">
-                             <Zap className="w-6 h-6 text-white" />
+                      {/* Key Metric Badge */}
+                      <div className="mb-6 flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl p-4">
+                        <div className="w-10 h-10 rounded-xl bg-orange-500/10 flex items-center justify-center flex-shrink-0">
+                          <Zap className="w-5 h-5 text-orange-400" />
+                        </div>
+                        <div>
+                          <div className="text-xl font-black text-white font-montserrat">
+                            {story.metric}
                           </div>
-                          <div>
-                             <div className="text-2xl font-black text-slate-900 font-montserrat tracking-tighter italic leading-none mb-1">
-                               {story.metric}
-                             </div>
-                             <div className="text-[8px] text-slate-400 font-black uppercase tracking-[0.2em]">
-                               {story.metric_label}
-                             </div>
+                          <div className="text-[10px] text-white/50 font-bold uppercase tracking-widest">
+                            {story.metric_label}
                           </div>
-                       </div>
+                        </div>
+                      </div>
 
-                       <p className="text-slate-500 text-sm font-medium italic leading-relaxed mb-10 flex-grow">
-                         "{story.summary}"
-                       </p>
+                      <p className="text-white/60 text-sm leading-relaxed mb-8 flex-grow">
+                        {story.summary}
+                      </p>
 
-                       <div className="mt-auto pt-8 border-t border-slate-50 flex items-center justify-between group-hover:text-cyan-600 transition-colors">
-                          <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">View Node Profile</span>
-                          <div className="w-12 h-12 rounded-2xl bg-slate-950 flex items-center justify-center text-white group-hover:bg-cyan-600 transition-all shadow-xl">
-                             <ArrowRight className="w-5 h-5" />
-                          </div>
-                       </div>
+                      <div className="mt-auto border-t border-white/5 pt-6 flex items-center justify-between group-hover:text-cyan-300 transition-colors w-full">
+                        <span className="text-sm font-bold text-white/80">View Full Story</span>
+                        <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center group-hover:bg-cyan-500/20 transition-colors">
+                          <ArrowRight className="w-4 h-4 text-cyan-400 group-hover:translate-x-0.5 transition-transform" />
+                        </div>
+                      </div>
                     </div>
                   </Link>
                 </motion.div>
@@ -194,10 +193,15 @@ export default function SuccessStories() {
         )}
 
         {!loading && filteredStories.length === 0 && (
-          <div className="text-center py-32 bg-white/[0.02] border border-white/10 rounded-[40px]">
-             <Users className="w-16 h-16 text-white/10 mx-auto mb-6" />
-             <h3 className="text-2xl font-black text-white/40 uppercase italic tracking-tight">No Success Nodes Detected</h3>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <Award className="w-16 h-16 text-white/20 mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-white mb-2">No stories found</h3>
+            <p className="text-white/50">There are no success stories available right now.</p>
+          </motion.div>
         )}
 
       </div>
