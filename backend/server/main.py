@@ -20,8 +20,13 @@ app = FastAPI(title="The Propels API")
 # Supabase Configuration
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
 SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
-# Create Supabase client instance
-supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+
+if not SUPABASE_URL or not SUPABASE_KEY:
+    print("WARNING: Supabase credentials missing. Client initialization skipped.")
+    supabase = None
+else:
+    # Create Supabase client instance
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 # Cashfree Configuration
 CASHFREE_APP_ID = os.getenv("CASHFREE_APP_ID", "TEST104193478b056158097b69335f6374391401")
@@ -42,6 +47,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# In-memory OTP storage
+otp_storage = {}
+
+# Models for OTP and Auth
+class OTPRequest(BaseModel):
+    email: str = None
+    mobile: str = None
+
+class OTPVerifyRequest(BaseModel):
+    email: str = None
+    mobile: str = None
+    otp: str
 
 # Define a data model for checkout requests
 class CheckoutRequest(BaseModel):
@@ -86,6 +104,38 @@ def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
         print(f"SUCCESS: Credentials email sent to {email}")
     except Exception as e:
         print(f"RESEND ERROR: {str(e)}")
+
+
+@app.post("/api/auth/send-otp")
+async def send_otp(req: OTPRequest):
+    import random
+    otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    if req.email:
+        try:
+            resend.Emails.send({
+                "from": "The Propels <auth@resend.dev>",
+                "to": [req.email],
+                "subject": "Your Verification Code",
+                "html": f"Your verification code is: <strong>{otp}</strong>"
+            })
+            otp_storage[req.email] = otp
+            return {"status": "success", "message": f"OTP sent to {req.email}"}
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+    if req.mobile:
+        print(f"MOCK SMS: OTP for {req.mobile} is {otp}")
+        otp_storage[req.mobile] = otp
+        return {"status": "success", "message": f"OTP sent to {req.mobile} (Mocked)", "debug_otp": otp}
+    raise HTTPException(status_code=400, detail="Either email or mobile must be provided")
+
+@app.post("/api/auth/verify-otp")
+async def verify_otp(req: OTPVerifyRequest):
+    identifier = req.email or req.mobile
+    if not identifier:
+        raise HTTPException(status_code=400, detail="Identifier missing")
+    if identifier in otp_storage and otp_storage[identifier] == req.otp:
+        return {"status": "success", "message": "OTP verified"}
+    raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
 # Root endpoint
 @app.get("/")

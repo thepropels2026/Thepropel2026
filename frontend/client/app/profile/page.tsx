@@ -162,7 +162,8 @@ export default function Profile() {
                 <div className="space-y-3 text-sm text-slate-600 font-medium">
                   <div className="flex items-center gap-3"><MapPin className="w-4 h-4 text-slate-400" /> Gurugram, India</div>
                   <div className="flex items-center gap-3"><LinkIcon className="w-4 h-4 text-slate-400" /> propels.in/{profileData.firstName?.toLowerCase()}</div>
-                  <div className="flex items-center gap-3"><Calendar className="w-4 h-4 text-slate-400" /> Joined April 2026</div>
+                  <div className="flex items-center gap-3"><Calendar className="w-4 h-4 text-slate-400" /> Born: {profileData.dob || 'Not set'}</div>
+                  <div className="flex items-center gap-3"><GraduationCap className="w-4 h-4 text-slate-400" /> {profileData.qualification || 'Founder'}</div>
                 </div>
               </div>
             </div>
