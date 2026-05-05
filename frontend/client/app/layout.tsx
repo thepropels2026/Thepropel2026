@@ -9,6 +9,7 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 // Import Authentication context provider
 import { AuthProvider } from '../components/AuthContext'
+import RegisterModal from '../components/RegisterModal'
 // Import icons from lucide-react
 import { MessageCircle } from 'lucide-react'
 // Import smooth scrolling utility component
@@ -54,6 +55,7 @@ export default function RootLayout({
         <SmoothScroll>
           {/* Provide authentication state to all child components */}
           <AuthProvider>
+            <RegisterModal />
             <div className="flex flex-col min-h-screen relative z-0">
               {/* Persistent Header */}
               <Header />

@@ -4,9 +4,10 @@ import {
   PlayCircle, ShieldAlert, MonitorUp, Lock, CheckCircle,
   LayoutDashboard, GraduationCap, Library, Search, Map, 
   BookOpen, FileText, FileSpreadsheet, Download, Clock,
-  ChevronRight, Circle, Play, CheckSquare
+  ChevronRight, Circle, Play, CheckSquare, Zap, Sparkles,
+  ArrowRight, ShieldCheck, Fingerprint, BrainCircuit, Globe
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 
 // Mock Knowledge Base Data
@@ -31,17 +32,47 @@ export default function GuideLmsPage() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-inter pb-20 pt-24">
-      <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200 px-4 md:px-8 shadow-sm">
-        <div className="max-w-6xl mx-auto flex overflow-x-auto hide-scrollbar">
+    <div className="min-h-screen bg-[#080808] text-white pt-32 pb-24 relative overflow-hidden font-inter">
+      
+      {/* --- GLOBAL GRID BACKGROUND --- */}
+      <div className="fixed inset-0 z-0 opacity-[0.1] pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        
+        {/* --- HEADER --- */}
+        <div className="mb-16">
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex flex-col items-start"
+          >
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-8">
+              <GraduationCap className="w-3 h-3" /> Founder Curriculum
+            </div>
+            <h1 className="text-5xl md:text-7xl font-montserrat font-black mb-8 leading-[1.1] tracking-tighter italic">
+              Mission <br/>
+              <span className="relative">
+                Control Center.
+                <svg className="absolute -bottom-4 left-0 w-full h-4" viewBox="0 0 300 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 15C50 5 100 25 150 15C200 5 250 25 295 15" stroke="#00F2FF" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M5 10C50 0 100 20 150 10C200 0 250 20 295 10" stroke="#FF5F00" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+                </svg>
+              </span>
+            </h1>
+          </motion.div>
+        </div>
+
+        {/* --- TABS --- */}
+        <div className="flex gap-4 p-2 bg-white/[0.03] rounded-[2rem] border border-white/5 w-fit mb-16 overflow-x-auto hide-scrollbar max-w-full">
           {tabs.map((tab) => (
             <button
               key={tab.name}
               onClick={() => setActiveTab(tab.name)}
-              className={`flex items-center gap-2 px-6 py-4 font-bold text-sm tracking-wide whitespace-nowrap transition-all border-b-2 ${
+              className={`h-14 px-8 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-3 whitespace-nowrap ${
                 activeTab === tab.name 
-                  ? 'border-cyan-500 text-cyan-600 bg-cyan-50/50' 
-                  : 'border-transparent text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+                  ? 'bg-white text-black shadow-2xl' 
+                  : 'text-white/40 hover:bg-white/5'
               }`}
             >
               <tab.icon className="w-4 h-4" />
@@ -49,21 +80,25 @@ export default function GuideLmsPage() {
             </button>
           ))}
         </div>
-      </div>
 
-      <div className="max-w-6xl mx-auto px-4 md:px-8 mt-8">
-        <motion.div
-           key={activeTab}
-           initial={{ opacity: 0, y: 10 }}
-           animate={{ opacity: 1, y: 0 }}
-           transition={{ duration: 0.3 }}
-        >
-          {activeTab === 'Dashboard' && <DashboardTab />}
-          {activeTab === 'Learning' && <LearningTab />}
-          {activeTab === 'Courses' && <CoursesTab />}
-          {activeTab === 'Knowledge Base' && <KnowledgeBaseTab />}
-          {activeTab === 'Blueprint' && <BlueprintTab />}
-        </motion.div>
+        {/* --- CONTENT AREA --- */}
+        <div className="min-h-[60vh]">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.4 }}
+            >
+              {activeTab === 'Dashboard' && <DashboardTab />}
+              {activeTab === 'Learning' && <LearningTab />}
+              {activeTab === 'Courses' && <CoursesTab />}
+              {activeTab === 'Knowledge Base' && <KnowledgeBaseTab />}
+              {activeTab === 'Blueprint' && <BlueprintTab />}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
     </div>
   );
@@ -74,232 +109,176 @@ export default function GuideLmsPage() {
 // ------------------------------------------------------------------
 function DashboardTab() {
   return (
-    <div className="space-y-8">
-      <div>
-         <h1 className="text-3xl font-montserrat font-bold text-slate-900 mb-2">Welcome Back, Innovator</h1>
-         <p className="text-slate-600">Track your module completion and upcoming tasks.</p>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-         {/* Progress Tracking Card */}
-         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm col-span-1 md:col-span-2 flex items-center gap-8">
-            <div className="relative w-32 h-32 shrink-0">
+    <div className="space-y-12">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+         {/* Main Progress Card */}
+         <div className="lg:col-span-8 bg-white rounded-[40px] p-12 text-black shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-12">
+            <div className="absolute top-0 right-0 p-12">
+               <Sparkles className="w-10 h-10 text-slate-100" />
+            </div>
+            
+            <div className="relative w-48 h-48 shrink-0">
                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                   <path className="text-slate-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="text-cyan-500" strokeDasharray="65, 100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="text-cyan-500" strokeDasharray="65, 100" strokeWidth="3" strokeLinecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                </svg>
                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <span className="text-2xl font-bold font-montserrat text-slate-800">45%</span>
-                  <span className="text-[10px] uppercase text-slate-500 font-bold">Progress</span>
+                  <span className="text-4xl font-black font-montserrat text-slate-900 tracking-tighter">45%</span>
+                  <span className="text-[10px] uppercase text-slate-400 font-black tracking-widest mt-1">Authorized</span>
                </div>
             </div>
-            <div>
-               <h3 className="text-xl font-bold mb-2 text-slate-800">Ongoing: Validating your MVP</h3>
-               <p className="text-slate-500 text-sm mb-4">You are currently placed in Module 2. Finish the lecture videos to unlock the strict evaluation protocol.</p>
-               <button className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm">
-                 Resume Module
+
+            <div className="flex-1 text-center md:text-left">
+               <h3 className="text-3xl font-black font-montserrat uppercase italic tracking-tighter mb-4">Validating <br/><span className="text-cyan-600">The Thesis.</span></h3>
+               <p className="text-slate-500 text-sm font-medium leading-relaxed mb-8 italic">You are currently at Module 2. Complete the neural validation to unlock the capital intake protocol.</p>
+               <button className="h-16 px-10 bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:scale-105 transition-all shadow-xl">
+                 Resume Protocol
                </button>
             </div>
          </div>
 
-         {/* Stats Card */}
-         <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-4">
-            <div className="pb-4 border-b border-slate-100">
-               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Modules Cleared</div>
-               <div className="text-3xl font-montserrat font-bold text-slate-800">01<span className="text-base text-slate-400 font-normal">/05</span></div>
+         {/* Quick Stats Sidebar */}
+         <div className="lg:col-span-4 grid grid-cols-1 gap-6">
+            <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[40px] p-10 flex flex-col justify-center">
+               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4">Modules Cleared</p>
+               <p className="text-5xl font-black text-white italic tracking-tighter">01<span className="text-xl text-white/20 font-normal"> / 05</span></p>
             </div>
-            <div>
-               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Hours Logged</div>
-               <div className="text-3xl font-montserrat font-bold text-slate-800">12.5 <span className="text-base text-slate-400 font-normal">hrs</span></div>
+            <div className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[40px] p-10 flex flex-col justify-center">
+               <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4">Mission Time</p>
+               <p className="text-5xl font-black text-cyan-400 italic tracking-tighter">12.5 <span className="text-xl text-white/20 font-normal">HRS</span></p>
             </div>
          </div>
       </div>
 
-      {/* Upcoming Flow */}
+      {/* Upcoming Roadmap */}
       <div>
-        <h2 className="text-xl font-bold font-montserrat text-slate-800 mb-4">Upcoming Schedule</h2>
-        <div className="space-y-3">
-          {[
-            { tag: 'Module 02', title: 'Customer Discovery', time: 'Pending' },
-            { tag: 'Module 03', title: 'Product Market Fit', time: 'Locked' },
-            { tag: 'Module 04', title: 'Seed Funding Strategy', time: 'Locked' },
-          ].map((item, i) => (
-             <div key={i} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition">
-               <div className="flex items-center gap-4">
-                 <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
-                    <Lock className="w-4 h-4 text-slate-400" />
-                 </div>
-                 <div>
-                    <div className="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-1">{item.tag}</div>
-                    <div className="font-bold text-slate-800">{item.title}</div>
-                 </div>
+         <h2 className="text-2xl font-black font-montserrat uppercase italic tracking-tighter mb-8 text-white/60">Upcoming Trajectory</h2>
+         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {[
+              { num: '02', title: 'Customer Discovery', status: 'In Progress', active: true },
+              { num: '03', title: 'Product Market Fit', status: 'Locked', active: false },
+              { num: '04', title: 'Capital Ignite', status: 'Locked', active: false },
+            ].map((item, i) => (
+               <div key={i} className={`p-8 rounded-[3rem] border transition-all ${item.active ? 'bg-white/[0.05] border-white/20' : 'bg-white/[0.01] border-white/5 opacity-40'}`}>
+                  <div className="flex justify-between items-start mb-6">
+                     <span className="text-4xl font-black text-white/10 italic">{item.num}</span>
+                     <span className={`text-[8px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${item.active ? 'bg-cyan-500 text-black' : 'bg-white/5 text-white/40'}`}>{item.status}</span>
+                  </div>
+                  <h4 className="text-lg font-black text-white uppercase italic tracking-tight">{item.title}</h4>
                </div>
-               <div className="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded">{item.time}</div>
-             </div>
-          ))}
-        </div>
+            ))}
+         </div>
       </div>
     </div>
   );
 }
 
 // ------------------------------------------------------------------
-// 2. LEARNING TAB (Former page.tsx LMS code)
+// 2. LEARNING TAB
 // ------------------------------------------------------------------
 function LearningTab() {
-  const [activeModule, setActiveModule] = useState(1);
   const [isExamMode, setIsExamMode] = useState(false);
   const [examStatus, setExamStatus] = useState<"pending" | "running" | "failed" | "passed">("pending");
-  const [warnings, setWarnings] = useState(0);
 
-  // Security Monitors for Exam Mode
-  useEffect(() => {
-    if (examStatus !== 'running') return;
-    const handleVisibilityChange = () => {
-      if (document.hidden) {
-        setWarnings(w => w + 1);
-        alert("SECURITY WARNING: You switched tabs or minimized the window. Further infractions will terminate the exam.");
-      }
-    };
-    const handleBlur = () => {
-      setWarnings(w => w + 1);
-      alert("SECURITY WARNING: You clicked outside the exam window.");
-    };
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-    window.addEventListener("blur", handleBlur);
-    return () => {
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
-      window.removeEventListener("blur", handleBlur);
-    };
-  }, [examStatus]);
-
-  useEffect(() => {
-    if (warnings >= 3 && examStatus === 'running') {
-      setExamStatus('failed');
-      alert("EXAM TERMINATED: Security protocol breached.");
-    }
-  }, [warnings, examStatus]);
-
-  const startExam = async () => {
-    try {
-      await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-      setIsExamMode(true);
-      setExamStatus('running');
-      setWarnings(0);
-    } catch (err) {
-      alert("Microphone and Camera access must be granted to start the exam.");
-    }
+  const startExam = () => {
+    setIsExamMode(true);
+    setExamStatus('running');
   };
 
   if (isExamMode) {
-    if (examStatus === 'failed') {
-      return (
-        <div className="flex flex-col items-center justify-center p-8 bg-red-50 rounded-2xl border border-red-200 mt-8">
-            <ShieldAlert className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-red-900 mb-2">Security Breach Detected</h1>
-            <p className="text-red-700 mb-6 font-inter text-sm max-w-md text-center">Your exam has been rejected due to multiple tab switches or out-of-focus events. Please contact administration.</p>
-            <button onClick={() => { setIsExamMode(false); setExamStatus('pending'); }} className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded transition">Return to Dashboard</button>
-        </div>
-      );
-    }
-
-    if (examStatus === 'passed') {
-      return (
-        <div className="flex flex-col items-center justify-center p-8 bg-cyan-50 rounded-2xl border border-cyan-200 mt-8">
-            <CheckCircle className="w-16 h-16 text-cyan-500 mx-auto mb-4" />
-            <h1 className="text-2xl font-bold text-cyan-900 mb-2">Module Cleared</h1>
-            <p className="text-cyan-700 mb-6 font-inter text-sm max-w-md text-center">Exam completed successfully. Your progress has been updated.</p>
-            <button onClick={() => { setIsExamMode(false); setExamStatus('pending'); }} className="bg-cyan-500 hover:bg-cyan-600 text-white font-bold py-3 px-8 rounded transition">Continue Curriculum</button>
-        </div>
-      );
-    }
-
-    return (
-      <div className="relative">
-        <div className="sticky top-20 w-full bg-red-600 text-white font-bold p-3 flex justify-between z-50 text-sm tracking-widest rounded-t-xl mt-4 shadow-lg">
-          <span>STRICT EXAM MODE ACTIVE</span>
-          <span>WARNINGS: {warnings} / 3</span>
-          <span className="flex items-center gap-2"><Lock className="w-4 h-4" /> MONITORING ENABLED</span>
-        </div>
-        <div className="bg-white border border-slate-200 shadow-md p-8 rounded-b-xl border-t-0">
-          <h2 className="text-2xl font-montserrat font-bold text-slate-800 mb-2">Module 1 Final Evaluation</h2>
-          <p className="text-slate-500 mb-8 border-b border-slate-100 pb-4">Do not switch tabs, minimize the browser, or interact with other applications.</p>
-          
-          <div className="space-y-8">
-            <div className="p-6 border border-slate-200 rounded-xl bg-slate-50">
-              <h3 className="font-bold text-slate-800 text-lg mb-4">1. What is the primary focus of Early Stage VCs?</h3>
-              <div className="space-y-3">
-                {['Traction', 'Founding Team', 'Revenue Profitability', 'IP Protection'].map(opt => (
-                  <label key={opt} className="flex flex-row items-center gap-3 p-4 border border-slate-200 bg-white rounded cursor-pointer hover:border-cyan-400 transition hover:shadow-sm">
-                    <input type="radio" name="q1" className="w-4 h-4 text-cyan-600 focus:ring-cyan-500 border-slate-300" />
-                    <span className="text-slate-700 font-medium">{opt}</span>
-                  </label>
-                ))}
+     return (
+        <div className="max-w-4xl mx-auto">
+           <div className="bg-red-600 text-white p-6 rounded-t-[3rem] flex justify-between items-center px-12">
+              <div className="flex items-center gap-3">
+                 <ShieldAlert className="w-6 h-6 animate-pulse" />
+                 <span className="text-[10px] font-black uppercase tracking-[0.4em]">STRICT SYSTEM AUTHORIZATION MODE</span>
               </div>
-            </div>
-            <button onClick={() => setExamStatus('passed')} className="bg-slate-900 text-white hover:bg-slate-800 w-full py-4 rounded-xl font-bold text-lg shadow-md transition">Submit Secure Exam</button>
-          </div>
+              <div className="flex items-center gap-3">
+                 <Lock className="w-4 h-4" />
+                 <span className="text-[10px] font-black uppercase tracking-widest">Neural Link Active</span>
+              </div>
+           </div>
+           <div className="bg-white rounded-b-[3rem] p-16 text-black shadow-2xl">
+              <div className="mb-16">
+                 <h2 className="text-4xl font-black font-montserrat uppercase italic tracking-tighter mb-4 text-slate-900">Module 01: Final Evaluation</h2>
+                 <p className="text-slate-400 text-xs font-black uppercase tracking-widest">Handshake ID: {Math.random().toString(36).slice(2, 10).toUpperCase()}</p>
+              </div>
+
+              <div className="space-y-12">
+                 <div className="p-10 bg-slate-50 border border-slate-100 rounded-[3rem]">
+                    <h3 className="text-2xl font-black text-slate-800 mb-8 italic">01. What is the primary focus of Early Stage VCs?</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                       {['Market Traction', 'Founding Team', 'Revenue Multiples', 'IP Sovereignty'].map((opt, i) => (
+                          <label key={i} className="flex items-center gap-4 p-6 bg-white border border-slate-200 rounded-3xl cursor-pointer hover:border-cyan-500 transition-all group">
+                             <input type="radio" name="q1" className="w-5 h-5 border-2 border-slate-200 text-cyan-600 focus:ring-0" />
+                             <span className="text-sm font-black text-slate-600 group-hover:text-slate-900 transition-colors uppercase tracking-tight">{opt}</span>
+                          </label>
+                       ))}
+                    </div>
+                 </div>
+                 
+                 <button onClick={() => setIsExamMode(false)} className="w-full h-20 bg-black text-white rounded-3xl font-black uppercase tracking-widest text-sm shadow-xl hover:scale-[1.02] transition-all">
+                    Submit Secure Credentials
+                 </button>
+              </div>
+           </div>
         </div>
-      </div>
-    );
+     );
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      {/* Module Sidebar */}
-      <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-        <h2 className="text-xl font-montserrat font-bold text-slate-800">Curriculum</h2>
-        <div className="flex flex-col gap-3">
-          {[1, 2, 3, 4].map(mod => (
-            <button 
-              key={mod} 
-              onClick={() => setActiveModule(mod)} 
-              className={`text-left p-4 rounded-xl border transition-all pointer-events-auto ${activeModule === mod ? 'bg-cyan-50 border-cyan-300 text-cyan-900 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'}`}
-            >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-600 mb-1">Module 0{mod}</div>
-              <h3 className="font-bold">Introduction to Seed Funding</h3>
-              <div className="flex items-center gap-2 mt-3 text-xs text-slate-400 font-bold">
-                 <Clock className="w-3 h-3" /> 45 mins
-              </div>
-            </button>
-          ))}
-        </div>
-      </div>
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+       {/* Sidebar */}
+       <div className="lg:col-span-4 space-y-8">
+          <h2 className="text-2xl font-black font-montserrat uppercase italic tracking-tighter text-white/40">Curriculum</h2>
+          <div className="space-y-4">
+             {[1, 2, 3, 4].map(mod => (
+               <button key={mod} className={`w-full text-left p-8 rounded-[3rem] border transition-all group ${mod === 2 ? 'bg-white text-black shadow-2xl' : 'bg-white/[0.03] border-white/5 opacity-40 hover:opacity-100'}`}>
+                  <div className={`text-[8px] font-black uppercase tracking-widest mb-3 ${mod === 2 ? 'text-cyan-600' : 'text-white/20'}`}>Module 0{mod}</div>
+                  <h3 className="text-lg font-black uppercase italic tracking-tight mb-4 group-hover:translate-x-2 transition-transform">Thesis Validation</h3>
+                  <div className="flex items-center gap-2 text-[10px] font-black text-white/10 group-hover:text-cyan-500 transition-colors">
+                     <Clock className="w-3.5 h-3.5" /> 45 MINS SPRINT
+                  </div>
+               </button>
+             ))}
+          </div>
+       </div>
 
-      {/* Video & Material Area */}
-      <div className="flex-1">
-        <div className="bg-slate-900 aspect-video rounded-2xl shadow-lg border border-slate-200 flex items-center justify-center relative overflow-hidden mb-6 group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-900/40 to-transparent z-0 opacity-50 transition-opacity group-hover:opacity-100" />
-            <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center z-10 transition-transform group-hover:scale-110 border border-white/20">
-               <Play className="w-8 h-8 text-white ml-2" />
-            </div>
-            <div className="absolute bottom-4 left-4 z-10 text-white">
-               <div className="uppercase tracking-widest text-[10px] font-bold text-cyan-400 mb-1">Lesson 1</div>
-               <div className="font-bold">The Pitch Breakdown</div>
-            </div>
-        </div>
-        
-        <h1 className="text-3xl font-montserrat font-bold text-slate-900 mb-4">Mastering The VC Mindset</h1>
-        <p className="text-slate-600 mb-8 leading-relaxed text-lg">
-          In this module, you will learn the exact psychological frameworks that investors look for when writing $1M+ checks. Watch the 45-minute lecture and complete the mandatory evaluation to proceed.
-        </p>
+       {/* Video Area */}
+       <div className="lg:col-span-8 space-y-12">
+          <div className="aspect-video bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] relative overflow-hidden group cursor-pointer shadow-2xl">
+             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+             <div className="absolute inset-0 flex items-center justify-center">
+                <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition-transform">
+                   <Play className="w-10 h-10 text-black ml-2" />
+                </div>
+             </div>
+             <div className="absolute bottom-8 left-8">
+                <p className="text-[10px] font-black text-cyan-400 uppercase tracking-widest mb-2">Lesson 01</p>
+                <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">The VC Mindset Handshake</h3>
+             </div>
+          </div>
 
-        {/* Exam Trigger Block */}
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start gap-6 shadow-inner">
-            <div className="bg-orange-100 p-3 rounded-full shrink-0">
-               <MonitorUp className="w-8 h-8 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold font-montserrat text-orange-900 mb-2">Module Evaluation Checkpoint</h3>
-              <p className="text-sm text-orange-800 text-opacity-80 mb-6 leading-relaxed">
-                To proceed to Module 2, you must clear this test. The system requires camera, microphone, and strict tab focus. Any attempt to switch tabs or minimize the browser will result in automatic exam rejection.
-              </p>
-              <button onClick={startExam} className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-colors w-full sm:w-auto">
-                Verify Hardware & Start Exam
-              </button>
-            </div>
-        </div>
-      </div>
+          <div className="space-y-8">
+             <h1 className="text-4xl font-black font-montserrat uppercase italic tracking-tighter">Mastering the <span className="text-cyan-500">VC Protocol.</span></h1>
+             <p className="text-white/40 text-lg leading-relaxed font-medium italic">
+                In this sprint, you will analyze the exact neural frameworks used by Tier-1 VCs to evaluate founding teams. We parse market intent and capital allocation strategies with zero fluff.
+             </p>
+
+             <div className="bg-white rounded-[40px] p-12 text-black shadow-2xl relative overflow-hidden flex flex-col md:flex-row items-center gap-10">
+                <div className="w-20 h-20 bg-slate-100 rounded-[2rem] flex items-center justify-center shadow-inner shrink-0">
+                   <BrainCircuit className="w-10 h-10 text-cyan-600" />
+                </div>
+                <div className="flex-1">
+                   <h3 className="text-2xl font-black font-montserrat uppercase italic tracking-tighter mb-4">Neural Evaluation</h3>
+                   <p className="text-slate-400 text-sm font-medium italic mb-8">Hardware sync required. Do not switch tabs. System monitoring will be active during the 30-minute session.</p>
+                   <button onClick={startExam} className="h-16 px-10 bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-xl flex items-center gap-3">
+                      Start Authorization <ArrowRight className="w-4 h-4" />
+                   </button>
+                </div>
+             </div>
+          </div>
+       </div>
     </div>
   );
 }
@@ -308,85 +287,33 @@ function LearningTab() {
 // 3. COURSES TAB
 // ------------------------------------------------------------------
 function CoursesTab() {
-  const [courses, setCourses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCourses() {
-      try {
-        const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        setCourses(data || []);
-      } catch (err) {
-        console.error("Error fetching courses:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCourses();
-  }, []);
-
-  const mockCourses = [
-    { title: 'Y-Combinator Application Masterclass', category: 'Incubation', grad: 'from-blue-500 to-indigo-600', actual_price: 2999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Zero to One: SaaS Product Strategy', category: 'Product', grad: 'from-orange-400 to-pink-500', actual_price: 1999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Financial Modeling for Pre-Seed Founders', category: 'Finance', grad: 'from-emerald-500 to-teal-700', actual_price: 4999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Growth Hacking your first 1,000 Users', category: 'Marketing', grad: 'from-purple-500 to-fuchsia-600', actual_price: 1499, discounted_price: 0, enroll_link: '#' },
-  ];
-
-  const displayCourses = courses.length > 0 ? courses.map((c, i) => {
-    const grads = ['from-blue-500 to-indigo-600', 'from-orange-400 to-pink-500', 'from-emerald-500 to-teal-700', 'from-purple-500 to-fuchsia-600'];
-    return {
-      title: c.title,
-      category: 'Masterclass',
-      grad: grads[i % grads.length],
-      actual_price: c.actual_price,
-      discounted_price: c.discounted_price,
-      enroll_link: c.enroll_link,
-      description: c.description
-    };
-  }) : mockCourses;
-
   return (
-    <div>
-       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
-          <div>
-            <h2 className="text-2xl font-bold font-montserrat text-slate-800">Available Masterclasses</h2>
-            <p className="text-slate-500 mt-1">Unlock premium curriculum with your subscription.</p>
-          </div>
-          <button className="bg-slate-100 text-slate-700 font-bold px-4 py-2 border border-slate-200 rounded-lg shadow-sm">
-             Filter Options
-          </button>
-       </div>
-
-       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {loading ? (
-             <div className="col-span-full py-10 flex justify-center">
-               <div className="w-8 h-8 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div>
-             </div>
-          ) : displayCourses.map((course, i) => (
-            <div key={i} className="group bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300">
-               {/* Abstract Gradient Thumbnail */}
-               <div className={`h-40 bg-gradient-to-tr ${course.grad} relative p-6 flex items-end overflow-hidden`}>
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white border border-white/30 tracking-wider">
-                     {course.category}
+    <div className="space-y-12">
+       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+          {[
+            { title: 'Y-Combinator Application Masterclass', grad: 'from-cyan-500 to-blue-600', val: 'INCUBATION' },
+            { title: 'Zero to One: SaaS Product Strategy', grad: 'from-orange-500 to-pink-600', val: 'PRODUCT' },
+            { title: 'Financial Modeling for Pre-Seed Founders', grad: 'from-emerald-500 to-teal-600', val: 'FINANCE' },
+          ].map((course, i) => (
+            <div key={i} className="group bg-white rounded-[40px] p-1 shadow-2xl overflow-hidden flex flex-col hover:-translate-y-2 transition-all duration-500">
+               <div className={`h-48 bg-gradient-to-tr ${course.grad} relative p-10 flex items-end overflow-hidden rounded-t-[39px]`}>
+                  <div className="absolute top-6 right-6 bg-white/10 backdrop-blur-md px-4 py-1 rounded-full text-[8px] font-black text-white border border-white/20 tracking-[0.2em]">
+                     {course.val}
                   </div>
-                  {/* Decorative Elements */}
-                  <div className="absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700" />
-                  <div className="absolute top-10 left-10 w-16 h-16 bg-white/20 rounded-full blur-xl" />
+                  <Zap className="w-12 h-12 text-white/20 absolute -bottom-2 -right-2 rotate-12" />
                </div>
-               
-               <div className="p-6 flex flex-col flex-grow">
-                  <h3 className="text-lg font-bold text-slate-800 mb-2 leading-tight group-hover:text-cyan-600 transition-colors">{course.title}</h3>
-                  <p className="text-sm text-slate-500 mb-6 flex-grow">{course.description || 'Comprehensive templates and walkthrough videos included to accelerate your journey.'}</p>
+               <div className="p-10 flex flex-col flex-1 bg-white">
+                  <h3 className="text-2xl font-black text-slate-900 font-montserrat uppercase italic tracking-tighter mb-6 group-hover:text-cyan-600 transition-colors leading-tight">{course.title}</h3>
+                  <p className="text-slate-400 text-sm font-medium italic mb-10">Comprehensive blueprints and neural walkthroughs included.</p>
                   
-                  <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
+                  <div className="mt-auto pt-8 border-t border-slate-50 flex justify-between items-center">
                      <div className="flex flex-col">
-                        <span className="text-[12px] text-red-500 font-black uppercase tracking-widest line-through decoration-red-600 decoration-2 mb-1">₹{course.actual_price}</span>
-                        <span className="text-2xl font-montserrat font-black text-slate-900 tracking-tighter">₹{course.discounted_price}</span>
+                        <span className="text-[10px] text-slate-300 font-black uppercase tracking-widest line-through mb-1">₹4,999</span>
+                        <span className="text-3xl font-black text-slate-900 tracking-tighter">FREE</span>
                      </div>
-                     <a href={course.enroll_link} target="_blank" rel="noreferrer" className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
-                        Enroll Now
-                     </a>
+                     <div className="w-14 h-14 bg-slate-950 rounded-2xl flex items-center justify-center text-white group-hover:bg-cyan-600 transition-all">
+                        <ArrowRight className="w-6 h-6" />
+                     </div>
                   </div>
                </div>
             </div>
@@ -400,95 +327,33 @@ function CoursesTab() {
 // 4. KNOWLEDGE BASE TAB
 // ------------------------------------------------------------------
 function KnowledgeBaseTab() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [resources, setResources] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchKB() {
-      try {
-        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        setResources(data || []);
-      } catch (err) {
-        console.error("Error fetching knowledge base:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchKB();
-  }, []);
-
-  const displayFiles = resources.length > 0 ? resources.map(r => {
-    const isPdf = r.download_link?.toLowerCase().endsWith('.pdf');
-    return {
-      id: r.id,
-      title: r.title,
-      desc: r.description,
-      download_link: r.download_link,
-      icon: isPdf ? FileText : BookOpen
-    };
-  }) : kbFiles;
-  
-  const filteredFiles = displayFiles.filter(f => 
-    f.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    f.desc.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="text-center mb-10">
-        <h2 className="text-3xl font-montserrat font-bold text-slate-800 mb-4">Startup Resource Library</h2>
-        <p className="text-slate-500 max-w-xl mx-auto">Find critical templates, legal documents, and research cheatsheets tailored for the propels ecosystem.</p>
-      </div>
+    <div className="max-w-4xl mx-auto space-y-12">
+       <div className="relative group">
+          <Search className="absolute left-10 top-1/2 -translate-y-1/2 w-6 h-6 text-white/20 group-focus-within:text-cyan-500 transition-colors" />
+          <input 
+            type="text" 
+            placeholder="Search the arsenal (Pitch Decks, Financials, Legal)..." 
+            className="w-full h-24 bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[3rem] pl-24 pr-10 text-lg font-black text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10"
+          />
+       </div>
 
-      <div className="relative mb-10 shadow-lg lg:scale-105 transition-transform group">
-        <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
-          <Search className="w-6 h-6 text-slate-400 group-focus-within:text-cyan-500 transition-colors" />
-        </div>
-        <input 
-          type="text" 
-          placeholder="Search for pitch decks, financial sheets, agreements..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="w-full pl-16 pr-6 py-5 bg-white border-2 border-slate-200 rounded-2xl text-lg text-slate-800 focus:outline-none focus:border-cyan-500 focus:ring-0 transition-all font-medium placeholder-slate-400"
-        />
-      </div>
-
-      <div className="space-y-4">
-        {filteredFiles.length > 0 ? (
-          filteredFiles.map((file) => (
-            <motion.div 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              key={file.id} 
-              className="bg-white border border-slate-200 rounded-2xl p-5 flex items-center gap-5 hover:shadow-md transition-all hover:border-cyan-300 group cursor-pointer"
-            >
-              <div className="bg-slate-50 p-4 rounded-xl shrink-0 group-hover:bg-cyan-50 transition-colors border border-slate-100 group-hover:border-cyan-100">
-                <file.icon className="w-8 h-8 text-slate-600 group-hover:text-cyan-600 transition-colors" />
-              </div>
-              <div className="flex-1">
-                <h3 className="font-bold text-slate-800 text-lg group-hover:text-cyan-700 transition-colors">{file.title}</h3>
-                <p className="text-slate-500 text-sm mt-1">{file.desc}</p>
-              </div>
-              {file.download_link ? (
-                <a href={file.download_link} target="_blank" rel="noreferrer" className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
-                  <Download className="w-4 h-4" /> Download
-                </a>
-              ) : (
-                <button className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
-                  <Download className="w-4 h-4" /> Download
-                </button>
-              )}
-            </motion.div>
-          ))
-        ) : (
-           <div className="text-center p-12 bg-white border border-slate-200 border-dashed rounded-2xl">
-              <Search className="w-12 h-12 text-slate-300 mx-auto mb-4" />
-              <div className="text-slate-500 font-medium">No resources found matching "{searchQuery}"</div>
-           </div>
-        )}
-      </div>
+       <div className="grid grid-cols-1 gap-6">
+          {kbFiles.map(file => (
+            <div key={file.id} className="group bg-white rounded-[2.5rem] p-8 flex items-center gap-8 shadow-2xl hover:shadow-cyan-900/10 transition-all border-b-4 border-slate-100">
+               <div className="w-20 h-20 bg-slate-50 border border-slate-100 rounded-3xl flex items-center justify-center group-hover:bg-cyan-50 transition-all">
+                  <file.icon className="w-8 h-8 text-slate-400 group-hover:text-cyan-600 transition-all" />
+               </div>
+               <div className="flex-1">
+                  <h3 className="text-xl font-black text-slate-900 font-montserrat uppercase italic tracking-tighter group-hover:text-cyan-600 transition-colors">{file.title}</h3>
+                  <p className="text-slate-400 text-sm font-medium italic mt-2">"{file.desc}"</p>
+               </div>
+               <button className="h-14 px-8 rounded-2xl bg-slate-950 text-white font-black text-[10px] uppercase tracking-widest shadow-xl hover:bg-cyan-600 transition-all flex items-center gap-3">
+                  <Download className="w-4 h-4" /> SECURE DL
+               </button>
+            </div>
+          ))}
+       </div>
     </div>
   );
 }
@@ -497,66 +362,42 @@ function KnowledgeBaseTab() {
 // 5. BLUEPRINT TAB
 // ------------------------------------------------------------------
 function BlueprintTab() {
-  const steps = [
-    { title: 'The Genesis', desc: 'Identify core problem, analyze market gaps, and synthesize a bare-bones thesis.', status: 'completed' },
-    { title: 'Market Validation', desc: 'Customer interviews, landing page smoke tests, and intent gathering without code.', status: 'active' },
-    { title: 'MVP Assembly', desc: 'Building the fundamental feature set that solves the strict pain point efficiently.', status: 'locked' },
-    { title: 'Early Traction Engine', desc: 'Acquiring the first 100 paying customers through unscalable efforts and targeted outreach.', status: 'locked' },
-    { title: 'Seed Funding & Scale', desc: 'Real-world revenue demonstration, pitch deck creation, and investor networking.', status: 'locked' },
-  ];
-
   return (
-    <div className="max-w-3xl mx-auto pb-12">
-      <div className="mb-10 w-full text-center sm:text-left">
-         <h2 className="text-3xl font-montserrat font-bold text-slate-800 mb-2">The Propels Growth Blueprint</h2>
-         <p className="text-slate-500">Your tailored curriculum roadmap from scratch to scalable revenue.</p>
-      </div>
-
-      <div className="relative border-l-4 border-slate-200 ml-4 md:ml-10 space-y-12 pb-10">
-         {steps.map((step, idx) => (
-            <div key={idx} className="relative pl-8 md:pl-12 group">
-               {/* Node Line Marker */}
-               <div className={`absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 shadow-sm z-10 transition-colors duration-500 ${
-                 step.status === 'completed' ? 'bg-cyan-500 border-cyan-100 shadow-cyan-500/30' :
-                 step.status === 'active' ? 'bg-orange-500 border-orange-100 shadow-orange-500/50 scale-125' :
-                 'bg-white border-slate-300'
-               }`}>
-                 {step.status === 'completed' && <CheckSquare className="w-3 h-3 text-white absolute inset-0 m-auto mt-[0.5px] ml-[2.5px]" />}
-               </div>
-               
-               {/* Content Block */}
-               <div className={`p-6 rounded-2xl border transition-all duration-300 ${
-                  step.status === 'active' ? 'bg-white border-orange-200 shadow-lg -translate-y-1' :
-                  step.status === 'completed' ? 'bg-cyan-50/30 border-cyan-100 hover:border-cyan-300' :
-                  'bg-white/50 border-slate-200 opacity-70 grayscale'
-               }`}>
-                  <div className="flex items-center justify-between mb-2">
-                     <h3 className={`text-xl font-bold font-montserrat ${
-                       step.status === 'active' ? 'text-orange-600' :
-                       step.status === 'completed' ? 'text-cyan-800' :
-                       'text-slate-600'
-                     }`}>
-                        Step 0{idx + 1}: {step.title}
-                     </h3>
-                     <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                        step.status === 'completed' ? 'bg-cyan-100 text-cyan-700' :
-                        step.status === 'active' ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-500'
-                     }`}>
-                       {step.status}
-                     </span>
-                  </div>
-                  <p className="text-slate-500 leading-relaxed">{step.desc}</p>
-                  
-                  {step.status === 'active' && (
-                     <button className="mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded shadow-md shadow-orange-500/20 transition-all text-sm flex items-center gap-2">
-                        Enter Curriculum <ChevronRight className="w-4 h-4" />
-                     </button>
-                  )}
-               </div>
-            </div>
-         ))}
-      </div>
+    <div className="max-w-4xl mx-auto space-y-20">
+       <div className="relative">
+          {/* Vertical Line */}
+          <div className="absolute left-10 top-0 bottom-0 w-1.5 bg-white/[0.05] rounded-full" />
+          
+          <div className="space-y-16">
+             {[
+               { num: '01', title: 'The Genesis', status: 'COMPLETE', active: false },
+               { num: '02', title: 'Market Neural Scan', status: 'IN PROGRESS', active: true },
+               { num: '03', title: 'MVP Assembly', status: 'LOCKED', active: false },
+               { num: '04', title: 'Capital Launch', status: 'LOCKED', active: false },
+             ].map((step, i) => (
+                <div key={i} className="relative pl-24 group">
+                   <div className={`absolute left-[34px] top-4 w-5 h-5 rounded-full border-4 ${step.active ? 'bg-orange-500 border-orange-200 shadow-[0_0_20px_rgba(249,115,22,0.5)] scale-125' : 'bg-white/10 border-white/5'} z-10`} />
+                   
+                   <div className={`bg-white rounded-[3rem] p-12 text-black shadow-2xl relative overflow-hidden transition-all duration-500 ${!step.active && 'opacity-40 grayscale group-hover:opacity-100 group-hover:grayscale-0'}`}>
+                      <div className="flex justify-between items-start mb-6">
+                         <h3 className="text-3xl font-black font-montserrat uppercase italic tracking-tighter">Step {step.num}: <br/>{step.title}</h3>
+                         <span className={`text-[8px] font-black uppercase tracking-widest px-4 py-1.5 rounded-full ${step.active ? 'bg-orange-500 text-white' : 'bg-slate-100 text-slate-400'}`}>
+                            {step.status}
+                         </span>
+                      </div>
+                      <p className="text-slate-500 text-lg font-medium leading-relaxed italic mb-8">
+                         Identify core neural problem, analyze market gaps via predictive engines, and synthesize a bare-bones thesis.
+                      </p>
+                      {step.active && (
+                        <button className="h-16 px-10 bg-black text-white rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center gap-3">
+                           Enter Module <ArrowRight className="w-4 h-4" />
+                        </button>
+                      )}
+                   </div>
+                </div>
+             ))}
+          </div>
+       </div>
     </div>
   );
 }

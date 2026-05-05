@@ -7,6 +7,8 @@ type AuthContextType = {
   user: any;
   login: (userData: any) => void;
   logout: () => void;
+  isRegisterModalOpen: boolean;
+  setRegisterModalOpen: (open: boolean) => void;
 };
 
 // Create the context with default values
@@ -15,6 +17,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   login: () => {},
   logout: () => {},
+  isRegisterModalOpen: false,
+  setRegisterModalOpen: () => {},
 });
 
 /**
@@ -22,6 +26,7 @@ const AuthContext = createContext<AuthContextType>({
  * Uses local state to track whether the user is registered/logged in.
  */
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
   const [isRegistered, setIsRegistered] = useState(() => {
     if (typeof window !== 'undefined') {
       return localStorage.getItem('isRegistered') === 'true';
@@ -42,6 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(userData);
     localStorage.setItem('isRegistered', 'true');
     localStorage.setItem('userProfile', JSON.stringify(userData));
+    setRegisterModalOpen(false); // Close modal on success
   };
   
   const logout = () => {
@@ -53,7 +59,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     // Provide the state and action functions to child components
-    <AuthContext.Provider value={{ isRegistered, user, login, logout }}>
+    <AuthContext.Provider value={{ isRegistered, user, login, logout, isRegisterModalOpen, setRegisterModalOpen }}>
       {children}
     </AuthContext.Provider>
   );

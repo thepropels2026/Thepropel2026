@@ -3,7 +3,8 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { 
   Briefcase, BarChart, FileText, Wrench, Globe, Layout, 
-  DollarSign, Activity, Terminal, Search, Filter, ArrowRight, User 
+  DollarSign, Activity, Terminal, Search, Filter, ArrowRight, User,
+  Sparkles, Zap, ShieldCheck, Loader2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -23,36 +24,6 @@ type ToolCard = {
 };
 
 const CATEGORIES = ['All', 'Infrastructure', 'Finance', 'Marketing', 'Productivity'];
-
-const getIconForCategory = (category: string) => {
-  switch (category?.toLowerCase()) {
-    case 'infrastructure': return <Terminal className="w-8 h-8" />;
-    case 'finance': return <DollarSign className="w-8 h-8" />;
-    case 'marketing': return <Globe className="w-8 h-8" />;
-    case 'productivity': return <Activity className="w-8 h-8" />;
-    default: return <Wrench className="w-8 h-8" />;
-  }
-};
-
-const getBgColorForCategory = (category: string) => {
-  switch (category?.toLowerCase()) {
-    case 'infrastructure': return 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20';
-    case 'finance': return 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
-    case 'marketing': return 'bg-orange-500/10 text-orange-400 border-orange-500/20';
-    case 'productivity': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
-    default: return 'bg-slate-500/10 text-slate-400 border-slate-500/20';
-  }
-};
-
-const getHoverBorderColor = (category: string) => {
-  switch (category?.toLowerCase()) {
-    case 'infrastructure': return 'hover:border-cyan-500/50 hover:shadow-[0_0_20px_rgba(6,182,212,0.1)]';
-    case 'finance': return 'hover:border-emerald-500/50 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)]';
-    case 'marketing': return 'hover:border-orange-500/50 hover:shadow-[0_0_20px_rgba(249,115,22,0.1)]';
-    case 'productivity': return 'hover:border-purple-500/50 hover:shadow-[0_0_20px_rgba(168,85,247,0.1)]';
-    default: return 'hover:border-white/10';
-  }
-}
 
 export default function Tools() {
   const [tools, setTools] = useState<ToolCard[]>([]);
@@ -77,10 +48,7 @@ export default function Tools() {
         if (error) throw error;
         setTools(data || []);
       } catch (err: any) {
-        console.error('CRITICAL: Supabase Fetch Error', err);
-        const errorMessage = err.message || 'Unknown network error';
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'Hardcoded Default';
-        setError(`Connection failed: ${errorMessage}. (Project: ${url.split('//')[1]?.split('.')[0] || 'Unknown'})`);
+        setError("Network sync failed. Please verify connection.");
       } finally {
         setIsLoading(false);
       }
@@ -101,178 +69,168 @@ export default function Tools() {
   });
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white pt-24 pb-20">
-      <div className="absolute top-0 left-0 w-full h-[400px] bg-gradient-to-b from-cyan-500/5 to-transparent pointer-events-none" />
+    <div className="min-h-screen bg-[#080808] text-white pt-32 pb-24 relative overflow-hidden font-inter">
       
-      <div className="max-w-[1400px] mx-auto px-6 lg:px-10 relative z-10">
-        <div className="text-center mb-12">
+      {/* --- GLOBAL GRID BACKGROUND --- */}
+      <div className="fixed inset-0 z-0 opacity-[0.1] pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+      
+      <div className="max-w-7xl mx-auto px-6 relative z-10">
+        
+        {/* --- HEADER --- */}
+        <div className="mb-20">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-[9px] font-bold uppercase tracking-widest mb-4"
+            className="flex flex-col items-start"
           >
-            <Wrench className="w-2.5 h-2.5" /> Core Infrastructure
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-8">
+              <Zap className="w-3 h-3" /> Startup Arsenal
+            </div>
+            <h1 className="text-5xl md:text-7xl font-montserrat font-black mb-8 leading-[1.1] tracking-tighter italic">
+              Automated <br/>
+              <span className="relative">
+                Growth Engine.
+                <svg className="absolute -bottom-4 left-0 w-full h-4" viewBox="0 0 300 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M5 15C50 5 100 25 150 15C200 5 250 25 295 15" stroke="#00F2FF" strokeWidth="4" strokeLinecap="round" />
+                  <path d="M5 10C50 0 100 20 150 10C200 0 250 20 295 10" stroke="#FF5F00" strokeWidth="2" strokeLinecap="round" opacity="0.5" />
+                </svg>
+              </span>
+            </h1>
+            <p className="text-white/40 text-lg md:text-xl max-w-2xl font-medium leading-relaxed">
+              Deploy the exact frameworks, automations, and infrastructures used by global unicorns to scale from zero to Series A.
+            </p>
           </motion.div>
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-montserrat font-bold mb-4 tracking-tight"
-          >
-            Startup <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Toolkit.</span>
-          </motion.h1>
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-base md:text-lg text-white/50 max-w-xl mx-auto leading-relaxed"
-          >
-            Access the exact same frameworks and automations used by elite founders to build billion-dollar systems.
-          </motion.p>
         </div>
 
-        <div className="flex flex-col md:flex-row items-center justify-between gap-4 mb-10 bg-white/5 backdrop-blur-xl border border-white/5 p-4 rounded-2xl">
-          <div className="flex flex-wrap gap-1.5">
+        {/* --- FILTERS & SEARCH --- */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="flex flex-col md:flex-row items-center justify-between gap-6 mb-16 bg-white/[0.03] backdrop-blur-3xl border border-white/10 p-6 rounded-[2.5rem] shadow-2xl"
+        >
+          <div className="flex flex-wrap gap-3">
             {CATEGORIES.map(cat => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-4 py-1.5 rounded-lg text-[10px] font-bold transition-all duration-300 ${
+                className={`px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
                   selectedCategory === cat 
-                    ? 'bg-cyan-500 text-black shadow-[0_0_15px_rgba(6,182,212,0.3)]' 
-                    : 'bg-white/5 text-white/40 hover:bg-white/10'
+                    ? 'bg-white text-black shadow-xl' 
+                    : 'bg-white/5 text-white/30 hover:bg-white/10'
                 }`}
               >
                 {cat}
               </button>
             ))}
           </div>
-          <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-grow md:w-64">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-white/30" />
-              <input 
-                type="text" 
-                placeholder="Search tools..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full bg-white/5 border border-white/5 rounded-xl py-2.5 pl-10 pr-4 text-xs text-white focus:outline-none focus:border-cyan-500/50 transition-all"
-              />
-            </div>
-            <button 
-              onClick={() => window.location.reload()} 
-              className="p-2.5 bg-white/5 border border-white/5 rounded-xl text-white/40 hover:text-cyan-400 transition-colors"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
-            </button>
+          
+          <div className="flex items-center gap-4 w-full md:w-auto">
+             <div className="relative flex-1 md:w-80 group">
+                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within:text-white transition-colors" />
+                <input 
+                  type="text" 
+                  placeholder="Search the arsenal..." 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full bg-white/5 border border-white/10 rounded-[20px] py-4 pl-14 pr-6 text-xs text-white focus:outline-none focus:border-white/30 transition-all placeholder:text-white/10 font-bold"
+                />
+             </div>
+             <button onClick={() => window.location.reload()} className="h-12 w-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all">
+                <RefreshCw className={`w-4 h-4 text-white/40 ${isLoading ? 'animate-spin' : ''}`} />
+             </button>
           </div>
-        </div>
+        </motion.div>
 
+        {/* --- GRID --- */}
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {[1, 2, 3, 4, 5, 6, 7, 8].map(i => (
-              <div key={i} className="h-72 bg-white/5 rounded-[2rem] animate-pulse border border-white/5" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-[450px] rounded-[40px] bg-white/5 animate-pulse border border-white/10" />
             ))}
           </div>
-        ) : error ? (
-          <div className="text-center py-16 bg-red-500/10 border border-red-500/20 rounded-2xl">
-            <p className="text-red-400 text-sm font-bold mb-3">{error}</p>
-            <button onClick={() => window.location.reload()} className="text-[10px] font-bold uppercase tracking-widest text-white underline underline-offset-4">Retry Connection</button>
-          </div>
         ) : filteredTools.length === 0 ? (
-          <div className="text-center py-20 bg-white/5 rounded-2xl border border-white/5">
-            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Search className="w-6 h-6 text-white/10" />
-            </div>
-            <h3 className="text-lg font-bold mb-1">No tools found</h3>
-            <p className="text-white/30 text-xs">Try adjusting your filters.</p>
+          <div className="py-32 text-center bg-white/[0.02] border border-white/10 rounded-[40px]">
+             <Wrench className="w-16 h-16 text-white/10 mx-auto mb-6" />
+             <h3 className="text-2xl font-black text-white/40 uppercase italic tracking-tight">No Assets Found</h3>
+             <p className="text-white/20 text-xs font-bold uppercase tracking-widest mt-2">Adjust your terminal filters</p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
             <AnimatePresence>
               {filteredTools.map((tool, index) => (
                 <motion.div
                   key={tool.id}
-                  initial={{ opacity: 0, scale: 0.98 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.3, delay: index * 0.03 }}
-                  layout
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ y: -10 }}
+                  className="group"
                 >
                   <div 
-                    onClick={() => handleToolClick(tool)} 
-                    className={`cursor-pointer group block h-full bg-[#0a0a0f]/40 backdrop-blur-sm border border-white/10 p-0 rounded-[2rem] transition-all duration-500 relative overflow-hidden ${getHoverBorderColor(tool.category)}`}
+                    onClick={() => handleToolClick(tool)}
+                    className="bg-white/[0.03] backdrop-blur-3xl border border-white/10 rounded-[40px] overflow-hidden cursor-pointer transition-all hover:bg-white/[0.05] hover:border-white/20 flex flex-col h-full shadow-2xl relative"
                   >
-                    {/* Background Glow */}
-                    <div className="absolute -top-16 -right-16 w-32 h-32 bg-cyan-500/5 rounded-full blur-[40px] group-hover:bg-cyan-500/10 transition-all duration-500" />
+                    {/* Inner Glow */}
+                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
                     
-                    {/* Image Header */}
-                    <div className="relative h-56 w-full overflow-hidden">
+                    {/* Image Area */}
+                    <div className="relative h-64 w-full bg-black/40">
                       {tool.image_url ? (
                         <Image 
                           src={tool.image_url} 
                           alt={tool.title} 
                           fill
-                          className="object-cover transition-transform duration-700 group-hover:scale-105" 
+                          className="object-cover group-hover:scale-105 transition-transform duration-1000" 
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-white/5">
-                          {getIconForCategory(tool.category)}
+                        <div className="w-full h-full flex items-center justify-center">
+                           <Terminal className="w-12 h-12 text-white/10" />
                         </div>
                       )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#080808] to-transparent opacity-80" />
                       
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent opacity-60" />
-                    </div>
-                    
-                    <div className="p-6 pt-4 relative z-10">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`text-[8px] uppercase tracking-[0.1em] font-black px-3 py-1 rounded-full border ${getBgColorForCategory(tool.category)}`}>
-                          {tool.category || 'Utility'}
-                        </span>
-                        <div className="flex items-center gap-1 text-cyan-400">
-                          <Activity className="w-2.5 h-2.5 animate-pulse" />
-                          <span className="text-[8px] font-black uppercase tracking-tighter">Active</span>
-                        </div>
+                      <div className="absolute bottom-6 left-6 flex flex-wrap gap-2">
+                         <span className="px-3 py-1 bg-white/10 backdrop-blur-md border border-white/10 rounded-full text-[8px] font-black uppercase tracking-widest text-white/60">
+                            {tool.category}
+                         </span>
+                         {new Date(tool.created_at).getTime() > Date.now() - 48 * 60 * 60 * 1000 && (
+                            <span className="px-3 py-1 bg-cyan-500 text-black rounded-full text-[8px] font-black uppercase tracking-widest">
+                               PROTOTYPE NEW
+                            </span>
+                         )}
                       </div>
-                      
-                      <h2 className="text-xl font-black mb-1.5 text-white font-montserrat tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">
-                        {tool.title}
-                      </h2>
+                    </div>
 
-                      {/* Pricing Section */}
-                      <div className="flex items-baseline gap-3 mb-4 p-3 bg-white/5 rounded-xl border border-white/5 group-hover:border-white/10 transition-all">
-                        {tool.discount_price !== undefined && tool.discount_price !== null ? (
+                    <div className="p-10 pt-6 flex flex-col flex-1">
+                      <h3 className="text-2xl font-montserrat font-black text-white mb-4 uppercase tracking-tighter italic leading-tight group-hover:text-cyan-400 transition-colors">
+                        {tool.title}
+                      </h3>
+                      
+                      {/* Price Section */}
+                      <div className="mb-6 flex items-baseline gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                        {tool.discount_price ? (
                           <>
-                            <div className="flex flex-col">
-                              <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-0.5">Offer</span>
-                              <span className="text-2xl font-black text-white tracking-tighter">₹{tool.discount_price}</span>
-                            </div>
-                            {tool.price > tool.discount_price && (
-                              <div className="flex flex-col">
-                                <span className="text-[8px] text-red-500/40 font-black uppercase tracking-widest mb-0.5">Retail</span>
-                                <span className="text-sm text-red-600/60 font-black line-through">₹{tool.price}</span>
-                              </div>
-                            )}
+                            <span className="text-3xl font-black text-white tracking-tighter italic">₹{tool.discount_price}</span>
+                            <span className="text-xs text-white/20 font-black line-through">₹{tool.price}</span>
                           </>
                         ) : (
-                          <div className="flex flex-col">
-                            <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest mb-0.5">Access</span>
-                            <span className="text-2xl font-black text-white tracking-tighter">₹{tool.price}</span>
-                          </div>
+                          <span className="text-3xl font-black text-white tracking-tighter italic">₹{tool.price}</span>
                         )}
                       </div>
 
-                      <p className="text-white/30 text-[11px] font-inter leading-relaxed mb-6 line-clamp-2 group-hover:text-white/50 transition-colors">{tool.description}</p>
-                      
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-cyan-400 group-hover:text-cyan-300 transition-all">
-                          Claim <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                        </div>
-                        <div className="flex -space-x-1.5">
-                          {[1,2].map(i => (
-                            <div key={i} className="w-5 h-5 rounded-full border-2 border-[#0a0a0f] bg-slate-800 flex items-center justify-center">
-                              <User className="w-2.5 h-2.5 text-slate-400" />
-                            </div>
-                          ))}
-                        </div>
+                      <p className="text-white/40 text-sm font-medium leading-relaxed line-clamp-3 mb-10 italic">
+                        "{tool.description}"
+                      </p>
+
+                      <div className="mt-auto pt-8 border-t border-white/5 flex items-center justify-between">
+                         <div className="flex items-center gap-2 text-[10px] font-black text-cyan-500 uppercase tracking-[0.2em] group-hover:translate-x-2 transition-all">
+                            Initiate Download <ArrowRight className="w-4 h-4" />
+                         </div>
+                         <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-white group-hover:text-black transition-all">
+                            <ShieldCheck className="w-6 h-6" />
+                         </div>
                       </div>
                     </div>
                   </div>
