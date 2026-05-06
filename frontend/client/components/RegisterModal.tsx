@@ -3,16 +3,13 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/navigation';
 import { 
-  ArrowRight, Mail, Phone, Lock, User, 
-  Building2, ShieldCheck, Loader2, Check, Globe, Link as LinkIcon,
-  FileText, X, Zap
+  ArrowRight, ArrowLeft, Mail, Phone, Lock, User, 
+  Calendar, Users, Loader2, Check, X, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../lib/supabase';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, login } = useAuth();
-  const router = useRouter();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -34,29 +31,29 @@ export default function RegisterModal() {
     firstName: '',
     lastName: '',
     dob: '',
-    qualification: '',
+    gender: '',
     email: '',
     mobile: '',
     password: '',
-    emailOtp: '',
-    mobileOtp: '',
+    otp: '',
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const nextStep = () => setStep(step + 1);
-  const prevStep = () => setStep(step - 1);
+  const prevStep = () => setStep(Math.max(1, step - 1));
 
-  const sendOTPs = async (e: React.FormEvent) => {
+  const sendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Simulate sending OTP
       await new Promise(resolve => setTimeout(resolve, 1500));
       nextStep();
     } catch (err: any) {
-      setError("Failed to send verification codes.");
+      setError("Failed to send verification code.");
     } finally {
       setIsSubmitting(false);
     }
@@ -66,15 +63,21 @@ export default function RegisterModal() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
+      // Simulate verification and saving to profile
       await new Promise(resolve => setTimeout(resolve, 2000));
-      // Mock registration - in production use real logic
+      
+      // Mock login which automatically fetches profile in our system
       login({
         firstName: formData.firstName,
+        lastName: formData.lastName,
         email: formData.email,
         mobile: formData.mobile,
+        dob: formData.dob,
+        gender: formData.gender,
         picture: `https://api.dicebear.com/7.x/notionists/svg?seed=${formData.firstName}`,
       });
-      // Profiles are usually created on backend or via supabase auth
+      
+      setRegisterModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Registration failed");
     } finally {
@@ -110,7 +113,7 @@ export default function RegisterModal() {
           <X className="w-5 h-5" />
         </button>
 
-        {/* --- LEFT PANEL (AESTHETIC) --- */}
+        {/* --- LEFT PANEL --- */}
         <div className="hidden lg:flex lg:w-1/2 flex-col justify-center px-16 relative overflow-hidden bg-gradient-to-br from-cyan-950/20 to-transparent">
            <div className="absolute inset-0 opacity-[0.05] pointer-events-none" 
                 style={{ backgroundImage: 'linear-gradient(#ffffff 1px, transparent 1px), linear-gradient(90deg, #ffffff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
@@ -123,7 +126,7 @@ export default function RegisterModal() {
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[9px] font-black uppercase tracking-[0.3em] mb-10">
                 <Zap className="w-3 h-3" /> System Onboarding
               </div>
-              <h2 className="text-5xl font-inter font-black text-white mb-8 leading-[1.1] tracking-tighter italic">
+              <h2 className="text-5xl font-montserrat font-black text-white mb-8 leading-[1.1] tracking-tighter">
                 Enter The <br/>
                 <span className="text-cyan-500">Propels Node.</span>
               </h2>
@@ -133,12 +136,12 @@ export default function RegisterModal() {
            </motion.div>
         </div>
 
-        {/* --- RIGHT PANEL (FORM) --- */}
+        {/* --- RIGHT PANEL --- */}
         <div className="flex-1 bg-white flex flex-col p-10 md:p-16 relative overflow-y-auto">
-           {/* Card Progress */}
+           {/* Progress Indicator */}
            <div className="flex items-center justify-between relative mb-16 px-4">
               <div className="absolute top-1/2 left-0 right-0 h-[1px] border-t border-dashed border-slate-200 -z-0" />
-              {[1, 2, 3].map((num) => (
+              {[1, 2, 3, 4].map((num) => (
                 <div key={num} className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-[10px] relative z-10 transition-all duration-500 shadow-xl ${step >= num ? 'bg-black text-white' : 'bg-white text-slate-300 border border-slate-200'}`}>
                    {num}
                 </div>
@@ -148,52 +151,102 @@ export default function RegisterModal() {
            <AnimatePresence mode="wait">
               {step === 1 && (
                 <motion.div key="step1" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
-                   <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4 mb-3 block">Identity Marker *</label>
+                   <div className="text-center mb-8">
+                      <h3 className="text-2xl font-black font-montserrat uppercase tracking-tight text-slate-900">Personal Identity</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-center">Step 1 of 4: Name Identification</p>
+                   </div>
+                   
+                   <div className="space-y-6">
                       <div className="relative group">
                         <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
                         <input 
-                          required type="text" name="firstName" placeholder="Legal First Name" 
+                          required type="text" name="firstName" placeholder="First Name" 
                           value={formData.firstName} onChange={handleInputChange}
+                          className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-16 text-sm font-black text-slate-800 focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-300"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
+                        <input 
+                          required type="text" name="lastName" placeholder="Last Name" 
+                          value={formData.lastName} onChange={handleInputChange}
                           className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-16 text-sm font-black text-slate-800 focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-300"
                         />
                       </div>
                    </div>
 
-                   <div className="grid grid-cols-2 gap-4">
-                      <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl hover:border-cyan-500 transition-all cursor-pointer group">
-                         <LinkIcon className="w-5 h-5 text-slate-300 mb-3 group-hover:text-cyan-600 transition-colors" />
-                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">LinkedIn Sync</p>
-                      </div>
-                      <div className="p-6 bg-slate-50 border border-slate-100 rounded-2xl hover:border-cyan-500 transition-all cursor-pointer group">
-                         <FileText className="w-5 h-5 text-slate-300 mb-3 group-hover:text-cyan-600 transition-colors" />
-                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Upload Profile</p>
-                      </div>
+                   <div className="flex gap-4 pt-4">
+                      <button 
+                        onClick={() => {/* Login Logic */}} 
+                        className="flex-1 h-16 border-2 border-slate-100 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-50 transition-all"
+                      >
+                        Login Instead
+                      </button>
+                      <button 
+                        onClick={nextStep}
+                        disabled={!formData.firstName || !formData.lastName}
+                        className="flex-[2] h-16 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                      >
+                        Next Protocol <ArrowRight className="inline ml-2 w-4 h-4" />
+                      </button>
                    </div>
-
-                   <div>
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-4 mb-3 block">Current Affiliation</label>
-                      <div className="relative group">
-                        <Building2 className="absolute left-6 top-6 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
-                        <textarea 
-                          name="qualification" placeholder="Organizations you have been associated with..." 
-                          value={formData.qualification} onChange={handleInputChange} rows={3}
-                          className="w-full bg-slate-50 border border-slate-100 rounded-2xl p-6 pl-16 text-sm font-black text-slate-800 focus:outline-none focus:border-cyan-500 transition-all placeholder:text-slate-300 resize-none"
-                        />
-                      </div>
-                   </div>
-
-                   <button 
-                     onClick={nextStep}
-                     className="w-full h-18 py-5 bg-black text-white rounded-2xl font-black uppercase tracking-[0.2em] text-xs hover:scale-[1.02] transition-all shadow-xl flex items-center justify-center gap-3"
-                   >
-                     Next Protocol <ArrowRight className="w-4 h-4" />
-                   </button>
                 </motion.div>
               )}
 
               {step === 2 && (
                 <motion.div key="step2" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                   <div className="text-center mb-8">
+                      <h3 className="text-2xl font-black font-montserrat uppercase tracking-tight text-slate-900">Demographics</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-center">Step 2 of 4: DOB & Gender</p>
+                   </div>
+
+                   <div className="space-y-6">
+                      <div className="relative group">
+                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
+                        <input 
+                          required type="date" name="dob" 
+                          value={formData.dob} onChange={handleInputChange}
+                          className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-16 text-sm font-black text-slate-800 focus:outline-none focus:border-cyan-500 transition-all text-slate-800"
+                        />
+                      </div>
+                      <div className="relative group">
+                        <Users className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
+                        <select 
+                          required name="gender" 
+                          value={formData.gender} onChange={handleInputChange}
+                          className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl px-16 text-sm font-black text-slate-800 focus:outline-none focus:border-cyan-500 transition-all appearance-none cursor-pointer"
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="male">Male</option>
+                          <option value="female">Female</option>
+                          <option value="other">Other</option>
+                          <option value="prefer-not-to-say">Prefer not to say</option>
+                        </select>
+                      </div>
+                   </div>
+
+                   <div className="flex gap-4 pt-4">
+                      <button onClick={prevStep} className="flex-1 h-16 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                        <ArrowLeft className="w-3 h-3" /> Back
+                      </button>
+                      <button 
+                        onClick={nextStep}
+                        disabled={!formData.dob || !formData.gender}
+                        className="flex-[2] h-16 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
+                      >
+                        Next Protocol <ArrowRight className="inline ml-2 w-4 h-4" />
+                      </button>
+                   </div>
+                </motion.div>
+              )}
+
+              {step === 3 && (
+                <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-8">
+                   <div className="text-center mb-8">
+                      <h3 className="text-2xl font-black font-montserrat uppercase tracking-tight text-slate-900">Communication</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2 text-center">Step 3 of 4: Contact Verification</p>
+                   </div>
+
                    <div className="space-y-6">
                       <div className="relative group">
                         <Mail className="absolute left-6 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-cyan-600 transition-colors" />
@@ -209,10 +262,12 @@ export default function RegisterModal() {
                       </div>
                    </div>
 
-                   <div className="flex gap-4">
-                      <button onClick={prevStep} className="flex-1 h-16 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all">Back</button>
+                   <div className="flex gap-4 pt-4">
+                      <button onClick={prevStep} className="flex-1 h-16 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                        <ArrowLeft className="w-3 h-3" /> Back
+                      </button>
                       <button 
-                        onClick={sendOTPs} disabled={isSubmitting}
+                        onClick={sendOTP} disabled={isSubmitting || !formData.email || !formData.mobile || !formData.password}
                         className="flex-[2] h-16 bg-black text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-xl hover:scale-[1.02] transition-all disabled:opacity-50"
                       >
                         {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Send Verification"}
@@ -221,30 +276,35 @@ export default function RegisterModal() {
                 </motion.div>
               )}
 
-              {step === 3 && (
-                <motion.div key="step3" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
+              {step === 4 && (
+                <motion.div key="step4" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-10">
                    <div className="text-center">
-                      <h3 className="text-2xl font-black font-inter uppercase italic tracking-tighter mb-2">Final Handshake</h3>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sent to {formData.email}</p>
+                      <h3 className="text-2xl font-black font-montserrat uppercase tracking-tight text-slate-900">Final Handshake</h3>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-2">Verification code sent to {formData.email}</p>
                    </div>
 
-                   <div className="grid grid-cols-2 gap-6">
+                   <div className="space-y-6">
                       <div className="space-y-3">
-                         <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center block">Email OTP</label>
-                         <input required maxLength={6} placeholder="000000" className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl text-center font-mono text-xl font-black text-slate-900 focus:border-cyan-500 outline-none" />
-                      </div>
-                      <div className="space-y-3">
-                         <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center block">Mobile OTP</label>
-                         <input required maxLength={6} placeholder="000000" className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl text-center font-mono text-xl font-black text-slate-900 focus:border-cyan-500 outline-none" />
+                         <label className="text-[8px] font-black text-slate-400 uppercase tracking-widest text-center block">Enter OTP</label>
+                         <input 
+                            required maxLength={6} name="otp" placeholder="000000" 
+                            value={formData.otp} onChange={handleInputChange}
+                            className="w-full h-16 bg-slate-50 border border-slate-100 rounded-2xl text-center font-mono text-xl font-black text-slate-900 focus:border-cyan-500 outline-none transition-all" 
+                         />
                       </div>
                    </div>
 
-                   <button 
-                     onClick={verifyAndRegister} disabled={isSubmitting}
-                     className="w-full h-20 bg-gradient-to-r from-cyan-600 to-blue-700 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-[1.02] transition-all"
-                   >
-                     {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Complete Onboarding"}
-                   </button>
+                   <div className="flex gap-4 pt-4">
+                      <button onClick={prevStep} className="flex-1 h-16 bg-slate-50 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-100 transition-all flex items-center justify-center gap-2">
+                        <ArrowLeft className="w-3 h-3" /> Back
+                      </button>
+                      <button 
+                        onClick={verifyAndRegister} disabled={isSubmitting || formData.otp.length < 6}
+                        className="flex-[2] h-20 bg-gradient-to-r from-cyan-600 to-blue-700 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl hover:scale-[1.02] transition-all"
+                      >
+                        {isSubmitting ? <Loader2 className="w-6 h-6 animate-spin mx-auto" /> : "Complete Onboarding"}
+                      </button>
+                   </div>
                 </motion.div>
               )}
            </AnimatePresence>
