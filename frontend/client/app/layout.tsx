@@ -14,8 +14,9 @@ import { AuthProvider } from '../components/AuthContext'
 import { MessageCircle } from 'lucide-react'
 // Import smooth scrolling utility component
 import SmoothScroll from '../components/SmoothScroll'
-// Import Global Register Modal
+// Import Global Register & Login Modals
 import RegisterModal from '../components/RegisterModal'
+import LoginModal from '../components/LoginModal'
 
 // Configure font subsets and weights, and define CSS variables for use in Tailwind/CSS
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-montserrat' })
@@ -61,8 +62,9 @@ export default function RootLayout({
               {/* Persistent Header */}
               <Header />
               
-              {/* Global Registration Modal */}
+              {/* Global Modals */}
               <RegisterModal />
+              <LoginModal />
               
               {/* Main content area where individual page components are rendered */}
               <main className="flex-grow">{children}</main>

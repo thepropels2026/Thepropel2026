@@ -13,7 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
  */
 export default function Header() {
   // Extract auth state and logout function from context
-  const { isRegistered, logout, setRegisterModalOpen } = useAuth();
+  const { isRegistered, logout, setRegisterModalOpen, setLoginModalOpen } = useAuth();
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // State to manage logout confirmation modal
@@ -62,7 +62,7 @@ export default function Header() {
           ) : (
             /* Registration & Login CTA for non-authenticated users */
             <div className="flex items-center gap-5">
-              <button className="text-white hover:text-cyan-400 transition-colors" onClick={() => {/* Login Modal Trigger */}}>Login</button>
+              <button className="text-white hover:text-cyan-400 transition-colors" onClick={() => setLoginModalOpen(true)}>Login</button>
               <button 
                 onClick={() => setRegisterModalOpen(true)}
                 className="px-7 py-2.5 bg-white text-black rounded-xl hover:bg-slate-100 transition-all duration-300 font-bold shadow-lg shadow-white/5"
