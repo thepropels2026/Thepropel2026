@@ -54,7 +54,8 @@
   h1, h2, h3, h4 {
     line-height: var(--line-height-heading);
     font-weight: 800;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.01em;
+    text-transform: uppercase;
   }
 
   p {
@@ -80,7 +81,7 @@
    ========================================================= */
 
 .btn-glow {
-  @apply relative bg-transparent border text-foreground px-6 py-2 font-bold text-sm tracking-wider uppercase;
+  @apply relative bg-transparent border text-foreground px-6 py-2 font-montserrat font-bold text-[10px] tracking-[0.2em] uppercase;
   border-color: rgba(255, 255, 255, 0.35);
   border-radius: 6px;
   transition: border-color 180ms ease, color 180ms ease, background-color 180ms ease;

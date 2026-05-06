@@ -79,7 +79,7 @@ export default function ProfileDashboard() {
   if (!isRegistered) return null;
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white font-inter">
+    <div className="min-h-screen bg-[#080808] text-white font-montserrat">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-950/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />

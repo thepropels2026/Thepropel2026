@@ -9,7 +9,7 @@ import { Mail, Phone, MapPin, Linkedin, Twitter, Instagram, ArrowUpRight, Shield
 export default function Footer() {
   return (
     // Footer container with glassmorphism styling and dark theme
-    <footer className="bg-[#0a0a0f]/80 backdrop-blur-md border-t border-white/10 py-16 mt-20 font-inter">
+    <footer className="bg-[#0a0a0f]/80 backdrop-blur-md border-t border-white/10 py-16 mt-20 font-montserrat">
       <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
         
         {/* SECTION 1: Brand Information & Social Media Links */}

@@ -19,7 +19,7 @@ export default function MarketResearchPage() {
     <div className="min-h-screen pt-24 px-8 md:px-24">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-4xl font-montserrat font-bold mb-4">Market Research Intelligence</h1>
-        <p className="text-gray-400 font-inter mb-12">Submit your startup parameters, and our predictive AI will parse global databases to deliver actionable market insights.</p>
+        <p className="text-gray-400 font-montserrat mb-12">Submit your startup parameters, and our predictive AI will parse global databases to deliver actionable market insights.</p>
 
         {!results && !analyzing && (
           <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 p-8 rounded-2xl flex flex-col gap-6 animate-in slide-in-from-bottom-8 relative overflow-hidden">
@@ -27,17 +27,17 @@ export default function MarketResearchPage() {
             
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold uppercase tracking-wider text-cyan-500">Core Industry / Tag</label>
-              <input required type="text" placeholder="e.g. B2B SaaS, CleanTech, EdTech..." className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-inter" />
+              <input required type="text" placeholder="e.g. B2B SaaS, CleanTech, EdTech..." className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-montserrat" />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold uppercase tracking-wider text-cyan-500">Problem Statement</label>
-              <textarea required rows={3} placeholder="What pain point are you solving?" className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-inter" />
+              <textarea required rows={3} placeholder="What pain point are you solving?" className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-montserrat" />
             </div>
 
             <div className="flex flex-col gap-2">
               <label className="text-sm font-bold uppercase tracking-wider text-cyan-500">Target Demographic</label>
-              <input required type="text" placeholder="e.g. Gen-Z College Students, Mid-level Managers" className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-inter" />
+              <input required type="text" placeholder="e.g. Gen-Z College Students, Mid-level Managers" className="bg-white/5 border border-white/10 rounded p-4 outline-none focus:border-cyan-500 transition-colors font-montserrat" />
             </div>
 
             <button type="submit" className="btn-glow mt-6 flex items-center justify-center gap-2 py-4 text-lg">
@@ -50,7 +50,7 @@ export default function MarketResearchPage() {
           <div className="h-64 flex flex-col items-center justify-center bg-white/5 border border-white/10 rounded-2xl">
             <Loader2 className="w-12 h-12 text-cyan-500 animate-spin mb-4" />
             <h3 className="font-montserrat font-bold text-xl animate-pulse text-white">Aggregating Market Data...</h3>
-            <p className="text-sm text-gray-400 font-inter mt-2">Checking competitor matrices and TAM models.</p>
+            <p className="text-sm text-gray-400 font-montserrat mt-2">Checking competitor matrices and TAM models.</p>
           </div>
         )}
 
@@ -70,7 +70,7 @@ export default function MarketResearchPage() {
             </div>
 
             <h3 className="font-bold text-lg mb-4">Strategic Recommendation</h3>
-            <p className="text-gray-300 font-inter mb-6 leading-relaxed">
+            <p className="text-gray-300 font-montserrat mb-6 leading-relaxed">
               The market exhibits a clear gap in user experience. While incumbents hold 60% of enterprise contracts, the emerging SMP demographic is largely unaddressed. Recommended action: Focus MVP strictly on onboarding speed.
             </p>
 

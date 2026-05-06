@@ -34,7 +34,7 @@ export default function NetworkPage() {
   });
 
   return (
-    <div className="min-h-screen pt-16 px-4 md:px-8 lg:px-24 font-inter bg-slate-50 text-slate-900 transition-colors duration-500">
+    <div className="min-h-screen pt-16 px-4 md:px-8 lg:px-24 font-montserrat bg-slate-50 text-slate-900 transition-colors duration-500">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 pb-20">
         
         {/* Left Sidebar - Profile & Nav */}
@@ -71,7 +71,7 @@ export default function NetworkPage() {
           {/* Search Bar */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-2 flex items-center gap-2 focus-within:ring-2 focus-within:ring-cyan-500/20 focus-within:border-cyan-400 transition-all">
             <Search className="text-slate-400 w-5 h-5 ml-4 shrink-0" />
-            <input type="text" placeholder="Search founders, investors, or skills..." className="flex-1 p-3 bg-transparent outline-none text-slate-800 font-inter placeholder:text-slate-400" />
+            <input type="text" placeholder="Search founders, investors, or skills..." className="flex-1 p-3 bg-transparent outline-none text-slate-800 font-montserrat placeholder:text-slate-400" />
             <button className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors mr-1"><Filter className="w-4 h-4" /></button>
           </div>
 
@@ -124,7 +124,7 @@ export default function NetworkPage() {
                      ))}
                 </div>
 
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed line-clamp-3 font-inter flex-grow">
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed line-clamp-3 font-montserrat flex-grow">
                   {profile.interests ? `Interests: ${profile.interests}` : (activeTab === 'investors' 
                     ? "Evaluating highly disruptive startups in the artificial intelligence and financial compliance sectors. We write checks between $500k to $2M."
                     : "Building the next generation of predictive LLMs for enterprise architecture. Seeking seed investment and Go-To-Market strategy mentors to scale rapidly.")}
@@ -151,7 +151,7 @@ export default function NetworkPage() {
                <h3 className="font-montserrat font-extrabold text-cyan-900 tracking-wider uppercase text-sm">Propulsion Match</h3>
             </div>
             
-            <p className="text-xs text-slate-500 mb-6 font-inter leading-relaxed relative z-10">Based on your Stealth profile and recent activities, these individuals perfectly align with your current stage.</p>
+            <p className="text-xs text-slate-500 mb-6 font-montserrat leading-relaxed relative z-10">Based on your Stealth profile and recent activities, these individuals perfectly align with your current stage.</p>
             
             <div className="space-y-3 relative z-10">
               {[1, 2, 3].map((_, i) => (

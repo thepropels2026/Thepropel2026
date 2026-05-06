@@ -149,7 +149,7 @@ export default function PricingSection() {
             One Platform.<br />
             <span className="text-[#FF5F00]">Every Stage of Your Journey.</span>
           </h2>
-          <p className="text-white/50 font-inter max-w-xl mx-auto leading-relaxed">
+          <p className="text-white/50 font-montserrat max-w-xl mx-auto leading-relaxed">
             Whether you're a solo founder, a founding team, or an institution — we have a plan built precisely for you.
           </p>
         </div>
@@ -170,7 +170,7 @@ export default function PricingSection() {
         )}
 
         {/* Bottom note */}
-        <p className="text-center text-white/25 text-xs font-inter mt-10 tracking-wide">
+        <p className="text-center text-white/25 text-xs font-montserrat mt-10 tracking-wide">
           All plans include a 14-day free trial. No credit card required to start.
         </p>
       </div>

@@ -260,7 +260,7 @@ export default function Tools() {
                         )}
                       </div>
 
-                      <p className="text-white/30 text-[11px] font-inter leading-relaxed mb-6 line-clamp-2 group-hover:text-white/50 transition-colors">{tool.description}</p>
+                      <p className="text-white/30 text-[11px] font-montserrat leading-relaxed mb-6 line-clamp-2 group-hover:text-white/50 transition-colors">{tool.description}</p>
                       
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-cyan-400 group-hover:text-cyan-300 transition-all">

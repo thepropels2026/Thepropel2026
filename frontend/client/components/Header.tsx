@@ -30,7 +30,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop Navigation Links - Centered using absolute positioning */}
-        <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-6 items-center font-inter font-bold uppercase tracking-widest text-[11px] text-white/70">
+        <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/70">
           <Link href="/" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Home className="w-3 h-3" /> Home</Link>
           <Link href="/about" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Rocket className="w-3 h-3" /> About</Link>
           <Link href="/tools" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Wrench className="w-3 h-3" /> Tools</Link>
@@ -67,7 +67,7 @@ export default function Header() {
 
         {/* Full-width Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden bg-[#050505]/95 backdrop-blur-xl flex flex-col font-inter font-bold uppercase tracking-widest text-[11px] text-white w-full border-t border-white/10 p-4 gap-4 z-10 transition-all">
+          <nav className="lg:hidden bg-[#050505]/95 backdrop-blur-xl flex flex-col font-montserrat font-bold uppercase tracking-widest text-[10px] text-white w-full border-t border-white/10 p-4 gap-4 z-10 transition-all">
             {/* Mobile primary links */}
             <Link onClick={() => setIsMobileMenuOpen(false)} href="/" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Home className="w-4 h-4" /> Home</Link>
             <Link onClick={() => setIsMobileMenuOpen(false)} href="/about" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Rocket className="w-4 h-4" /> About</Link>
@@ -103,7 +103,7 @@ export default function Header() {
 
         {/* Secondary Sub-Header Navigation (Desktop only) */}
         {/* Displays secondary links underneath the main navigation bar */}
-        <div className="bg-[#0c0c0e]/95 backdrop-blur-xl py-2 px-8 hidden md:flex justify-center gap-6 items-center font-inter font-bold uppercase tracking-widest text-[11px] text-white/40 z-0 border-t border-white/5">
+        <div className="bg-[#0c0c0e]/95 backdrop-blur-xl py-2 px-8 hidden md:flex justify-center gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/40 z-0 border-t border-white/5">
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Download the Report</Link>
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Startup Playbook</Link>
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Curriculum</Link>
