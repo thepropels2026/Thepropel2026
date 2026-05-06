@@ -11,7 +11,7 @@ export default function Home() {
   const { setRegisterModalOpen } = useAuth();
   return (
     <div className="flex flex-col">
-      <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-32 md:pt-36 lg:pt-48 pb-16 overflow-hidden">
+      <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-20 md:pt-24 lg:pt-32 pb-16 overflow-hidden">
         {/* Hero background — Starfield + Breathing orbs + CSS grid */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           {/* Subtle grid overlay */}
