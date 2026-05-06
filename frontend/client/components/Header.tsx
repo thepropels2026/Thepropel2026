@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import Link from 'next/link'; // Next.js link for optimized client-side navigation
 import { useAuth } from './AuthContext'; // Access global authentication state
 // Import icons from lucide-react for visual navigation cues
-import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin } from 'lucide-react';
+import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin, LogOut, AlertCircle } from 'lucide-react';
 import Image from 'next/image';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /**
  * Header component: The main navigation bar for the application.
@@ -15,6 +16,14 @@ export default function Header() {
   const { isRegistered, logout, setRegisterModalOpen } = useAuth();
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  // State to manage logout confirmation modal
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    setShowLogoutConfirm(false);
+    setIsMobileMenuOpen(false);
+  };
 
   return (
     <>
@@ -48,7 +57,7 @@ export default function Header() {
               <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-white/10 transition-colors duration-150 text-xs">
                 <UserCircle className="w-4 h-4" /> My Profile
               </Link>
-              <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={logout}>Sign Out</button>
+              <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={() => setShowLogoutConfirm(true)}>Sign Out</button>
             </div>
           ) : (
             /* Registration & Login CTA for non-authenticated users */
@@ -86,7 +95,7 @@ export default function Header() {
                   <Link onClick={() => setIsMobileMenuOpen(false)} href="/profile" className="flex items-center gap-2 text-white/70">
                     <UserCircle className="w-5 h-5" /> My Profile
                   </Link>
-                  <button className="text-left text-white/40 hover:text-white/70 transition-colors duration-150 text-xs" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
+                  <button className="text-left text-white/40 hover:text-white/70 transition-colors duration-150 text-xs" onClick={() => setShowLogoutConfirm(true)}>Sign Out</button>
                 </>
               ) : (
                 <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
@@ -114,7 +123,48 @@ export default function Header() {
           <Link href="/success-stories" className="hover:text-white/70 transition-colors duration-150">Success Stories</Link>
         </div>
       </div>
+
+      {/* Logout Confirmation Modal */}
+      <AnimatePresence>
+        {showLogoutConfirm && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowLogoutConfirm(false)}
+              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="relative w-full max-w-sm bg-[#0a0a0f] border border-white/10 rounded-2xl p-8 shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+                <LogOut className="w-8 h-8 text-red-500" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 font-montserrat uppercase tracking-tight">Confirm Sign Out</h3>
+              <p className="text-white/50 text-sm mb-8 font-inter">Are you sure you want to terminate your current session? You will need to re-authenticate to access your node.</p>
+              
+              <div className="flex gap-4">
+                <button 
+                  onClick={() => setShowLogoutConfirm(false)}
+                  className="flex-1 py-3 px-6 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={handleLogout}
+                  className="flex-1 py-3 px-6 bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20 hover:bg-red-500 transition-all"
+                >
+                  Sign Out
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 }
-
