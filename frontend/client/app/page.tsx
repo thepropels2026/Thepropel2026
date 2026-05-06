@@ -119,7 +119,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-white text-black py-16 lg:py-32 mt-16 lg:mt-32 px-6 lg:px-24">
+      <section className="bg-white text-black py-16 lg:py-32 px-6 lg:px-24 rounded-t-[3rem] relative z-10">
         <div className="max-w-7xl mx-auto">
           <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-10 lg:mb-16 text-gray-900">Propulsion Metrics</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8 text-center font-archivo">
