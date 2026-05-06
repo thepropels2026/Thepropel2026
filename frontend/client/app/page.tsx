@@ -6,6 +6,7 @@ import { useAuth } from '../components/AuthContext';
 import { motion } from 'framer-motion'; 
 import Image from 'next/image';
 import { supabase } from '../lib/supabase'; 
+import PricingSection from '../components/PricingSection';
 
 export default function Home() {
   const { setRegisterModalOpen } = useAuth();
@@ -284,6 +285,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* PRICING SECTION */}
+      <PricingSection />
 
       <section className="bg-[#1a0f00] border border-[#FF5F00]/15 py-16 lg:py-24 px-6 lg:px-24 rounded-lg text-center my-16 lg:my-24 mx-auto max-w-[1200px] w-[90%] lg:w-full">
         <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-montserrat">Ready to <span className="text-[#FF5F00]">Propel</span> Your Startup?</h2>

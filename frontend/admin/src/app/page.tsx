@@ -4,7 +4,7 @@ import {
   ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, 
   Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
   Download, Eye, Mail, Phone, Linkedin, User, FileText, 
-  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock
+  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, DollarSign, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ export default function AdminPortal() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers'>('tools');
+  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'pricing'>('tools');
   const [loading, setLoading] = useState(false);
 
   // Data states
@@ -23,6 +23,7 @@ export default function AdminPortal() {
   const [stories, setStories] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
+  const [pricingPlans, setPricingPlans] = useState<any[]>([]);
 
   useEffect(() => {
     const adminSession = localStorage.getItem('adminSession');
@@ -54,6 +55,10 @@ export default function AdminPortal() {
         const { data, error } = await supabase.from('job_postings').select('*').order('created_at', { ascending: false });
         if (error) throw error;
         setJobs(data || []);
+      } else if (activeTab === 'pricing') {
+        const { data, error } = await supabase.from('pricing_plans').select('*').order('sort_order', { ascending: true });
+        if (error) throw error;
+        setPricingPlans(data || []);
       }
     } catch (err: any) {
       console.error(`Error fetching ${activeTab}:`, err.message);
@@ -192,6 +197,28 @@ export default function AdminPortal() {
     }
   };
 
+  const handleUpdatePricing = async (id: string, field: string, value: any) => {
+    try {
+      const updateVal = field === 'features' ? JSON.parse(value) : value;
+      const { error } = await supabase.from('pricing_plans').update({ [field]: updateVal, updated_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      setPricingPlans(prev => prev.map(p => p.id === id ? { ...p, [field]: updateVal } : p));
+    } catch (err: any) {
+      alert('Error updating: ' + err.message);
+    }
+  };
+
+  const handleTogglePricingHighlight = async (id: string, current: boolean) => {
+    // only one card can be highlighted at a time
+    try {
+      await supabase.from('pricing_plans').update({ is_highlighted: false }).neq('id', 'none');
+      await supabase.from('pricing_plans').update({ is_highlighted: !current }).eq('id', id);
+      fetchContent();
+    } catch (err: any) {
+      alert('Error: ' + err.message);
+    }
+  };
+
   const updateAppStatus = async (id: string, status: string) => {
     await supabase.from('applications').update({ status }).eq('id', id);
     setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
@@ -265,7 +292,8 @@ export default function AdminPortal() {
               { id: 'courses', name: 'Course Manager', icon: Video, color: 'text-orange-400' },
               { id: 'stories', name: 'Success Stories', icon: Award, color: 'text-purple-400' },
               { id: 'careers', name: 'Career Manager', icon: MapPin, color: 'text-yellow-400' },
-              { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-emerald-400' }
+              { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-emerald-400' },
+              { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-rose-400' }
             ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === tab.id ? 'bg-white/5 text-white border border-white/10' : 'text-slate-400 hover:bg-white/5 border border-transparent'}`}>
                 <div className="flex items-center gap-3"><tab.icon className={`w-4 h-4 ${tab.color}`} /> {tab.name}</div>
@@ -407,6 +435,113 @@ export default function AdminPortal() {
                       </div>
                     ))}
                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'pricing' && (
+              <motion.div key="pricing" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                  <h2 className="text-lg font-bold text-white mb-2 flex items-center gap-2"><DollarSign className="w-5 h-5 text-emerald-400" /> Pricing Plans Editor</h2>
+                  <p className="text-xs text-slate-500 mb-6">Changes here reflect live on the homepage. Fields save individually on blur.</p>
+                  <div className="space-y-8">
+                    {pricingPlans.map(plan => (
+                      <div key={plan.id} className="border border-white/8 rounded-xl p-6 bg-[#111] space-y-5">
+                        {/* Header row */}
+                        <div className="flex items-center justify-between flex-wrap gap-3">
+                          <div className="flex items-center gap-3">
+                            <div className={`w-2 h-2 rounded-full ${plan.is_highlighted ? 'bg-orange-500' : 'bg-white/20'}`} />
+                            <span className="text-sm font-bold text-white uppercase tracking-wider">{plan.plan_key}</span>
+                            {plan.badge && <span className="text-[9px] px-2 py-0.5 rounded bg-white/10 text-white/50 font-bold uppercase tracking-wider">{plan.badge}</span>}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            <button
+                              onClick={() => handleTogglePricingHighlight(plan.id, plan.is_highlighted)}
+                              className={`text-xs px-3 py-1.5 rounded-lg font-bold border transition-colors ${
+                                plan.is_highlighted
+                                  ? 'bg-orange-500/10 border-orange-500/30 text-orange-400'
+                                  : 'bg-white/5 border-white/10 text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              {plan.is_highlighted ? '★ Highlighted' : 'Set as Highlight'}
+                            </button>
+                            <button onClick={() => handleDelete('pricing_plans', plan.id)} className="p-2 text-slate-600 hover:text-red-500 transition-colors">
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* Editable fields */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Title</label>
+                            <input
+                              defaultValue={plan.title}
+                              onBlur={e => handleUpdatePricing(plan.id, 'title', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Subtitle</label>
+                            <input
+                              defaultValue={plan.subtitle}
+                              onBlur={e => handleUpdatePricing(plan.id, 'subtitle', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Price (e.g. ₹4,999 or Custom)</label>
+                            <input
+                              defaultValue={plan.price}
+                              onBlur={e => handleUpdatePricing(plan.id, 'price', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Price Period (e.g. /year)</label>
+                            <input
+                              defaultValue={plan.price_period}
+                              onBlur={e => handleUpdatePricing(plan.id, 'price_period', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Badge Text (optional)</label>
+                            <input
+                              defaultValue={plan.badge || ''}
+                              onBlur={e => handleUpdatePricing(plan.id, 'badge', e.target.value || null)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">CTA Button Label</label>
+                            <input
+                              defaultValue={plan.cta_label}
+                              onBlur={e => handleUpdatePricing(plan.id, 'cta_label', e.target.value)}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-sm text-white outline-none focus:border-emerald-500"
+                            />
+                          </div>
+                          <div className="md:col-span-2">
+                            <label className="block text-[10px] text-slate-500 uppercase tracking-wider mb-1.5">Features (JSON Array)</label>
+                            <textarea
+                              defaultValue={JSON.stringify(typeof plan.features === 'string' ? JSON.parse(plan.features) : plan.features, null, 2)}
+                              onBlur={e => handleUpdatePricing(plan.id, 'features', e.target.value)}
+                              rows={6}
+                              className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-xs text-emerald-400 font-mono outline-none focus:border-emerald-500 resize-none"
+                            />
+                            <p className="text-[10px] text-slate-600 mt-1">Edit as a JSON array. Each string becomes a feature bullet.</p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {pricingPlans.length === 0 && (
+                    <div className="text-center py-12 text-slate-600">
+                      <DollarSign className="w-8 h-8 mx-auto mb-3 opacity-30" />
+                      <p className="text-sm">No pricing plans found. Run the SQL schema in Supabase first.</p>
+                      <code className="text-xs text-emerald-600 mt-2 block">supabase_pricing_schema.sql</code>
+                    </div>
+                  )}
                 </div>
               </motion.div>
             )}
