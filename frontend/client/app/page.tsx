@@ -2,11 +2,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench } from 'lucide-react';
+import { useAuth } from '../components/AuthContext';
 import { motion } from 'framer-motion'; 
 import Image from 'next/image';
 import { supabase } from '../lib/supabase'; 
 
 export default function Home() {
+  const { setRegisterModalOpen } = useAuth();
   return (
     <div className="flex flex-col">
       <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-32 md:pt-36 lg:pt-48 pb-16 overflow-hidden">
@@ -318,9 +320,12 @@ export default function Home() {
         <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-montserrat">Ready to <span className="text-black/80">Propel</span> Your Startup?</h2>
         <p className="text-lg lg:text-xl text-white/90 max-w-2xl mx-auto mb-10 lg:mb-12 font-inter">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
         <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center">
-          <Link href="/register">
-            <button className="bg-white text-[#FF5F00] px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:shadow-[0_0_30px_rgba(255,255,255,0.8)] transition-all">Register Now</button>
-          </Link>
+          <button 
+            onClick={() => setRegisterModalOpen(true)}
+            className="bg-white text-[#FF5F00] px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:shadow-[0_0_30px_rgba(255,255,255,0.8)] transition-all"
+          >
+            Register Now
+          </button>
           <Link href="/tools">
             <button className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:bg-white/10 transition-colors w-full sm:w-auto">Explore Tools</button>
           </Link>

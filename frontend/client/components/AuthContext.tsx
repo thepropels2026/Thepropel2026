@@ -5,6 +5,8 @@ import React, { createContext, useContext, useState } from 'react';
 type AuthContextType = {
   isRegistered: boolean;
   user: any;
+  isRegisterModalOpen: boolean;
+  setRegisterModalOpen: (isOpen: boolean) => void;
   login: (userData: any) => void;
   logout: () => void;
 };
@@ -13,6 +15,8 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   isRegistered: false,
   user: null,
+  isRegisterModalOpen: false,
+  setRegisterModalOpen: () => {},
   login: () => {},
   logout: () => {},
 });
@@ -37,11 +41,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return null;
   });
 
+  const [isRegisterModalOpen, setRegisterModalOpen] = useState(false);
+
   const login = (userData: any) => {
     setIsRegistered(true);
     setUser(userData);
     localStorage.setItem('isRegistered', 'true');
     localStorage.setItem('userProfile', JSON.stringify(userData));
+    setRegisterModalOpen(false); // Close modal on success
   };
   
   const logout = () => {
@@ -53,7 +60,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return (
     // Provide the state and action functions to child components
-    <AuthContext.Provider value={{ isRegistered, user, login, logout }}>
+    <AuthContext.Provider value={{ isRegistered, user, isRegisterModalOpen, setRegisterModalOpen, login, logout }}>
       {children}
     </AuthContext.Provider>
   );

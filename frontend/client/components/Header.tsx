@@ -12,7 +12,7 @@ import Image from 'next/image';
  */
 export default function Header() {
   // Extract auth state and logout function from context
-  const { isRegistered, logout } = useAuth();
+  const { isRegistered, logout, setRegisterModalOpen } = useAuth();
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -53,9 +53,7 @@ export default function Header() {
             </div>
           ) : (
             /* Registration CTA for non-authenticated users */
-            <Link href="/register">
-              <button className="btn-glow shrink-0">Register</button>
-            </Link>
+            <button className="btn-glow shrink-0" onClick={() => setRegisterModalOpen(true)}>Register</button>
           )}
         </div>
 
@@ -88,10 +86,7 @@ export default function Header() {
                   </Link>
                   <button className="text-left text-red-400 transition-colors" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
                 </>
-              ) : (
-                <Link onClick={() => setIsMobileMenuOpen(false)} href="/register" className="inline-block">
-                  <button className="btn-glow shrink-0 w-full">Register</button>
-                </Link>
+                <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
               )}
             </div>
             
