@@ -46,29 +46,25 @@ export default function LoginModal() {
 
     try {
       // 1. Authenticate with Supabase
-      // In a real app, we'd use supabase.auth.signInWithPassword or OTP
-      // For this implementation, we fetch the profile to "validate" existence
-      const { data: profile, error: dbError } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('email', inputValue)
-        .single();
-
-      if (dbError || !profile) {
-        throw new Error("Credentials not recognized in the Propels database.");
+      if (method === 'email') {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: inputValue,
+          password: password,
+        });
+        if (authError) throw authError;
+      } else {
+        // Phone/OTP Login
+        const { data: otpData, error: otpError } = await supabase.auth.signInWithOtp({
+          phone: inputValue,
+        });
+        if (otpError) throw otpError;
+        // In a real app, we'd wait for the OTP input on a new step, 
+        // for now we indicate the protocol is initiated.
+        alert("OTP Protocol Initiated. Check your device.");
+        return;
       }
 
-      // 2. Mock Verification Delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-
-      // 3. Update Auth Context
-      login({
-        firstName: profile.first_name,
-        lastName: profile.last_name,
-        email: profile.email,
-        picture: profile.picture,
-      });
-
+      // Note: AuthContext useEffect will pick up the new session and update the UI
       setLoginModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Authentication failed. Please check your credentials.");

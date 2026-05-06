@@ -81,11 +81,24 @@ export default function RegisterModal() {
       return;
     }
     setIsSubmitting(true);
+    setError(null);
     try {
-      // 1. Simulate Auth Delay
-      await new Promise(resolve => setTimeout(resolve, 800));
+      // 1. Supabase Auth Registration
+      const { data: authData, error: authError } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            mobile: formData.mobile,
+          }
+        }
+      });
 
-      // 2. Create Profile in Database
+      if (authError) throw authError;
+
+      // 2. Create Profile in Public Database (Handled via Auth Sync in Context usually, but we ensure it here for immediate UX)
       const profilePayload = {
         email: formData.email,
         first_name: formData.firstName,
@@ -104,17 +117,7 @@ export default function RegisterModal() {
 
       if (dbError) throw dbError;
 
-      // 3. Update Auth State
-      login({
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        mobile: formData.mobile,
-        dob: formData.dob,
-        gender: formData.gender,
-        picture: profilePayload.picture,
-      });
-
+      // Note: AuthContext useEffect will pick up the new session and update the UI
       setRegisterModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Registration failed");
