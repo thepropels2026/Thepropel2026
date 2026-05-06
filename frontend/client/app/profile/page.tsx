@@ -6,9 +6,10 @@ import {
   User, Mail, Phone, Settings, LogOut, 
   LayoutDashboard, Wrench, CreditCard, 
   Activity, ChevronRight, Shield, Zap,
-  Clock, CheckCircle2, AlertCircle, Sparkles
+  Clock, CheckCircle2, AlertCircle, Sparkles,
+  Camera, MapPin, Building2, Briefcase, Plus, Save, Loader2
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 
@@ -19,6 +20,17 @@ export default function ProfileDashboard() {
   const [userPlan, setUserPlan] = useState<any>(null);
   const [purchasedTools, setPurchasedTools] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [profileData, setProfileData] = useState<any>({
+    first_name: '',
+    last_name: '',
+    designation: '',
+    company: '',
+    location: '',
+    bio: '',
+    skills: '',
+    picture: ''
+  });
 
   // Redirect if not logged in
   useEffect(() => {
@@ -63,6 +75,29 @@ export default function ProfileDashboard() {
           setPurchasedTools([
             { tools_cards: { title: 'Founder OS v1.0', category: 'Productivity', image_url: null } }
           ]);
+        }
+
+        // Fetch profile
+        const { data: profData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', user.email)
+          .single();
+        
+        if (profData) {
+          setProfileData(profData);
+        } else {
+          // Initial setup from auth user
+          setProfileData({
+            first_name: user.firstName || '',
+            last_name: user.lastName || '',
+            designation: 'Founder @ Stealth',
+            company: 'Stealth Startup',
+            location: 'Global',
+            bio: 'Innovating at the intersection of technology and impact.',
+            skills: 'Strategy, Product, Engineering',
+            picture: user.picture || ''
+          });
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
@@ -123,6 +158,11 @@ export default function ProfileDashboard() {
               onClick={() => setActiveTab('activity')} 
             />
             <div className="pt-6 border-t border-slate-100 mt-6 space-y-1">
+              <SidebarItem 
+                icon={User} label="Personal Info" 
+                active={activeTab === 'personal'} 
+                onClick={() => setActiveTab('personal')} 
+              />
               <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
               <button 
                 onClick={logout}
@@ -236,9 +276,113 @@ export default function ProfileDashboard() {
 
               </motion.div>
             )}
+            
+            {activeTab === 'personal' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-10">
+                <header>
+                   <h1 className="text-3xl font-bold text-[rgba(0,0,0,0.9)] leading-tight mb-3">
+                      Personal Information
+                   </h1>
+                   <p className="text-[rgba(0,0,0,0.6)] text-sm font-medium">Manage your public identity within the Propels Network.</p>
+                </header>
 
-            {/* Other tabs */}
-            {activeTab !== 'overview' && (
+                <div className="bg-white border border-slate-200 rounded-xl p-8 shadow-sm space-y-8">
+                   {/* Profile Picture Upload */}
+                   <div className="flex flex-col md:flex-row items-center gap-8 pb-8 border-b border-slate-100">
+                      <div className="relative group">
+                         <div className="w-32 h-32 rounded-full overflow-hidden border-4 border-slate-50 shadow-md">
+                            <Image src={profileData.picture || "https://api.dicebear.com/7.x/notionists/svg?seed=user"} alt="Profile" width={128} height={128} className="object-cover" />
+                         </div>
+                         <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer">
+                            <Camera className="w-6 h-6" />
+                            <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                               const file = e.target.files?.[0];
+                               if (!file) return;
+                               setSaving(true);
+                               try {
+                                  const fileExt = file.name.split('.').pop();
+                                  const fileName = `${user.email}-${Math.random()}.${fileExt}`;
+                                  const filePath = `avatars/${fileName}`;
+
+                                  const { error: uploadError } = await supabase.storage
+                                    .from('profile-pictures')
+                                    .upload(filePath, file);
+
+                                  if (uploadError) throw uploadError;
+
+                                  const { data: { publicUrl } } = supabase.storage
+                                    .from('profile-pictures')
+                                    .getPublicUrl(filePath);
+
+                                  setProfileData({ ...profileData, picture: publicUrl });
+                               } catch (err) {
+                                  console.error("Error uploading image:", err);
+                               } finally {
+                                  setSaving(false);
+                               }
+                            }} />
+                         </label>
+                      </div>
+                      <div className="text-center md:text-left">
+                         <h3 className="text-lg font-bold text-slate-800">Profile Picture</h3>
+                         <p className="text-xs text-slate-500 font-medium mt-1 mb-4">Upload a high-resolution headshot for your network card.</p>
+                         <button className="text-[11px] font-bold text-cyan-600 uppercase tracking-widest px-4 py-2 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-all">Change Avatar</button>
+                      </div>
+                   </div>
+
+                   {/* Personal Details Form */}
+                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <ProfileInput label="First Name" value={profileData.first_name} onChange={(val) => setProfileData({...profileData, first_name: val})} />
+                      <ProfileInput label="Last Name" value={profileData.last_name} onChange={(val) => setProfileData({...profileData, last_name: val})} />
+                      <ProfileInput label="Professional Designation" value={profileData.designation} onChange={(val) => setProfileData({...profileData, designation: val})} placeholder="e.g. Founder, Investor, CTO" />
+                      <ProfileInput label="Current Organization" value={profileData.company} onChange={(val) => setProfileData({...profileData, company: val})} />
+                      <ProfileInput label="Location" value={profileData.location} onChange={(val) => setProfileData({...profileData, location: val})} />
+                      <ProfileInput label="Core Skills" value={profileData.skills} onChange={(val) => setProfileData({...profileData, skills: val})} placeholder="Strategy, React, Venture Capital" />
+                      
+                      <div className="md:col-span-2 space-y-2">
+                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Public Biography</label>
+                        <textarea 
+                           className="w-full h-32 bg-slate-50 border border-slate-200 rounded-xl p-4 text-sm font-medium focus:outline-none focus:border-cyan-500 transition-all resize-none"
+                           value={profileData.bio}
+                           onChange={(e) => setProfileData({...profileData, bio: e.target.value})}
+                           placeholder="Tell the network about your mission and what you are building..."
+                        />
+                      </div>
+                   </div>
+
+                   <div className="pt-4 flex justify-end">
+                      <button 
+                        onClick={async () => {
+                           setSaving(true);
+                           try {
+                              const { error } = await supabase
+                                .from('profiles')
+                                .upsert({
+                                   email: user.email,
+                                   ...profileData,
+                                   updated_at: new Date().toISOString()
+                                });
+                              if (error) throw error;
+                              // Alert success?
+                           } catch (err) {
+                              console.error("Error saving profile:", err);
+                           } finally {
+                              setSaving(false);
+                           }
+                        }}
+                        disabled={saving}
+                        className="flex items-center gap-2 px-8 py-3 bg-black text-white rounded-xl font-bold text-xs shadow-lg hover:bg-slate-800 transition-all disabled:opacity-50"
+                      >
+                        {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                        Save Changes
+                      </button>
+                   </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Other tabs fallback */}
+            {activeTab !== 'overview' && activeTab !== 'personal' && (
                <div className="flex flex-col items-center justify-center h-full py-32">
                   <Clock className="w-10 h-10 text-slate-200 mb-5" />
                   <h3 className="text-sm font-bold uppercase tracking-wider text-[rgba(0,0,0,0.3)]">Protocol Under Expansion</h3>
@@ -286,6 +430,21 @@ function StatCard({ label, value, icon: Icon, color }: any) {
        </div>
        <p className="text-[10px] font-bold text-[rgba(0,0,0,0.5)] uppercase tracking-wider mb-1">{label}</p>
        <h4 className="text-lg font-bold text-[rgba(0,0,0,0.9)]">{value}</h4>
+    </div>
+  );
+}
+
+function ProfileInput({ label, value, onChange, placeholder }: { label: string, value: string, onChange: (v: string) => void, placeholder?: string }) {
+  return (
+    <div className="space-y-2">
+      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</label>
+      <input 
+         type="text"
+         className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-4 text-sm font-medium focus:outline-none focus:border-cyan-500 transition-all"
+         value={value}
+         onChange={(e) => onChange(e.target.value)}
+         placeholder={placeholder}
+      />
     </div>
   );
 }

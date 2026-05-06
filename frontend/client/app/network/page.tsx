@@ -1,31 +1,99 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, MessageSquare, Briefcase, Filter, ShieldCheck, MapPin, Building2, Zap } from 'lucide-react';
+import { Search, UserPlus, MessageSquare, Briefcase, Filter, ShieldCheck, MapPin, Building2, Zap, Check, X, Clock, Loader2 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../components/AuthContext';
 
 export default function NetworkPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'founders' | 'investors'>('founders');
   const [profiles, setProfiles] = useState<any[]>([]);
+  const [connections, setConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
 
   useEffect(() => {
-    async function fetchProfiles() {
+    async function fetchData() {
       try {
-        const { data, error } = await supabase
+        setLoading(true);
+        // Fetch profiles
+        const { data: profs, error: pErr } = await supabase
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false });
 
-        if (error) throw error;
-        setProfiles(data || []);
+        if (pErr) throw pErr;
+        setProfiles(profs || []);
+
+        // Fetch user connections if logged in
+        if (user?.email) {
+          const { data: conns, error: cErr } = await supabase
+            .from('connections')
+            .select('*')
+            .or(`sender_email.eq.${user.email},receiver_email.eq.${user.email}`);
+          
+          if (cErr) throw cErr;
+          setConnections(conns || []);
+        }
       } catch (err) {
-        console.error('Error fetching profiles:', err);
+        console.error('Error fetching network data:', err);
       } finally {
         setLoading(false);
       }
     }
-    fetchProfiles();
-  }, []);
+    fetchData();
+  }, [user?.email]);
+
+  const getConnectionStatus = (targetEmail: string) => {
+    const conn = connections.find(c => 
+      (c.sender_email === user?.email && c.receiver_email === targetEmail) ||
+      (c.sender_email === targetEmail && c.receiver_email === user?.email)
+    );
+    return conn ? conn.status : null;
+  };
+
+  const handleConnect = async (targetEmail: string) => {
+    if (!user?.email) return;
+    setActionLoading(targetEmail);
+    try {
+      const { data, error } = await supabase
+        .from('connections')
+        .insert({
+          sender_email: user.email,
+          receiver_email: targetEmail,
+          status: 'pending'
+        })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setConnections([...connections, data]);
+    } catch (err) {
+      console.error("Error sending request:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleAccept = async (senderEmail: string) => {
+    if (!user?.email) return;
+    setActionLoading(senderEmail);
+    try {
+      const { data, error } = await supabase
+        .from('connections')
+        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .match({ sender_email: senderEmail, receiver_email: user.email })
+        .select()
+        .single();
+      
+      if (error) throw error;
+      setConnections(connections.map(c => c.id === data.id ? data : c));
+    } catch (err) {
+      console.error("Error accepting request:", err);
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   const filteredProfiles = profiles.filter(profile => {
      const designation = profile.designation?.toLowerCase() || '';
@@ -131,7 +199,36 @@ export default function NetworkPage() {
                 </p>
                 
                 <div className="flex gap-3 mt-auto">
-                  <button className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white shadow-md shadow-cyan-600/20 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all">Connect</button>
+                  {getConnectionStatus(profile.email) === 'accepted' ? (
+                    <button className="flex-1 bg-slate-100 text-slate-500 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 cursor-default">
+                      <Check className="w-4 h-4" /> Connected
+                    </button>
+                  ) : getConnectionStatus(profile.email) === 'pending' ? (
+                    connections.find(c => c.sender_email === user?.email && c.receiver_email === profile.email) ? (
+                      <button className="flex-1 bg-amber-50 text-amber-600 border border-amber-200 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2">
+                        <Clock className="w-4 h-4" /> Request Sent
+                      </button>
+                    ) : (
+                      <div className="flex-1 flex gap-2">
+                         <button 
+                            onClick={() => handleAccept(profile.email)}
+                            disabled={actionLoading === profile.email}
+                            className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition-all"
+                         >
+                            {actionLoading === profile.email ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : "Accept"}
+                         </button>
+                         <button className="flex-1 bg-slate-100 text-slate-500 py-2.5 rounded-xl text-[10px] font-bold uppercase">Decline</button>
+                      </div>
+                    )
+                  ) : (
+                    <button 
+                      onClick={() => handleConnect(profile.email)}
+                      disabled={actionLoading === profile.email || profile.email === user?.email}
+                      className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white shadow-md shadow-cyan-600/20 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
+                    >
+                      {actionLoading === profile.email ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Connect"}
+                    </button>
+                  )}
                   <button className="px-5 py-2.5 bg-white border-2 border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors uppercase text-xs font-bold tracking-widest text-slate-500">Message</button>
                 </div>
               </div>

@@ -7,6 +7,7 @@ import {
   Calendar, Users, Loader2, Check, X, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, login } = useAuth();
@@ -81,7 +82,29 @@ export default function RegisterModal() {
     }
     setIsSubmitting(true);
     try {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Faster simulation
+      // 1. Simulate Auth Delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // 2. Create Profile in Database
+      const profilePayload = {
+        email: formData.email,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
+        designation: 'Founder @ Stealth',
+        company: 'Stealth Startup',
+        location: 'Global',
+        bio: 'Innovating at the intersection of technology and impact.',
+        picture: `https://api.dicebear.com/7.x/notionists/svg?seed=${formData.firstName}`,
+        updated_at: new Date().toISOString()
+      };
+
+      const { error: dbError } = await supabase
+        .from('profiles')
+        .upsert(profilePayload);
+
+      if (dbError) throw dbError;
+
+      // 3. Update Auth State
       login({
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -89,8 +112,9 @@ export default function RegisterModal() {
         mobile: formData.mobile,
         dob: formData.dob,
         gender: formData.gender,
-        picture: `https://api.dicebear.com/7.x/notionists/svg?seed=${formData.firstName}`,
+        picture: profilePayload.picture,
       });
+
       setRegisterModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Registration failed");
