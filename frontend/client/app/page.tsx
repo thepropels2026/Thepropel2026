@@ -12,16 +12,26 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-32 md:pt-36 lg:pt-48 pb-16 overflow-hidden">
-        {/* Hero background — static warm radial glows + CSS grid */}
+        {/* Hero background — Starfield + Breathing orbs + CSS grid */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           {/* Subtle grid overlay */}
-          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_30%,#000_20%,transparent_100%)]" />
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_30%,#000_20%,transparent_100%)]" />
+          
+          {/* Static Starfield simulation with dots */}
+          <div className="absolute inset-0 opacity-20">
+             <div className="absolute top-[10%] left-[20%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
+             <div className="absolute top-[30%] left-[70%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
+             <div className="absolute top-[60%] left-[40%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
+             <div className="absolute top-[80%] left-[90%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
+             <div className="absolute top-[15%] left-[85%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
+          </div>
+
           {/* Warm amber orb top-left */}
-          <div className="absolute -top-[10%] left-[5%] w-[500px] h-[500px] bg-[#1a0f00]/50 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
+          <div className="absolute -top-[10%] left-[5%] w-[600px] h-[600px] bg-[#221200]/40 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '7s' }} />
           {/* Cool green-dark orb bottom-right */}
-          <div className="absolute bottom-[-10%] right-[5%] w-[600px] h-[400px] bg-[#000f0a]/50 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+          <div className="absolute bottom-[-10%] right-[5%] w-[700px] h-[500px] bg-[#000d08]/40 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '9s', animationDelay: '2s' }} />
           {/* Faint center highlight */}
-          <div className="absolute top-[30%] left-[30%] w-[400px] h-[200px] bg-[#0a0a00]/30 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
+          <div className="absolute top-[20%] left-[25%] w-[500px] h-[300px] bg-[#0c0c00]/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '11s', animationDelay: '1s' }} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-center z-10 w-full max-w-7xl mx-auto">
@@ -212,41 +222,26 @@ export default function Home() {
       <section className="bg-[#050505] py-16 lg:py-24 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-10 lg:mb-16">
-            <div>
-              <div className="inline-block px-3 py-1 border border-white/10 rounded text-[9px] font-bold tracking-[2px] text-white/30 uppercase mb-3">Verified Network</div>
-              <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
-            </div>
-            <Link href="/network" className="text-[10px] font-bold uppercase tracking-widest text-white/40 border border-white/10 px-4 py-2 rounded-md hover:bg-white/5 hover:text-white/70 transition-colors">View All</Link>
+            <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
+            <Link href="/network" className="text-cyan-500 text-sm font-bold uppercase tracking-widest hover:text-cyan-400">View All</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
             {[
-              { name: 'Aditi Verma', role: 'Partner', firm: 'Sequoia Capital', focus: 'Deep Tech & B2B SaaS', seed: '42' },
-              { name: 'Rohan Mehta', role: 'Principal', firm: 'Accel India', focus: 'Consumer & FinTech', seed: '87' },
-              { name: 'Priya Nair', role: 'Managing Director', firm: 'Lightspeed India', focus: 'EdTech & HealthTech', seed: '23' },
-              { name: 'Vikram Shah', role: 'GP', firm: 'Matrix Partners', focus: 'SaaS & Infra', seed: '61' },
-            ].map((inv) => (
-              <div key={inv.seed}
-                className="group bg-white/[0.03] border border-white/8 p-6 rounded-lg flex flex-col items-center text-center relative overflow-hidden hover:bg-white/[0.05] hover:border-white/18 transition-all duration-200 cursor-pointer">
-                {/* Bottom border reveal */}
-                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#FF5F00]/50 group-hover:w-full transition-all duration-500 ease-out" />
-                {/* Avatar */}
-                <div className="w-20 h-20 rounded-full mb-4 border border-white/10 group-hover:border-white/25 transition-colors duration-200 overflow-hidden bg-white/5">
-                  <img
-                    src={`https://api.dicebear.com/7.x/personas/svg?seed=${inv.seed}&backgroundColor=1a1a1a`}
-                    alt={inv.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                  />
+              { name: 'Aditi Verma', org: 'Partner, Sequoia', bio: 'Early Stage Deep Tech & B2B SaaS Investments.' },
+              { name: 'Rohan Mehta', org: 'MD, Accel India', bio: 'Consumer Internet & Fintech Growth Specialist.' },
+              { name: 'Sarah Chen', org: 'Angel Investor', bio: 'AI/ML Infrastructure & Data Science focus.' },
+              { name: 'Vikram Singh', org: 'Nexus Venture Partners', bio: 'Enterprise Software & Cloud Computing.' }
+            ].map((investor, i) => (
+              <div key={i} className="group bg-white/[0.02] border border-white/5 p-8 rounded-2xl flex flex-col items-center hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300 relative overflow-hidden">
+                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full mb-6 border border-white/10 group-hover:border-white/20 transition-all duration-300 relative overflow-hidden">
+                   <div className="absolute inset-0 bg-[#111] m-1 rounded-full overflow-hidden">
+                      <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${investor.name}`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                   </div>
                 </div>
-                <h3 className="font-bold text-base font-montserrat text-white group-hover:text-white transition-colors">{inv.name}</h3>
-                <p className="text-[#FF5F00]/70 text-[10px] font-black uppercase tracking-wider mt-0.5">{inv.role}</p>
-                <p className="text-white/30 text-[10px] font-bold uppercase tracking-wider mb-3">{inv.firm}</p>
-                <div className="w-full h-px bg-white/5 my-3" />
-                <p className="text-xs text-white/35 font-inter leading-relaxed group-hover:text-white/50 transition-colors">{inv.focus}</p>
-                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                  <Link href="/network" className="text-[10px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1 justify-center hover:text-white/80 transition-colors">
-                    View Profile <ArrowRight className="w-3 h-3" />
-                  </Link>
-                </div>
+                <h3 className="font-black text-sm font-montserrat uppercase tracking-tight text-white mb-1">{investor.name}</h3>
+                <p className="text-[#FF5F00] text-[9px] font-black uppercase tracking-[0.2em] mb-4 opacity-70 group-hover:opacity-100 transition-opacity">{investor.org}</p>
+                <p className="text-[11px] text-white/30 text-center font-inter leading-relaxed line-clamp-2 group-hover:text-white/50 transition-colors">{investor.bio}</p>
               </div>
             ))}
           </div>
@@ -384,7 +379,7 @@ function FeaturedToolsGrid() {
     <Link 
       key={tool.id}
       href="/tools"
-      className="group bg-white/[0.02] border border-white/8 p-8 rounded-lg hover:bg-white/[0.04] transition-colors duration-200 relative overflow-hidden flex flex-col"
+      className="group bg-white/[0.02] border border-white/8 p-8 rounded-lg hover:bg-white/[0.04] transition-all duration-300 relative overflow-hidden flex flex-col hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] hover:-translate-y-1"
     >
       {/* Bottom border reveal on hover */}
       <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#FF5F00]/60 group-hover:w-full transition-all duration-500 ease-out" />
