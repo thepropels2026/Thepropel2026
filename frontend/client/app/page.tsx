@@ -212,16 +212,41 @@ export default function Home() {
       <section className="bg-[#050505] py-16 lg:py-24 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-10 lg:mb-16">
-            <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
-            <Link href="/network" className="text-cyan-500 text-sm font-bold uppercase tracking-widest hover:text-cyan-400">View All</Link>
+            <div>
+              <div className="inline-block px-3 py-1 border border-white/10 rounded text-[9px] font-bold tracking-[2px] text-white/30 uppercase mb-3">Verified Network</div>
+              <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
+            </div>
+            <Link href="/network" className="text-[10px] font-bold uppercase tracking-widest text-white/40 border border-white/10 px-4 py-2 rounded-md hover:bg-white/5 hover:text-white/70 transition-colors">View All</Link>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
-            {[1, 2, 3, 4].map(i => (
-              <div key={i} className="bg-white/[0.03] border border-white/8 p-6 rounded-lg flex flex-col items-center">
-                <div className="w-24 h-24 bg-white/10 rounded-full mb-4 border border-white/15"></div>
-                <h3 className="font-bold text-lg font-montserrat">Aditi Verma</h3>
-                <p className="text-white/40 text-xs font-bold uppercase tracking-wider mb-2">Partner, Sequoia</p>
-                <p className="text-xs text-white/35 text-center font-inter leading-relaxed">Early Stage Deep Tech & B2B SaaS Investments.</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-5">
+            {[
+              { name: 'Aditi Verma', role: 'Partner', firm: 'Sequoia Capital', focus: 'Deep Tech & B2B SaaS', seed: '42' },
+              { name: 'Rohan Mehta', role: 'Principal', firm: 'Accel India', focus: 'Consumer & FinTech', seed: '87' },
+              { name: 'Priya Nair', role: 'Managing Director', firm: 'Lightspeed India', focus: 'EdTech & HealthTech', seed: '23' },
+              { name: 'Vikram Shah', role: 'GP', firm: 'Matrix Partners', focus: 'SaaS & Infra', seed: '61' },
+            ].map((inv) => (
+              <div key={inv.seed}
+                className="group bg-white/[0.03] border border-white/8 p-6 rounded-lg flex flex-col items-center text-center relative overflow-hidden hover:bg-white/[0.05] hover:border-white/18 transition-all duration-200 cursor-pointer">
+                {/* Bottom border reveal */}
+                <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#FF5F00]/50 group-hover:w-full transition-all duration-500 ease-out" />
+                {/* Avatar */}
+                <div className="w-20 h-20 rounded-full mb-4 border border-white/10 group-hover:border-white/25 transition-colors duration-200 overflow-hidden bg-white/5">
+                  <img
+                    src={`https://api.dicebear.com/7.x/personas/svg?seed=${inv.seed}&backgroundColor=1a1a1a`}
+                    alt={inv.name}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                </div>
+                <h3 className="font-bold text-base font-montserrat text-white group-hover:text-white transition-colors">{inv.name}</h3>
+                <p className="text-[#FF5F00]/70 text-[10px] font-black uppercase tracking-wider mt-0.5">{inv.role}</p>
+                <p className="text-white/30 text-[10px] font-bold uppercase tracking-wider mb-3">{inv.firm}</p>
+                <div className="w-full h-px bg-white/5 my-3" />
+                <p className="text-xs text-white/35 font-inter leading-relaxed group-hover:text-white/50 transition-colors">{inv.focus}</p>
+                <div className="mt-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <Link href="/network" className="text-[10px] font-black uppercase tracking-widest text-white/50 flex items-center gap-1 justify-center hover:text-white/80 transition-colors">
+                    View Profile <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
               </div>
             ))}
           </div>
