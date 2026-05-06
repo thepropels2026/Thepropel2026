@@ -207,7 +207,7 @@ export default function Home() {
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <FeaturedToolsGrid />
           </div>
         </div>
@@ -372,7 +372,7 @@ function FeaturedToolsGrid() {
         const { data } = await supabase
           .from('tools_cards')
           .select('*')
-          .limit(4)
+          .limit(3)
           .order('created_at', { ascending: false });
         setTools(data || []);
       } catch (e) {
@@ -385,8 +385,8 @@ function FeaturedToolsGrid() {
   }, []);
 
   if (loading) {
-    return [1, 2, 3, 4].map(i => (
-      <div key={i} className="h-80 bg-white/[0.03] rounded-2xl animate-pulse border border-white/8" />
+    return [1, 2, 3].map(i => (
+      <div key={i} className="h-64 bg-white/[0.03] rounded-lg animate-pulse border border-white/8" />
     ));
   }
 
@@ -402,44 +402,33 @@ function FeaturedToolsGrid() {
     <Link 
       key={tool.id}
       href="/tools"
-      className="group bg-[#0a0a0f] border border-white/10 rounded-2xl hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col h-full"
+      className="group bg-[#0a0a0f] border border-white/10 p-8 rounded-3xl hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col"
     >
-      {/* Full-size Rectangle Image */}
-      <div className="w-full aspect-[16/10] bg-white/5 relative overflow-hidden">
-        {tool.image_url ? (
-          <Image 
-            src={tool.image_url} 
-            alt={tool.title} 
-            fill
-            className="object-cover group-hover:scale-110 transition-transform duration-700" 
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/10">
-            <Wrench className="w-12 h-12" />
-          </div>
-        )}
-        {/* Category Overlay */}
-        <div className="absolute top-4 left-4">
-           <span className="bg-black/60 backdrop-blur-md text-cyan-400 text-[9px] font-black px-3 py-1.5 rounded-full border border-white/10 uppercase tracking-widest">
-              {tool.category}
-           </span>
-        </div>
-      </div>
-
-      <div className="p-6 flex flex-col flex-1">
-        <div className="flex justify-between items-center mb-3">
-          <h3 className="text-lg font-bold text-white font-montserrat truncate flex-1">{tool.title}</h3>
-          {new Date(tool.created_at).getTime() > Date.now() - 48 * 60 * 60 * 1000 && (
-            <span className="bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-full ml-2">NEW</span>
+      <div className="flex justify-between items-start mb-6">
+        <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400 overflow-hidden">
+          {tool.image_url ? (
+            <Image 
+              src={tool.image_url} 
+              alt={tool.title} 
+              width={48} 
+              height={48} 
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+            />
+          ) : (
+            <Wrench className="w-6 h-6" />
           )}
         </div>
-        <p className="text-white/50 text-xs line-clamp-2 mb-6 font-inter leading-relaxed flex-1">
-          {tool.description}
-        </p>
-        <div className="flex items-center justify-between pt-4 border-t border-white/5 text-[10px] font-bold uppercase tracking-widest text-cyan-500">
-           <span>Launch Utility</span>
-           <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+        <div className="flex flex-col items-end gap-2">
+          <div className="text-[10px] font-black text-cyan-500/60 uppercase tracking-widest">{tool.category}</div>
+          {new Date(tool.created_at).getTime() > Date.now() - 48 * 60 * 60 * 1000 && (
+            <span className="bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse">NEW</span>
+          )}
         </div>
+      </div>
+      <h3 className="text-xl font-bold text-white mb-2 font-montserrat line-clamp-1">{tool.title}</h3>
+      <p className="text-white/40 text-sm line-clamp-2 mb-6 font-inter leading-relaxed flex-1">{tool.description}</p>
+      <div className="flex items-center gap-2 text-xs font-bold text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        Get Started <ArrowRight className="w-3 h-3" />
       </div>
     </Link>
   ));

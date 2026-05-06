@@ -199,22 +199,24 @@ export default function Tools() {
                 >
                   <div 
                     onClick={() => handleToolClick(tool)} 
-                    className="cursor-pointer group block h-full bg-white border border-slate-200 p-0 rounded-[2rem] transition-all duration-500 relative overflow-hidden hover:border-cyan-200 hover:shadow-xl"
+                    className="cursor-pointer group block h-full bg-white border border-slate-200 p-0 rounded-3xl transition-all duration-500 relative overflow-hidden hover:border-cyan-200 hover:shadow-xl"
                   >
                     {/* Background Glow */}
                     <div className="absolute -top-16 -right-16 w-32 h-32 bg-cyan-100/20 rounded-full blur-[40px] group-hover:bg-cyan-100/40 transition-all duration-500" />
                     
-                    {/* Image Header */}
-                    <div className="relative h-56 w-full overflow-hidden border-b border-slate-100">
+                    {/* Image Header - Enhanced Full Size */}
+                    <div className="relative h-64 w-full overflow-hidden border-b border-slate-100 bg-slate-50">
                       {tool.image_url ? (
                         <Image 
                           src={tool.image_url} 
                           alt={tool.title} 
                           fill
                           className="object-cover transition-transform duration-700 group-hover:scale-105" 
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
+                          priority={index < 4}
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-slate-50">
+                        <div className="w-full h-full flex items-center justify-center">
                           {getIconForCategory(tool.category)}
                         </div>
                       )}
