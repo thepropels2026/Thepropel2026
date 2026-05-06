@@ -17,17 +17,38 @@ export default function LoginModal() {
   const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [timer, setTimer] = useState(0);
 
   // Reset state when modal closes
   useEffect(() => {
     if (!isLoginModalOpen) {
       setStep(1);
       setError(null);
+      setSuccess(null);
       setInputValue('');
       setPassword('');
       setOtp('');
+      setTimer(0);
     }
   }, [isLoginModalOpen]);
+
+  // Countdown timer for resend
+  useEffect(() => {
+    let interval: any;
+    if (timer > 0) {
+      interval = setInterval(() => {
+        setTimer((prev) => prev - 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timer]);
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const handleNext = (e: React.FormEvent) => {
     e.preventDefault();
@@ -58,9 +79,8 @@ export default function LoginModal() {
           phone: inputValue,
         });
         if (otpError) throw otpError;
-        // In a real app, we'd wait for the OTP input on a new step, 
-        // for now we indicate the protocol is initiated.
-        alert("OTP Protocol Initiated. Check your device.");
+        setTimer(120); // 2 minute countdown
+        setSuccess("OTP Protocol Initiated. Check your device.");
         return;
       }
 
@@ -68,6 +88,25 @@ export default function LoginModal() {
       setLoginModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Authentication failed. Please check your credentials.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const resendOTP = async () => {
+    if (timer > 0) return;
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        [method === 'email' ? 'email' : 'phone']: inputValue,
+      });
+      if (otpError) throw otpError;
+      setTimer(120);
+      setSuccess("New credentials dispatched to your terminal.");
+    } catch (err: any) {
+      setError(err.message);
     } finally {
       setIsSubmitting(false);
     }
@@ -196,20 +235,44 @@ export default function LoginModal() {
                   ) : (
                     <div className="space-y-4">
                       <div className="flex justify-between gap-2">
-                        {[1, 2, 3, 4].map((i) => (
+                        {[1, 2, 3, 4, 5, 6].map((i) => (
                           <input 
                             key={i}
                             type="text"
                             maxLength={1}
                             className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xl font-bold focus:outline-none focus:border-black transition-all"
+                            value={otp[i-1] || ''}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val.length <= 1) {
+                                const newOtp = otp.split('');
+                                newOtp[i-1] = val;
+                                setOtp(newOtp.join(''));
+                              }
+                            }}
                           />
                         ))}
                       </div>
-                      <p className="text-center text-[10px] font-bold text-slate-400 uppercase tracking-widest cursor-pointer hover:text-black transition-colors">Resend OTP Protocol</p>
+                      <div className="flex flex-col items-center gap-2 pt-2">
+                        {timer > 0 ? (
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                            Resend Protocol available in {formatTime(timer)}
+                          </p>
+                        ) : (
+                          <button 
+                            type="button"
+                            onClick={resendOTP}
+                            className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest hover:text-black transition-colors"
+                          >
+                            Resend Verification Code
+                          </button>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
 
+                {success && <p className="text-emerald-600 text-[10px] font-bold uppercase text-center">{success}</p>}
                 {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
 
                 <button 
