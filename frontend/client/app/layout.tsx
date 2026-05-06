@@ -44,12 +44,10 @@ export default function RootLayout({
       {/* Apply configured fonts and antialiasing to the body */}
       <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} font-inter antialiased bg-background text-foreground`}>
         
-        {/* Global Multi-color texture background - Pinned to the viewport behind content */}
-        <div className="fixed inset-0 pointer-events-none z-[-1] opacity-20">
-          {/* Decorative blurred background orbs for aesthetic depth */}
-          <div className="absolute top-1/4 -left-1/4 w-3/4 h-3/4 bg-purple-600/30 rounded-full blur-[150px]" />
-          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-blue-500/20 rounded-full blur-[150px]" />
-          <div className="absolute top-0 right-1/4 w-1/2 h-1/2 bg-orange-500/10 rounded-full blur-[150px]" />
+        {/* Very subtle neutral background depth — no colour bleed */}
+        <div className="fixed inset-0 pointer-events-none z-[-1] opacity-60">
+          <div className="absolute top-0 left-0 w-3/4 h-3/4 bg-[#0a0a0a] rounded-full blur-[200px]" />
+          <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-[#080808] rounded-full blur-[200px]" />
         </div>
         
         {/* Enable smooth scrolling across the entire application */}
@@ -71,7 +69,7 @@ export default function RootLayout({
               
               {/* Global Floating Action Button for Help/Chat Support - Visible on all pages */}
               <div className="help-fab">
-                 <MessageCircle className="w-8 h-8 text-black" />
+                 <MessageCircle className="w-8 h-8 text-white/70" />
               </div>
             </div>
           </AuthProvider>

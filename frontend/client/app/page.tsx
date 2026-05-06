@@ -3,7 +3,6 @@ import React from 'react';
 import Link from 'next/link';
 import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
-import { motion } from 'framer-motion'; 
 import Image from 'next/image';
 import { supabase } from '../lib/supabase'; 
 import PricingSection from '../components/PricingSection';
@@ -13,9 +12,16 @@ export default function Home() {
   return (
     <div className="flex flex-col">
       <section className="relative min-h-[100dvh] flex flex-col justify-start px-4 sm:px-6 md:px-12 lg:px-24 pt-32 md:pt-36 lg:pt-48 pb-16 overflow-hidden">
+        {/* Hero background — static warm radial glows + CSS grid */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-[10%] left-[5%] w-[500px] h-[500px] bg-[#1a1006]/40 rounded-full blur-[120px]" />
-          <div className="absolute bottom-[-10%] right-[5%] w-[600px] h-[400px] bg-[#0a120f]/40 rounded-full blur-[120px]" />
+          {/* Subtle grid overlay */}
+          <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.03)_1px,transparent_1px)] bg-[size:48px_48px] [mask-image:radial-gradient(ellipse_70%_70%_at_50%_30%,#000_20%,transparent_100%)]" />
+          {/* Warm amber orb top-left */}
+          <div className="absolute -top-[10%] left-[5%] w-[500px] h-[500px] bg-[#1a0f00]/50 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '6s' }} />
+          {/* Cool green-dark orb bottom-right */}
+          <div className="absolute bottom-[-10%] right-[5%] w-[600px] h-[400px] bg-[#000f0a]/50 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s', animationDelay: '2s' }} />
+          {/* Faint center highlight */}
+          <div className="absolute top-[30%] left-[30%] w-[400px] h-[200px] bg-[#0a0a00]/30 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '1s' }} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-center z-10 w-full max-w-7xl mx-auto">
@@ -47,10 +53,12 @@ export default function Home() {
           </div>
 
           <div className="flex flex-col items-center lg:items-start w-full lg:ml-16 mt-8 lg:-mt-4">
-            <div className="relative w-full max-w-[550px] aspect-video rounded-lg bg-black/40 border border-white/10 overflow-hidden flex flex-col items-center justify-center mx-auto lg:mx-0">
+          <div className="relative w-full max-w-[550px] aspect-video rounded-lg bg-black/40 border border-white/10 overflow-hidden flex flex-col items-center justify-center mx-auto lg:mx-0 group">
               <div className="absolute inset-0 bg-[rgba(10,10,15,0.5)]" />
+              {/* Subtle shimmer on hover */}
+              <div className="absolute inset-0 bg-gradient-to-br from-white/[0.04] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               <div className="z-10 flex flex-col items-center">
-                <div className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 md:mb-4 hover:bg-white/15 transition-colors cursor-pointer">
+                <div className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 md:mb-4 group-hover:bg-white/15 transition-colors duration-300 cursor-pointer">
                   <Play className="w-5 h-5 md:w-8 md:h-8 fill-white/80 text-white/80 ml-1" />
                 </div>
                 <span className="font-montserrat text-[10px] md:text-sm text-white/60">Propulsion System Overview</span>
@@ -335,7 +343,7 @@ function FeaturedToolsGrid() {
 
   if (loading) {
     return [1, 2, 3].map(i => (
-      <div key={i} className="h-64 bg-white/5 rounded-3xl animate-pulse border border-white/5" />
+      <div key={i} className="h-64 bg-white/[0.03] rounded-lg animate-pulse border border-white/8" />
     ));
   }
 
@@ -351,33 +359,35 @@ function FeaturedToolsGrid() {
     <Link 
       key={tool.id}
       href="/tools"
-      className="group bg-white/[0.02] border border-white/8 p-8 rounded-lg hover:bg-white/[0.04] transition-colors duration-150 relative overflow-hidden"
+      className="group bg-white/[0.02] border border-white/8 p-8 rounded-lg hover:bg-white/[0.04] transition-colors duration-200 relative overflow-hidden flex flex-col"
     >
+      {/* Bottom border reveal on hover */}
+      <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#FF5F00]/60 group-hover:w-full transition-all duration-500 ease-out" />
       <div className="flex justify-between items-start mb-6">
-        <div className="w-12 h-12 rounded-md bg-white/5 flex items-center justify-center border border-white/10 text-white/50 overflow-hidden">
+        <div className="w-12 h-12 rounded-md bg-white/5 flex items-center justify-center border border-white/10 text-white/50 overflow-hidden group-hover:border-white/20 transition-colors duration-200">
           {tool.image_url ? (
             <Image 
               src={tool.image_url} 
               alt={tool.title} 
               width={48} 
               height={48} 
-              className="w-full h-full object-cover" 
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
             />
           ) : (
             <Wrench className="w-6 h-6" />
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="text-[10px] font-black text-white/30 uppercase tracking-widest">{tool.category}</div>
+          <div className="text-[10px] font-black text-white/25 group-hover:text-white/40 uppercase tracking-widest transition-colors duration-200">{tool.category}</div>
           {new Date(tool.created_at).getTime() > Date.now() - 48 * 60 * 60 * 1000 && (
             <span className="bg-white/10 border border-white/20 text-white/70 text-[8px] font-black px-2 py-0.5 rounded">NEW</span>
           )}
         </div>
       </div>
-      <h3 className="text-xl font-bold text-white mb-2 font-montserrat line-clamp-1">{tool.title}</h3>
-      <p className="text-white/40 text-sm line-clamp-2 mb-6 font-inter">{tool.description}</p>
-      <div className="flex items-center gap-2 text-xs font-bold text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity">
-        Get Started <ArrowRight className="w-3 h-3" />
+      <h3 className="text-xl font-bold text-white mb-2 font-montserrat line-clamp-1 group-hover:text-white/90 transition-colors duration-200">{tool.title}</h3>
+      <p className="text-white/35 text-sm line-clamp-2 mb-6 font-inter leading-relaxed flex-1 group-hover:text-white/50 transition-colors duration-200">{tool.description}</p>
+      <div className="flex items-center gap-2 text-xs font-bold text-white/30 group-hover:text-white/60 transition-all duration-200">
+        Get Started <ArrowRight className="w-3 h-3 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" />
       </div>
     </Link>
   ));
