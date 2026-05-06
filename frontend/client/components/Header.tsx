@@ -80,11 +80,12 @@ export default function Header() {
             <div className="border-t border-white/10 mt-2 pt-4 flex flex-col gap-4">
               {isRegistered ? (
                 <>
-                  <Link onClick={() => setIsMobileMenuOpen(false)} href="/profile" className="flex items-center gap-2 text-cyan-400">
+                  <Link onClick={() => setIsMobileMenuOpen(false)} href="/profile" className="flex items-center gap-2 text-white/70">
                     <UserCircle className="w-5 h-5" /> My Profile
                   </Link>
-                  <button className="text-left text-red-400 transition-colors" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
+                  <button className="text-left text-white/40 hover:text-white/70 transition-colors duration-150 text-xs" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
                 </>
+              ) : (
                 <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
               )}
             </div>
