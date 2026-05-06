@@ -1,4 +1,5 @@
 // Import Next.js Metadata type for SEO and page headers
+// Build Trigger: 2026-05-06 21:05 (Force Rebuild)
 import type { Metadata } from 'next'
 // Import Google fonts using Next.js font optimization
 import { Montserrat, Inter, Archivo } from 'next/font/google'
