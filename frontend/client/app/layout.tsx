@@ -2,7 +2,7 @@
 // Build Trigger: 2026-05-06 21:05 (Force Rebuild)
 import type { Metadata } from 'next'
 // Import Google fonts using Next.js font optimization
-import { Montserrat, Inter, Archivo } from 'next/font/google'
+import { Montserrat, Inter, Archivo, Roboto } from 'next/font/google'
 // Import global CSS styles
 import './globals.css'
 // Import core layout components
@@ -21,6 +21,7 @@ import RegisterModal from '../components/RegisterModal'
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-montserrat' })
 const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-inter' })
 const archivo = Archivo({ subsets: ['latin'], weight: ['900'], variable: '--font-archivo' })
+const roboto = Roboto({ subsets: ['latin'], weight: ['400', '500', '700', '900'], variable: '--font-roboto' })
 
 // Define global metadata for the application (Title, Description, SEO)
 export const metadata: Metadata = {
@@ -43,7 +44,7 @@ export default function RootLayout({
         <script src="https://sdk.cashfree.com/js/v3/cashfree.js" async></script>
       </head>
       {/* Apply configured fonts and antialiasing to the body */}
-      <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} font-montserrat antialiased bg-background text-foreground`}>
+      <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} ${roboto.variable} font-montserrat antialiased bg-background text-foreground`}>
         
         {/* Vibrant background depth with colorful orbs */}
         <div className="fixed inset-0 pointer-events-none z-[-1] opacity-20">

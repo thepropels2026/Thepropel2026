@@ -51,8 +51,11 @@ export default function Header() {
               <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={logout}>Sign Out</button>
             </div>
           ) : (
-            /* Registration CTA for non-authenticated users */
-            <button className="btn-glow shrink-0" onClick={() => setRegisterModalOpen(true)}>Register</button>
+            /* Registration & Login CTA for non-authenticated users */
+            <div className="flex items-center gap-3">
+              <button className="text-white hover:text-cyan-400 transition-colors" onClick={() => {/* Login Modal Trigger */}}>Login</button>
+              <button className="btn-glow shrink-0" onClick={() => setRegisterModalOpen(true)}>Register</button>
+            </div>
           )}
         </div>
 
