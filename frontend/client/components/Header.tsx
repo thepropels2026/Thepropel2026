@@ -30,7 +30,7 @@ export default function Header() {
         </Link>
 
         {/* Desktop Navigation Links - Centered using absolute positioning */}
-        <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/70">
+        <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white">
           <Link href="/" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Home className="w-3 h-3" /> Home</Link>
           <Link href="/about" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Rocket className="w-3 h-3" /> About</Link>
           <Link href="/tools" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Wrench className="w-3 h-3" /> Tools</Link>
@@ -45,7 +45,7 @@ export default function Header() {
           {isRegistered ? (
             <div className="flex items-center gap-4">
               {/* Profile Link with Icon */}
-              <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white/80 rounded-md hover:bg-white/10 transition-colors duration-150 text-xs">
+              <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-white/10 transition-colors duration-150 text-xs">
                 <UserCircle className="w-4 h-4" /> My Profile
               </Link>
               <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={logout}>Sign Out</button>
@@ -103,7 +103,7 @@ export default function Header() {
 
         {/* Secondary Sub-Header Navigation (Desktop only) */}
         {/* Displays secondary links underneath the main navigation bar */}
-        <div className="bg-[#0c0c0e]/95 backdrop-blur-xl py-2 px-8 hidden md:flex justify-center gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/40 z-0 border-t border-white/5">
+        <div className="bg-[#0c0c0e]/95 backdrop-blur-xl py-2 px-8 hidden md:flex justify-center gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white z-0 border-t border-white/5">
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Download the Report</Link>
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Startup Playbook</Link>
           <Link href="#" className="hover:text-white/70 transition-colors duration-150">Curriculum</Link>
