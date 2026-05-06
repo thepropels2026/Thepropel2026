@@ -360,23 +360,23 @@ export default function CareersPage() {
   };
 
   return (
-    <div className="min-h-screen pt-32 px-4 md:px-8 lg:px-24 bg-slate-50 text-slate-900 font-inter relative overflow-hidden">
+    <div className="min-h-screen pt-32 px-4 md:px-8 lg:px-24 bg-slate-50 text-[rgba(0,0,0,0.9)] font-inter relative overflow-hidden">
       
       {/* Decorative Background */}
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[120px] opacity-60 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-cyan-100 rounded-full blur-[120px] opacity-30 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-blue-100 rounded-full blur-[120px] opacity-30 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto relative z-10 pb-24">
         
         {/* Header Section */}
         <div className="text-center mb-16 max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-200/50 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Team
           </div>
-          <h1 className="text-4xl md:text-6xl font-inter font-extrabold tracking-tight mb-6 text-slate-900">
-            Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
+          <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-6 text-[rgba(0,0,0,0.9)]">
+            Build the <span className="text-cyan-600">Future of Startups</span>
           </h1>
-          <p className="text-lg text-slate-600 leading-relaxed font-medium">
+          <p className="text-lg text-[rgba(0,0,0,0.6)] leading-relaxed font-medium">
             We're looking for ambitious builders, thinkers, and innovators to help us scale the next generation of global unicorns.
           </p>
         </div>
@@ -385,13 +385,13 @@ export default function CareersPage() {
         <div className="max-w-4xl mx-auto">
           {loading ? (
             <div className="flex justify-center items-center py-20">
-              <div className="w-12 h-12 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div>
+              <div className="w-12 h-12 border-4 border-slate-200 border-t-cyan-600 rounded-full animate-spin"></div>
             </div>
           ) : jobs.length === 0 ? (
             <div className="text-center py-20 bg-white border border-slate-200 rounded-3xl shadow-sm">
               <Briefcase className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-xl font-bold text-slate-800 mb-2">No Open Roles</h3>
-              <p className="text-slate-500">We aren't actively hiring right now, but check back soon!</p>
+              <h3 className="text-xl font-bold text-[rgba(0,0,0,0.9)] mb-2">No Open Roles</h3>
+              <p className="text-[rgba(0,0,0,0.5)]">We aren't actively hiring right now, but check back soon!</p>
             </div>
           ) : (
             <div className="grid gap-6">
@@ -402,35 +402,35 @@ export default function CareersPage() {
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   key={job.id} 
                   onClick={() => setSelectedJob(job)}
-                  className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 hover:border-cyan-300 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-6"
+                  className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 hover:border-cyan-200 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-6"
                 >
                   <div className="flex-1">
                     <div className="flex flex-wrap items-center gap-3 mb-4">
-                      <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold uppercase tracking-wider rounded-lg">
+                      <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-wider rounded-lg">
                         {job.role}
                       </span>
-                      <span className="flex items-center gap-1 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <MapPin className="w-3.5 h-3.5" /> {job.location}
                       </span>
-                      <span className="flex items-center gap-1 text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-wider">
                         <Clock className="w-3.5 h-3.5" /> {job.mode}
                       </span>
                     </div>
-                    <h2 className="text-2xl font-bold font-inter text-slate-900 group-hover:text-cyan-700 transition-colors mb-2">
+                    <h2 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] group-hover:text-cyan-700 transition-colors mb-2">
                       {job.title}
                     </h2>
-                    <p className="text-slate-500 text-sm line-clamp-2">
+                    <p className="text-[rgba(0,0,0,0.5)] text-sm font-medium line-clamp-2">
                       {job.description}
                     </p>
                   </div>
                   
                   <div className="flex items-center gap-4 shrink-0 mt-4 md:mt-0">
-                    <button className="text-slate-400 group-hover:text-cyan-600 font-bold text-sm flex items-center gap-2 transition-colors">
+                    <button className="text-slate-400 group-hover:text-cyan-600 font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-colors">
                       View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <button 
                       onClick={(e) => openApplyModal(job, e)}
-                      className="bg-slate-900 hover:bg-cyan-600 text-white px-6 py-3 rounded-xl text-sm font-bold tracking-wide transition-colors shadow-md"
+                      className="bg-black hover:bg-slate-800 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-md"
                     >
                       Apply Now
                     </button>
