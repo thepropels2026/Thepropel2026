@@ -143,30 +143,53 @@ export default function Home() {
         <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-4"><span className="text-white">The</span> <span className="text-[#FF5F00]">Propulsion</span> <span className="text-white">Process</span></h2>
         <p className="text-center mb-10 lg:mb-16 text-white/80 font-inter">A tested and proven framework to take you from concept to Series A.</p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
-          <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-100">
-            <div className="text-4xl mb-6">🔍</div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
+          {/* 1. Ideation Validation */}
+          <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden group hover:bg-white/[0.05] transition-all">
+            <div className="text-4xl mb-6">💡</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-white opacity-[0.04] leading-none">01</div>
-            <h3 className="text-xl font-bold text-white mb-3 font-inter">Discovery & Validation</h3>
-            <p className="text-white/55 text-sm font-inter leading-relaxed">Use our AI evaluators and market heat maps to finalize your product blueprint with absolute precision.</p>
+            <h3 className="text-xl font-bold text-white mb-3 font-inter">Ideation Validation</h3>
+            <p className="text-white/55 text-sm font-inter leading-relaxed">If you have an idea, connect with The Propels to check the feasibility and demand of the idea in the market with absolute precision.</p>
           </div>
-          <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-200">
-            <div className="text-4xl mb-6">⚡</div>
+
+          {/* 2. Market Research */}
+          <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden group hover:bg-gray-100 transition-all">
+            <div className="text-4xl mb-6">📊</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#1a1917] opacity-[0.05] leading-none">02</div>
-            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">MVP Acceleration</h3>
-            <p className="text-[#555] text-sm font-inter leading-relaxed">Get paired with top-tier engineers and cloud infrastructure credits to build a high-converting prototype.</p>
+            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">Market Research</h3>
+            <p className="text-[#555] text-sm font-inter leading-relaxed">Get to know the actual market trends and success ratio of your idea before committing resources to development.</p>
           </div>
-          <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-300">
-            <div className="text-4xl mb-6">💰</div>
+
+          {/* 3. Technical Blueprint and MVP */}
+          <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden group hover:bg-white/[0.05] transition-all">
+            <div className="text-4xl mb-6">⚙️</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-white opacity-[0.04] leading-none">03</div>
-            <h3 className="text-xl font-bold text-white mb-3 font-inter">Capital Injection</h3>
-            <p className="text-white/55 text-sm font-inter leading-relaxed">Engage our closed-circuit network of 400+ investors through our structured demo days and syndicate funds.</p>
+            <h3 className="text-xl font-bold text-white mb-3 font-inter">Technical Blueprint & MVP</h3>
+            <p className="text-white/55 text-sm font-inter leading-relaxed">Build your MVP using premium tools and get complete technical support from our esteemed engineers and teams.</p>
           </div>
-          <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-400">
-            <div className="text-4xl mb-6">📈</div>
+
+          {/* 4. Real time Execution */}
+          <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden group hover:bg-gray-100 transition-all">
+            <div className="text-4xl mb-6">🚀</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#1a1917] opacity-[0.05] leading-none">04</div>
-            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">Scale & Dominate</h3>
-            <p className="text-[#555] text-sm font-inter leading-relaxed">Utilize our legal, marketing, and HR networks to rapidly scale your team and your ARR effectively.</p>
+            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">Real-time Execution</h3>
+            <p className="text-[#555] text-sm font-inter leading-relaxed">Experience real-time execution beyond the ideation phase, turning blueprints into functioning digital ecosystems.</p>
+          </div>
+
+          {/* 5. Funding Support */}
+          <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden group hover:bg-white/[0.05] transition-all">
+            <div className="text-4xl mb-6">💰</div>
+            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-white opacity-[0.04] leading-none">05</div>
+            <h3 className="text-xl font-bold text-white mb-3 font-inter">Funding Support</h3>
+            <p className="text-white/55 text-sm font-inter leading-relaxed">Pitch your validated idea to Venture Capitalists and Angel Investors, or get complete funding support after full validation.</p>
+          </div>
+
+          {/* 6. Real world Revenue */}
+          <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden group hover:bg-gray-100 transition-all">
+            <div className="text-4xl mb-6">💎</div>
+            <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#1a1917] opacity-[0.05] leading-none">06</div>
+            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">Real-world Revenue</h3>
+            <p className="text-[#555] text-sm font-inter leading-relaxed">Turn your idea into real-world revenue with aesthetic and attractive results that dominate the market.</p>
           </div>
         </div>
       </section>
