@@ -49,21 +49,26 @@ export default function Header() {
         </nav>
 
         {/* User Account Actions - Right-aligned */}
-        <div className="hidden md:flex items-center gap-4 text-xs uppercase tracking-widest font-bold">
+        <div className="hidden md:flex items-center gap-4 text-[11px] font-bold tracking-tight font-inter">
           {/* Conditional rendering based on user registration status */}
           {isRegistered ? (
             <div className="flex items-center gap-4">
               {/* Profile Link with Icon */}
-              <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-md hover:bg-white/10 transition-colors duration-150 text-xs">
+              <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white rounded-xl hover:bg-white/10 transition-colors duration-150">
                 <UserCircle className="w-4 h-4" /> My Profile
               </Link>
-              <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={() => setShowLogoutConfirm(true)}>Sign Out</button>
+              <button className="text-white/50 hover:text-white transition-colors duration-150" onClick={() => setShowLogoutConfirm(true)}>Sign Out</button>
             </div>
           ) : (
             /* Registration & Login CTA for non-authenticated users */
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <button className="text-white hover:text-cyan-400 transition-colors" onClick={() => {/* Login Modal Trigger */}}>Login</button>
-              <button className="btn-glow shrink-0" onClick={() => setRegisterModalOpen(true)}>Register</button>
+              <button 
+                onClick={() => setRegisterModalOpen(true)}
+                className="px-6 py-2 bg-white text-black rounded-xl hover:bg-slate-100 transition-all duration-300 font-bold"
+              >
+                Register
+              </button>
             </div>
           )}
         </div>
@@ -144,19 +149,19 @@ export default function Header() {
               <div className="w-16 h-16 bg-red-500/10 border border-red-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
                 <LogOut className="w-8 h-8 text-red-500" />
               </div>
-              <h3 className="text-xl font-bold text-white mb-2 font-montserrat uppercase tracking-tight">Confirm Sign Out</h3>
-              <p className="text-white/50 text-sm mb-8 font-inter">Are you sure you want to terminate your current session? You will need to re-authenticate to access your node.</p>
+              <h3 className="text-xl font-bold text-white mb-2 font-inter tracking-tight">Confirm Sign Out</h3>
+              <p className="text-white/50 text-sm mb-8 font-inter font-medium">Are you sure you want to terminate your current session? You will need to re-authenticate to access your node.</p>
               
-              <div className="flex gap-4">
+              <div className="flex gap-4 font-inter">
                 <button 
                   onClick={() => setShowLogoutConfirm(false)}
-                  className="flex-1 py-3 px-6 bg-white/5 border border-white/10 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                  className="flex-1 py-3 px-6 bg-white/5 border border-white/10 text-white rounded-xl font-bold text-[11px] hover:bg-white/10 transition-all"
                 >
                   Cancel
                 </button>
                 <button 
                   onClick={handleLogout}
-                  className="flex-1 py-3 px-6 bg-red-600 text-white rounded-xl font-bold uppercase tracking-widest text-[10px] shadow-lg shadow-red-600/20 hover:bg-red-500 transition-all"
+                  className="flex-1 py-3 px-6 bg-red-600 text-white rounded-xl font-bold text-[11px] shadow-lg shadow-red-600/20 hover:bg-red-500 transition-all"
                 >
                   Sign Out
                 </button>
