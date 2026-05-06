@@ -47,7 +47,7 @@
   width: 100%;
   margin-bottom: 2rem;
   color: var(--foreground);
-  font-family: 'Aharoni', sans-serif;
+  font-family: var(--font-roboto), sans-serif;
   line-height: 0.95;
   gap: 0;
 }
