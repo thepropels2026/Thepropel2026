@@ -21,11 +21,11 @@ export default function Header() {
       {/* Sticky container to keep the header at the top of the viewport */}
       <div className="sticky top-0 z-50 flex flex-col w-full shadow-2xl">
         {/* Main navigation bar with glassmorphism effect and bottom gradient border */}
-        <header className="glass-nav px-4 md:px-8 py-3 flex justify-between items-center transition-colors duration-200 relative z-20">
+        <header className="glass-nav px-4 md:px-8 py-2 flex justify-between items-center transition-all duration-300 relative after:absolute after:bottom-0 after:left-0 after:w-full after:h-[2px] after:bg-gradient-to-r after:from-[#00F2FF] after:via-cyan-600/20 after:to-[#FF5F00] z-20">
         
         {/* Logo and Brand Identity Section */}
         <Link href="/" className="flex items-center gap-2 md:gap-3">
-          <Image src="/logo.png" alt="The Propels Logo" width={48} height={48} className="h-10 w-10 md:h-12 md:w-12 object-contain" />
+          <Image src="/logo.png" alt="The Propels Logo" width={48} height={48} className="h-10 w-10 md:h-12 md:w-12 object-contain brightness-125 filter drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]" />
           <span className="font-montserrat text-lg md:text-xl font-extrabold tracking-wider uppercase text-white">THE PROPELS</span>
         </Link>
 

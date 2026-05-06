@@ -145,9 +145,9 @@ export default function PricingSection() {
             <Sparkles className="w-3 h-3" />
             Transparent Pricing
           </div>
-          <h2 className="text-3xl lg:text-4xl font-inter font-black text-white tracking-tight mb-4">
+          <h2 className="text-3xl lg:text-4xl font-montserrat font-black text-white tracking-tight mb-4">
             One Platform.<br />
-            <span className="text-[#FF5F00]">Every Stage of Your Journey.</span>
+            <span className="text-[#FF5F00] drop-shadow-[0_0_15px_rgba(255,95,0,0.4)]">Every Stage of Your Journey.</span>
           </h2>
           <p className="text-white/50 font-inter max-w-xl mx-auto leading-relaxed">
             Whether you're a solo founder, a founding team, or an institution — we have a plan built precisely for you.
@@ -183,9 +183,9 @@ function PricingCard({ plan, onCTA }: { plan: PricingPlan; onCTA: (p: PricingPla
 
   return (
     <div
-      className={`relative flex flex-col rounded-lg overflow-hidden transition-all duration-200 ${
+      className={`relative flex flex-col rounded-3xl overflow-hidden transition-all duration-300 ${
         highlighted
-          ? 'bg-[#FF5F00] border border-[#FF5F00]/80 shadow-[0_0_60px_-10px_rgba(255,95,0,0.35)]'
+          ? 'bg-[#FF5F00] border border-[#FF5F00]/80 shadow-[0_0_60px_-10px_rgba(255,95,0,0.5)] scale-[1.02] z-10'
           : 'bg-white/[0.03] border border-white/10 hover:bg-white/[0.05] hover:border-white/20'
       }`}
     >
@@ -208,7 +208,7 @@ function PricingCard({ plan, onCTA }: { plan: PricingPlan; onCTA: (p: PricingPla
           {plan.plan_key === 'individual' ? 'Solo' : plan.plan_key === 'teams' ? 'Startup' : 'Institution'}
         </p>
 
-        <h3 className={`font-inter font-black text-xl leading-snug mb-2 pr-16 ${highlighted ? 'text-white' : 'text-white'}`}>
+        <h3 className={`font-montserrat font-black text-xl leading-snug mb-2 pr-16 ${highlighted ? 'text-white' : 'text-white'}`}>
           {plan.title}
         </h3>
 

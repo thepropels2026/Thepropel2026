@@ -117,9 +117,9 @@ export default function Tools() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl md:text-6xl font-inter font-bold mb-4 tracking-tight"
+            className="text-4xl md:text-6xl font-montserrat font-black mb-4 tracking-tight"
           >
-            Startup <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Toolkit.</span>
+            Startup <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500 drop-shadow-[0_0_15px_rgba(34,211,238,0.3)]">Toolkit.</span>
           </motion.h1>
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
@@ -233,7 +233,7 @@ export default function Tools() {
                         </div>
                       </div>
                       
-                      <h2 className="text-xl font-black mb-1.5 text-white font-inter tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">
+                      <h2 className="text-xl font-black mb-1.5 text-white font-montserrat tracking-tight leading-tight group-hover:text-cyan-400 transition-colors">
                         {tool.title}
                       </h2>
 

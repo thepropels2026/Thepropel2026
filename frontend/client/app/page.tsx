@@ -26,12 +26,12 @@ export default function Home() {
              <div className="absolute top-[15%] left-[85%] w-[1px] h-[1px] bg-white rounded-full shadow-[0_0_10px_white]" />
           </div>
 
-          {/* Warm amber orb top-left */}
-          <div className="absolute -top-[10%] left-[5%] w-[600px] h-[600px] bg-[#221200]/40 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '7s' }} />
-          {/* Cool green-dark orb bottom-right */}
-          <div className="absolute bottom-[-10%] right-[5%] w-[700px] h-[500px] bg-[#000d08]/40 rounded-full blur-[140px] animate-pulse" style={{ animationDuration: '9s', animationDelay: '2s' }} />
-          {/* Faint center highlight */}
-          <div className="absolute top-[20%] left-[25%] w-[500px] h-[300px] bg-[#0c0c00]/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '11s', animationDelay: '1s' }} />
+          {/* Cyan orb top-left */}
+          <div className="absolute -top-[10%] left-[5%] w-[600px] h-[600px] bg-cyan-500/20 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '8s' }} />
+          {/* Orange orb bottom-right */}
+          <div className="absolute bottom-[-10%] right-[5%] w-[700px] h-[500px] bg-[#FF5F00]/15 rounded-full blur-[120px] animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+          {/* Subtle center purple glow */}
+          <div className="absolute top-[20%] left-[25%] w-[500px] h-[300px] bg-purple-500/10 rounded-full blur-[100px] animate-pulse" style={{ animationDuration: '12s', animationDelay: '1s' }} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 md:gap-12 items-center z-10 w-full max-w-7xl mx-auto">
@@ -317,18 +317,18 @@ export default function Home() {
       {/* PRICING SECTION */}
       <PricingSection />
 
-      <section className="bg-[#1a0f00] border border-[#FF5F00]/15 py-16 lg:py-24 px-6 lg:px-24 rounded-lg text-center my-16 lg:my-24 mx-auto max-w-[1200px] w-[90%] lg:w-full">
-        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-inter">Ready to <span className="text-[#FF5F00]">Propel</span> Your Startup?</h2>
-        <p className="text-lg lg:text-xl text-white/70 max-w-2xl mx-auto mb-10 lg:mb-12 font-inter leading-relaxed">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
+      <section className="bg-gradient-to-br from-[#FF5F00] to-orange-400 py-16 lg:py-32 px-6 lg:px-24 rounded-[40px] text-center my-16 lg:my-24 mx-auto max-w-[1200px] shadow-[0_20px_50px_rgba(255,95,0,0.3)] w-[90%] lg:w-full">
+        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-montserrat">Ready to <span className="text-black/80">Propel</span> Your Startup?</h2>
+        <p className="text-lg lg:text-xl text-white/90 max-w-2xl mx-auto mb-10 lg:mb-12 font-inter">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
         <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center">
           <button 
             onClick={() => setRegisterModalOpen(true)}
-            className="bg-[#FF5F00] text-white px-8 py-4 rounded-md font-bold uppercase tracking-wide hover:bg-[#e05500] transition-colors duration-150"
+            className="bg-white text-[#FF5F00] px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:-translate-y-1 shadow-[0_0_20px_rgba(255,255,255,0.5)] hover:shadow-[0_0_30px_rgba(255,255,255,0.8)] transition-all"
           >
             Register Now
           </button>
           <Link href="/tools">
-            <button className="bg-transparent text-white border border-white/30 px-8 py-4 rounded-md font-bold uppercase tracking-wide hover:bg-white/5 transition-colors duration-150 w-full sm:w-auto">Explore Tools</button>
+            <button className="bg-transparent text-white border-2 border-white px-8 py-4 rounded-lg font-bold uppercase tracking-wide hover:bg-white/10 transition-colors w-full sm:w-auto">Explore Tools</button>
           </Link>
         </div>
       </section>
@@ -379,35 +379,33 @@ function FeaturedToolsGrid() {
     <Link 
       key={tool.id}
       href="/tools"
-      className="group bg-white/[0.02] border border-white/8 p-8 rounded-lg hover:bg-white/[0.04] transition-all duration-300 relative overflow-hidden flex flex-col hover:shadow-[0_0_40px_rgba(6,182,212,0.1)] hover:-translate-y-1"
+      className="group bg-[#0a0a0f] border border-white/10 p-8 rounded-3xl hover:border-cyan-500/50 transition-all relative overflow-hidden flex flex-col"
     >
-      {/* Bottom border reveal on hover */}
-      <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[#FF5F00]/60 group-hover:w-full transition-all duration-500 ease-out" />
       <div className="flex justify-between items-start mb-6">
-        <div className="w-12 h-12 rounded-md bg-white/5 flex items-center justify-center border border-white/10 text-white/50 overflow-hidden group-hover:border-white/20 transition-colors duration-200">
+        <div className="w-12 h-12 rounded-xl bg-cyan-500/10 flex items-center justify-center border border-cyan-500/20 text-cyan-400 overflow-hidden">
           {tool.image_url ? (
             <Image 
               src={tool.image_url} 
               alt={tool.title} 
               width={48} 
               height={48} 
-              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300" 
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
             />
           ) : (
             <Wrench className="w-6 h-6" />
           )}
         </div>
         <div className="flex flex-col items-end gap-2">
-          <div className="text-[10px] font-black text-white/25 group-hover:text-white/40 uppercase tracking-widest transition-colors duration-200">{tool.category}</div>
+          <div className="text-[10px] font-black text-cyan-500/60 uppercase tracking-widest">{tool.category}</div>
           {new Date(tool.created_at).getTime() > Date.now() - 48 * 60 * 60 * 1000 && (
-            <span className="bg-white/10 border border-white/20 text-white/70 text-[8px] font-black px-2 py-0.5 rounded">NEW</span>
+            <span className="bg-cyan-500 text-black text-[8px] font-black px-2 py-0.5 rounded-full animate-pulse">NEW</span>
           )}
         </div>
       </div>
-      <h3 className="text-xl font-bold text-white mb-2 font-inter line-clamp-1 group-hover:text-white/90 transition-colors duration-200">{tool.title}</h3>
-      <p className="text-white/35 text-sm line-clamp-2 mb-6 font-inter leading-relaxed flex-1 group-hover:text-white/50 transition-colors duration-200">{tool.description}</p>
-      <div className="flex items-center gap-2 text-xs font-bold text-white/30 group-hover:text-white/60 transition-all duration-200">
-        Get Started <ArrowRight className="w-3 h-3 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" />
+      <h3 className="text-xl font-bold text-white mb-2 font-montserrat line-clamp-1">{tool.title}</h3>
+      <p className="text-white/40 text-sm line-clamp-2 mb-6 font-inter leading-relaxed flex-1">{tool.description}</p>
+      <div className="flex items-center gap-2 text-xs font-bold text-cyan-500 opacity-0 group-hover:opacity-100 transition-opacity">
+        Get Started <ArrowRight className="w-3 h-3" />
       </div>
     </Link>
   ));
