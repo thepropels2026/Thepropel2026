@@ -17,8 +17,8 @@ import SmoothScroll from '../components/SmoothScroll'
 import RegisterModal from '../components/RegisterModal'
 
 // Configure font subsets and weights, and define CSS variables for use in Tailwind/CSS
-const montserrat = Montserrat({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-montserrat' })
-const inter = Inter({ subsets: ['latin'], weight: ['400', '500', '700'], variable: '--font-inter' })
+const montserrat = Montserrat({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-inter' })
+const inter = Inter({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800', '900'], variable: '--font-inter' })
 const archivo = Archivo({ subsets: ['latin'], weight: ['900'], variable: '--font-archivo' })
 
 // Define global metadata for the application (Title, Description, SEO)
@@ -42,7 +42,7 @@ export default function RootLayout({
         <script src="https://sdk.cashfree.com/js/v3/cashfree.js" async></script>
       </head>
       {/* Apply configured fonts and antialiasing to the body */}
-      <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} font-montserrat antialiased bg-background text-foreground`}>
+      <body className={`${montserrat.variable} ${inter.variable} ${archivo.variable} font-inter antialiased bg-background text-foreground`}>
         
         {/* Very subtle neutral background depth — no colour bleed */}
         <div className="fixed inset-0 pointer-events-none z-[-1] opacity-60">

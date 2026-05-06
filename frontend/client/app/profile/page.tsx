@@ -79,7 +79,7 @@ export default function ProfileDashboard() {
   if (!isRegistered) return null;
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white font-montserrat">
+    <div className="min-h-screen bg-[#080808] text-white font-inter">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-950/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
@@ -95,7 +95,7 @@ export default function ProfileDashboard() {
               <Image src={user?.picture || "https://api.dicebear.com/7.x/notionists/svg?seed=user"} alt="Profile" fill className="object-cover" />
             </div>
             <div>
-              <h2 className="font-montserrat font-black text-sm uppercase tracking-tighter">{user?.firstName || 'User'}</h2>
+              <h2 className="font-inter font-black text-sm uppercase tracking-tighter">{user?.firstName || 'User'}</h2>
               <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tier 1 Operator</p>
             </div>
           </div>
@@ -158,7 +158,7 @@ export default function ProfileDashboard() {
                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">
                       <Sparkles className="w-3 h-3 text-orange-400" /> System Ready
                    </div>
-                   <h1 className="text-4xl md:text-5xl font-montserrat font-black text-white tracking-tighter leading-none mb-4 italic">
+                   <h1 className="text-4xl md:text-5xl font-inter font-black text-white tracking-tighter leading-none mb-4 italic">
                       Welcome Back, <br/>
                       <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">{user?.firstName}</span>
                    </h1>
@@ -181,12 +181,12 @@ export default function ProfileDashboard() {
                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
                       <div>
                         <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Current Trajectory</p>
-                        <h3 className="text-2xl font-montserrat font-black uppercase italic text-white leading-tight">
+                        <h3 className="text-2xl font-inter font-black uppercase italic text-white leading-tight">
                            {userPlan?.pricing_plans?.title || 'The Propels Individual'}
                         </h3>
                       </div>
                       <div className="text-right">
-                         <span className="text-4xl font-montserrat font-black text-orange-500 italic">
+                         <span className="text-4xl font-inter font-black text-orange-500 italic">
                             {userPlan?.progress_percent || 0}%
                          </span>
                          <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">Onboarding Completed</p>
@@ -292,7 +292,7 @@ function StatCard({ label, value, icon: Icon, color }: any) {
           </div>
        </div>
        <p className="text-[10px] font-black text-white/25 uppercase tracking-widest mb-1">{label}</p>
-       <h4 className="text-xl font-montserrat font-black text-white italic uppercase tracking-tighter">{value}</h4>
+       <h4 className="text-xl font-inter font-black text-white italic uppercase tracking-tighter">{value}</h4>
     </div>
   );
 }

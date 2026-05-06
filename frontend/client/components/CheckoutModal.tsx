@@ -115,7 +115,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                   <img src={tool.image_url} alt={tool.title} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black font-montserrat text-white mb-2">{tool.title}</h3>
+                  <h3 className="text-xl font-black font-inter text-white mb-2">{tool.title}</h3>
                   <div className="flex items-center gap-3">
                     <span className="text-2xl font-black text-cyan-400">₹{tool.discount_price || tool.price}</span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/20 line-through">₹{tool.price}</span>

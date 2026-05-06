@@ -76,7 +76,7 @@ function DashboardTab() {
   return (
     <div className="space-y-8">
       <div>
-         <h1 className="text-3xl font-montserrat font-bold text-slate-900 mb-2">Welcome Back, Innovator</h1>
+         <h1 className="text-3xl font-inter font-bold text-slate-900 mb-2">Welcome Back, Innovator</h1>
          <p className="text-slate-600">Track your module completion and upcoming tasks.</p>
       </div>
       
@@ -89,7 +89,7 @@ function DashboardTab() {
                   <path className="text-cyan-500" strokeDasharray="65, 100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                </svg>
                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <span className="text-2xl font-bold font-montserrat text-slate-800">45%</span>
+                  <span className="text-2xl font-bold font-inter text-slate-800">45%</span>
                   <span className="text-[10px] uppercase text-slate-500 font-bold">Progress</span>
                </div>
             </div>
@@ -106,18 +106,18 @@ function DashboardTab() {
          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-4">
             <div className="pb-4 border-b border-slate-100">
                <div className="text-slate-400 text-xs font-bold uppercase mb-1">Modules Cleared</div>
-               <div className="text-3xl font-montserrat font-bold text-slate-800">01<span className="text-base text-slate-400 font-normal">/05</span></div>
+               <div className="text-3xl font-inter font-bold text-slate-800">01<span className="text-base text-slate-400 font-normal">/05</span></div>
             </div>
             <div>
                <div className="text-slate-400 text-xs font-bold uppercase mb-1">Hours Logged</div>
-               <div className="text-3xl font-montserrat font-bold text-slate-800">12.5 <span className="text-base text-slate-400 font-normal">hrs</span></div>
+               <div className="text-3xl font-inter font-bold text-slate-800">12.5 <span className="text-base text-slate-400 font-normal">hrs</span></div>
             </div>
          </div>
       </div>
 
       {/* Upcoming Flow */}
       <div>
-        <h2 className="text-xl font-bold font-montserrat text-slate-800 mb-4">Upcoming Schedule</h2>
+        <h2 className="text-xl font-bold font-inter text-slate-800 mb-4">Upcoming Schedule</h2>
         <div className="space-y-3">
           {[
             { tag: 'Module 02', title: 'Customer Discovery', time: 'Pending' },
@@ -222,7 +222,7 @@ function LearningTab() {
           <span className="flex items-center gap-2"><Lock className="w-4 h-4" /> MONITORING ENABLED</span>
         </div>
         <div className="bg-white border border-slate-200 shadow-md p-8 rounded-b-xl border-t-0">
-          <h2 className="text-2xl font-montserrat font-bold text-slate-800 mb-2">Module 1 Final Evaluation</h2>
+          <h2 className="text-2xl font-inter font-bold text-slate-800 mb-2">Module 1 Final Evaluation</h2>
           <p className="text-slate-500 mb-8 border-b border-slate-100 pb-4">Do not switch tabs, minimize the browser, or interact with other applications.</p>
           
           <div className="space-y-8">
@@ -248,7 +248,7 @@ function LearningTab() {
     <div className="flex flex-col lg:flex-row gap-8">
       {/* Module Sidebar */}
       <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-        <h2 className="text-xl font-montserrat font-bold text-slate-800">Curriculum</h2>
+        <h2 className="text-xl font-inter font-bold text-slate-800">Curriculum</h2>
         <div className="flex flex-col gap-3">
           {[1, 2, 3, 4].map(mod => (
             <button 
@@ -279,7 +279,7 @@ function LearningTab() {
             </div>
         </div>
         
-        <h1 className="text-3xl font-montserrat font-bold text-slate-900 mb-4">Mastering The VC Mindset</h1>
+        <h1 className="text-3xl font-inter font-bold text-slate-900 mb-4">Mastering The VC Mindset</h1>
         <p className="text-slate-600 mb-8 leading-relaxed text-lg">
           In this module, you will learn the exact psychological frameworks that investors look for when writing $1M+ checks. Watch the 45-minute lecture and complete the mandatory evaluation to proceed.
         </p>
@@ -290,7 +290,7 @@ function LearningTab() {
                <MonitorUp className="w-8 h-8 text-orange-600" />
             </div>
             <div>
-              <h3 className="text-xl font-bold font-montserrat text-orange-900 mb-2">Module Evaluation Checkpoint</h3>
+              <h3 className="text-xl font-bold font-inter text-orange-900 mb-2">Module Evaluation Checkpoint</h3>
               <p className="text-sm text-orange-800 text-opacity-80 mb-6 leading-relaxed">
                 To proceed to Module 2, you must clear this test. The system requires camera, microphone, and strict tab focus. Any attempt to switch tabs or minimize the browser will result in automatic exam rejection.
               </p>
@@ -350,7 +350,7 @@ function CoursesTab() {
     <div>
        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
           <div>
-            <h2 className="text-2xl font-bold font-montserrat text-slate-800">Available Masterclasses</h2>
+            <h2 className="text-2xl font-bold font-inter text-slate-800">Available Masterclasses</h2>
             <p className="text-slate-500 mt-1">Unlock premium curriculum with your subscription.</p>
           </div>
           <button className="bg-slate-100 text-slate-700 font-bold px-4 py-2 border border-slate-200 rounded-lg shadow-sm">
@@ -382,7 +382,7 @@ function CoursesTab() {
                   <div className="mt-auto flex items-center justify-between border-t border-slate-100 pt-4">
                      <div className="flex flex-col">
                         <span className="text-[12px] text-red-500 font-black uppercase tracking-widest line-through decoration-red-600 decoration-2 mb-1">₹{course.actual_price}</span>
-                        <span className="text-2xl font-montserrat font-black text-slate-900 tracking-tighter">₹{course.discounted_price}</span>
+                        <span className="text-2xl font-inter font-black text-slate-900 tracking-tighter">₹{course.discounted_price}</span>
                      </div>
                      <a href={course.enroll_link} target="_blank" rel="noreferrer" className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
                         Enroll Now
@@ -438,7 +438,7 @@ function KnowledgeBaseTab() {
   return (
     <div className="max-w-4xl mx-auto">
       <div className="text-center mb-10">
-        <h2 className="text-3xl font-montserrat font-bold text-slate-800 mb-4">Startup Resource Library</h2>
+        <h2 className="text-3xl font-inter font-bold text-slate-800 mb-4">Startup Resource Library</h2>
         <p className="text-slate-500 max-w-xl mx-auto">Find critical templates, legal documents, and research cheatsheets tailored for the propels ecosystem.</p>
       </div>
 
@@ -508,7 +508,7 @@ function BlueprintTab() {
   return (
     <div className="max-w-3xl mx-auto pb-12">
       <div className="mb-10 w-full text-center sm:text-left">
-         <h2 className="text-3xl font-montserrat font-bold text-slate-800 mb-2">The Propels Growth Blueprint</h2>
+         <h2 className="text-3xl font-inter font-bold text-slate-800 mb-2">The Propels Growth Blueprint</h2>
          <p className="text-slate-500">Your tailored curriculum roadmap from scratch to scalable revenue.</p>
       </div>
 
@@ -531,7 +531,7 @@ function BlueprintTab() {
                   'bg-white/50 border-slate-200 opacity-70 grayscale'
                }`}>
                   <div className="flex items-center justify-between mb-2">
-                     <h3 className={`text-xl font-bold font-montserrat ${
+                     <h3 className={`text-xl font-bold font-inter ${
                        step.status === 'active' ? 'text-orange-600' :
                        step.status === 'completed' ? 'text-cyan-800' :
                        'text-slate-600'

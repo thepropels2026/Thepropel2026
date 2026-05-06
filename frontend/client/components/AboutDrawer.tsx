@@ -15,7 +15,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
         
         {/* Header */}
         <div className="flex justify-between items-center p-8 border-b border-white/5 sticky top-0 bg-[#0a0a0f]/90 backdrop-blur z-10">
-          <h2 className="text-3xl font-montserrat font-bold tracking-wider">About Us</h2>
+          <h2 className="text-3xl font-inter font-bold tracking-wider">About Us</h2>
           <button onClick={onClose} className="p-2 bg-white/5 hover:bg-white/10 rounded-full transition-colors text-white">
             <X className="w-6 h-6" />
           </button>
@@ -49,7 +49,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
           <div className="flex-1 p-8 overflow-y-auto">
             {activeTab === 'mission' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Our Mission</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Our Mission</h3>
                 <p className="text-lg text-gray-300 leading-relaxed font-inter">
                   Our mission is to democratize elite startup building by integrating predictive AI, psychological clarity, and a world-class investor network to propel founders from concept to market dominance at unprecedented speed.
                 </p>
@@ -58,7 +58,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
 
             {activeTab === 'vision' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Our Vision</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Our Vision</h3>
                 <p className="text-lg text-gray-300 leading-relaxed font-inter">
                   To become the global standard for entrepreneurial success, where every visionary idea is met with the intelligence and capital required to change the world.
                 </p>
@@ -67,7 +67,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
 
             {activeTab === 'founders-note' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Founder's Note</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Founder's Note</h3>
                 <div className="bg-white/5 p-6 rounded-xl border border-white/10 relative">
                   <div className="absolute text-8xl text-white/5 font-serif -top-4 left-2">"</div>
                   <p className="text-lg text-gray-300 italic relative z-10 mb-6">
@@ -86,7 +86,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
 
             {activeTab === 'blogs' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Latest Insights</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Latest Insights</h3>
                 <div className="space-y-6">
                   {[1, 2].map(i => (
                     <div key={i} className="group cursor-pointer bg-white/5 rounded-xl overflow-hidden border border-white/10 hover:border-cyan-500/30 transition-all flex">
@@ -104,7 +104,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
 
             {activeTab === 'podcasts' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Propulsion Podcasts</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Propulsion Podcasts</h3>
                 <div className="space-y-4">
                   {[1, 2].map(i => (
                     <div key={i} className="bg-white/5 p-4 rounded-xl border border-white/10 flex items-center justify-between">
@@ -126,7 +126,7 @@ export default function AboutDrawer({ isOpen, onClose }: { isOpen: boolean, onCl
 
             {activeTab === 'careers' && (
               <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-                <h3 className="text-2xl font-montserrat font-bold text-cyan-400 mb-6">Join The Propulsion</h3>
+                <h3 className="text-2xl font-inter font-bold text-cyan-400 mb-6">Join The Propulsion</h3>
                 <div className="bg-white/5 p-6 rounded-xl border border-white/10 text-center">
                   <Briefcase className="w-12 h-12 text-cyan-500 mx-auto mb-4" />
                   <h4 className="text-xl font-bold mb-2">We're expanding the crew</h4>

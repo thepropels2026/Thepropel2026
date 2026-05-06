@@ -83,7 +83,7 @@ export default function StoryDetail({ params }: { params: { id: string } }) {
             <div className="flex items-center gap-3 mb-2">
               <span className="px-3 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold uppercase tracking-widest rounded-full">{story.niche}</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-black font-montserrat tracking-tight text-slate-900 mb-2">{story.founder_name}</h1>
+            <h1 className="text-4xl md:text-5xl font-black font-inter tracking-tight text-slate-900 mb-2">{story.founder_name}</h1>
             <p className="text-xl text-cyan-600 font-bold mb-6">{story.startup_name}</p>
             
             <div className="inline-flex items-center gap-3 bg-orange-50 border border-orange-100 px-6 py-4 rounded-2xl shadow-sm">
@@ -91,7 +91,7 @@ export default function StoryDetail({ params }: { params: { id: string } }) {
                 <Zap className="w-6 h-6 text-orange-500" />
               </div>
               <div>
-                <div className="text-2xl font-black text-orange-600 font-montserrat">{story.metric}</div>
+                <div className="text-2xl font-black text-orange-600 font-inter">{story.metric}</div>
                 <div className="text-[10px] font-bold text-orange-400 uppercase tracking-widest">{story.metric_label}</div>
               </div>
             </div>
@@ -112,7 +112,7 @@ export default function StoryDetail({ params }: { params: { id: string } }) {
 
         {/* The Roadmap */}
         <div className="bg-white rounded-[2rem] p-8 md:p-12 shadow-xl border border-slate-100">
-          <h2 className="text-2xl font-black font-montserrat text-slate-900 mb-8 border-b border-slate-100 pb-6">The Journey to {story.metric}</h2>
+          <h2 className="text-2xl font-black font-inter text-slate-900 mb-8 border-b border-slate-100 pb-6">The Journey to {story.metric}</h2>
           
           <div className="relative border-l-2 border-slate-100 ml-6 space-y-12">
             {story.roadmap && story.roadmap.map((milestone, idx) => (

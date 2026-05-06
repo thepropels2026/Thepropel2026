@@ -34,7 +34,7 @@ export default function NetworkPage() {
   });
 
   return (
-    <div className="min-h-screen pt-16 px-4 md:px-8 lg:px-24 font-montserrat bg-slate-50 text-slate-900 transition-colors duration-500">
+    <div className="min-h-screen pt-16 px-4 md:px-8 lg:px-24 font-inter bg-slate-50 text-slate-900 transition-colors duration-500">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row gap-8 pb-20">
         
         {/* Left Sidebar - Profile & Nav */}
@@ -43,7 +43,7 @@ export default function NetworkPage() {
             <div className="w-24 h-24 bg-slate-100 rounded-full mx-auto mb-4 border-[3px] border-cyan-500 shadow-inner relative">
                <div className="absolute bottom-0 right-0 w-6 h-6 bg-green-500 border-2 border-white rounded-full"></div>
             </div>
-            <h2 className="font-bold text-xl font-montserrat text-slate-800">My Profile</h2>
+            <h2 className="font-bold text-xl font-inter text-slate-800">My Profile</h2>
             <p className="text-sm text-cyan-600 font-semibold mb-6 flex items-center justify-center gap-1"><Building2 className="w-3 h-3" /> Founder @ Stealth</p>
             <div className="text-xs text-slate-600 text-left space-y-3 border-t border-slate-100 pt-5">
               <div className="flex justify-between items-center"><span className="font-medium">Direct Connections</span> <span className="text-slate-900 font-bold bg-slate-100 px-2 py-1 rounded">142</span></div>
@@ -71,7 +71,7 @@ export default function NetworkPage() {
           {/* Search Bar */}
           <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-2 flex items-center gap-2 focus-within:ring-2 focus-within:ring-cyan-500/20 focus-within:border-cyan-400 transition-all">
             <Search className="text-slate-400 w-5 h-5 ml-4 shrink-0" />
-            <input type="text" placeholder="Search founders, investors, or skills..." className="flex-1 p-3 bg-transparent outline-none text-slate-800 font-montserrat placeholder:text-slate-400" />
+            <input type="text" placeholder="Search founders, investors, or skills..." className="flex-1 p-3 bg-transparent outline-none text-slate-800 font-inter placeholder:text-slate-400" />
             <button className="p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors mr-1"><Filter className="w-4 h-4" /></button>
           </div>
 
@@ -110,7 +110,7 @@ export default function NetworkPage() {
                     <img src={profile.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${profile.first_name}`} alt={profile.first_name} className="w-full h-full object-cover rounded-full" />
                   </div>
                   <div className="flex-1 mt-1">
-                    <h3 className="font-bold text-lg font-montserrat text-slate-900 group-hover:text-cyan-700 transition-colors">{profile.first_name} {profile.last_name}</h3>
+                    <h3 className="font-bold text-lg font-inter text-slate-900 group-hover:text-cyan-700 transition-colors">{profile.first_name} {profile.last_name}</h3>
                     <p className="text-sm text-slate-500 font-medium">{profile.designation} @ {profile.company}</p>
                     <p className="text-[11px] text-slate-400 font-semibold mt-2 flex items-center gap-1 uppercase tracking-wider">
                        <MapPin className="w-3 h-3" /> {profile.education || 'Location Unknown'}
@@ -124,7 +124,7 @@ export default function NetworkPage() {
                      ))}
                 </div>
 
-                <p className="text-sm text-slate-600 mb-6 leading-relaxed line-clamp-3 font-montserrat flex-grow">
+                <p className="text-sm text-slate-600 mb-6 leading-relaxed line-clamp-3 font-inter flex-grow">
                   {profile.interests ? `Interests: ${profile.interests}` : (activeTab === 'investors' 
                     ? "Evaluating highly disruptive startups in the artificial intelligence and financial compliance sectors. We write checks between $500k to $2M."
                     : "Building the next generation of predictive LLMs for enterprise architecture. Seeking seed investment and Go-To-Market strategy mentors to scale rapidly.")}
@@ -148,10 +148,10 @@ export default function NetworkPage() {
 
             <div className="flex items-center gap-2 mb-2">
                <Zap className="text-orange-500 w-5 h-5" fill="currentColor" />
-               <h3 className="font-montserrat font-extrabold text-cyan-900 tracking-wider uppercase text-sm">Propulsion Match</h3>
+               <h3 className="font-inter font-extrabold text-cyan-900 tracking-wider uppercase text-sm">Propulsion Match</h3>
             </div>
             
-            <p className="text-xs text-slate-500 mb-6 font-montserrat leading-relaxed relative z-10">Based on your Stealth profile and recent activities, these individuals perfectly align with your current stage.</p>
+            <p className="text-xs text-slate-500 mb-6 font-inter leading-relaxed relative z-10">Based on your Stealth profile and recent activities, these individuals perfectly align with your current stage.</p>
             
             <div className="space-y-3 relative z-10">
               {[1, 2, 3].map((_, i) => (

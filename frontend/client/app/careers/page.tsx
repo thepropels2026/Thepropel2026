@@ -373,7 +373,7 @@ export default function CareersPage() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-700 text-xs font-bold uppercase tracking-widest mb-6 shadow-sm">
             <Building className="w-4 h-4" /> Join The Team
           </div>
-          <h1 className="text-4xl md:text-6xl font-montserrat font-extrabold tracking-tight mb-6 text-slate-900">
+          <h1 className="text-4xl md:text-6xl font-inter font-extrabold tracking-tight mb-6 text-slate-900">
             Build the <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-600 to-blue-600">Future of Startups</span>
           </h1>
           <p className="text-lg text-slate-600 leading-relaxed font-medium">
@@ -416,7 +416,7 @@ export default function CareersPage() {
                         <Clock className="w-3.5 h-3.5" /> {job.mode}
                       </span>
                     </div>
-                    <h2 className="text-2xl font-bold font-montserrat text-slate-900 group-hover:text-cyan-700 transition-colors mb-2">
+                    <h2 className="text-2xl font-bold font-inter text-slate-900 group-hover:text-cyan-700 transition-colors mb-2">
                       {job.title}
                     </h2>
                     <p className="text-slate-500 text-sm line-clamp-2">
@@ -479,7 +479,7 @@ export default function CareersPage() {
                       Duration: {selectedJob.work_duration}
                     </span>
                   </div>
-                  <h2 className="text-3xl font-extrabold font-montserrat text-slate-900">{selectedJob.title}</h2>
+                  <h2 className="text-3xl font-extrabold font-inter text-slate-900">{selectedJob.title}</h2>
                 </div>
                 <button onClick={() => setSelectedJob(null)} className="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-full transition-colors">
                   <X className="w-5 h-5" />
@@ -488,15 +488,15 @@ export default function CareersPage() {
               
               <div className="p-8 overflow-y-auto flex-1 text-slate-600 leading-relaxed space-y-8">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Job Description</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-inter">Job Description</h3>
                   <p className="whitespace-pre-wrap">{selectedJob.description}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Qualification</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-inter">Qualification</h3>
                   <p className="whitespace-pre-wrap">{selectedJob.qualification}</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-montserrat">Eligibility</h3>
+                  <h3 className="text-lg font-bold text-slate-900 mb-3 font-inter">Eligibility</h3>
                   <p className="whitespace-pre-wrap">{selectedJob.eligibility}</p>
                 </div>
               </div>
@@ -533,7 +533,7 @@ export default function CareersPage() {
             >
               <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-white z-20 shrink-0">
                 <div>
-                  <h2 className="text-2xl font-extrabold font-montserrat text-slate-900">Submit Application</h2>
+                  <h2 className="text-2xl font-extrabold font-inter text-slate-900">Submit Application</h2>
                   <p className="text-sm font-medium text-cyan-600 mt-1">Applying for: {selectedJob.title}</p>
                 </div>
                 {!isSubmitting && !applySuccess && (
@@ -549,7 +549,7 @@ export default function CareersPage() {
                     <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mb-6">
                       <CheckCircle2 className="w-10 h-10" />
                     </div>
-                    <h3 className="text-2xl font-bold text-slate-900 mb-2 font-montserrat">Application Received!</h3>
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2 font-inter">Application Received!</h3>
                     <p className="text-slate-600 mb-4">Thank you for applying. Our team will review your application and get back to you soon.</p>
                     <div className="flex items-center gap-2 px-4 py-2 bg-cyan-50 text-cyan-700 rounded-xl text-sm font-bold border border-cyan-200">
                       <Download className="w-4 h-4" /> Your application receipt has been downloaded as a PDF.
@@ -578,7 +578,7 @@ export default function CareersPage() {
                     <AnimatePresence mode="wait">
                       {currentStep === 1 && (
                         <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-montserrat">1. Personal Information</h3>
+                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-inter">1. Personal Information</h3>
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
                               <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Full Name <span className="text-red-500">*</span></label>
@@ -604,7 +604,7 @@ export default function CareersPage() {
 
                       {currentStep === 2 && (
                         <motion.div key="step2" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-montserrat">2. Experience & Fit</h3>
+                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-inter">2. Experience & Fit</h3>
                           <div>
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Years of Experience <span className="text-red-500">*</span></label>
                             <select required name="experience" value={formData.experience} onChange={handleInputChange} className="w-full bg-white border border-slate-200 rounded-xl p-3 text-sm focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 outline-none transition-all">
@@ -624,7 +624,7 @@ export default function CareersPage() {
 
                       {currentStep === 3 && (
                         <motion.div key="step3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-montserrat">3. Attachments</h3>
+                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-inter">3. Attachments</h3>
                           <div className="bg-white border border-slate-200 border-dashed rounded-xl p-6 text-center">
                             <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Resume (PDF) <span className="text-red-500">*</span></label>
                             <input required type="file" accept=".pdf" onChange={(e) => handleFileChange(e, 'resume')} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-bold file:bg-cyan-50 file:text-cyan-700 hover:file:bg-cyan-100 transition-colors" />
@@ -640,7 +640,7 @@ export default function CareersPage() {
 
                       {currentStep === 4 && (
                         <motion.div key="step4" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
-                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-montserrat">4. Review Application</h3>
+                          <h3 className="text-lg font-bold text-slate-800 mb-4 font-inter">4. Review Application</h3>
                           <div className="bg-white rounded-xl p-5 border border-slate-200 text-sm text-slate-600 space-y-3">
                             <p><strong className="text-slate-900">Name:</strong> {formData.fullName}</p>
                             <p><strong className="text-slate-900">Email:</strong> {formData.email}</p>

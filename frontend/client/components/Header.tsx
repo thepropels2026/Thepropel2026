@@ -3,12 +3,13 @@ import React, { useState } from 'react';
 import Link from 'next/link'; // Next.js link for optimized client-side navigation
 import { useAuth } from './AuthContext'; // Access global authentication state
 // Import icons from lucide-react for visual navigation cues
-import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin } from 'lucide-react';
+import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X } from 'lucide-react';
 import Image from 'next/image';
 
 /**
  * Header component: The main navigation bar for the application.
  * Includes logo, desktop navigation, mobile navigation, and user authentication actions.
+ * Redesigned to match the high-end two-tier typography from the reference image.
  */
 export default function Header() {
   // Extract auth state and logout function from context
@@ -18,100 +19,83 @@ export default function Header() {
 
   return (
     <>
-      {/* Sticky container to keep the header at the top of the viewport */}
-      <div className="sticky top-0 z-50 flex flex-col w-full shadow-2xl">
-        {/* Main navigation bar with glassmorphism effect and bottom gradient border */}
-        <header className="glass-nav px-4 md:px-8 py-3 flex justify-between items-center transition-colors duration-200 relative z-20">
-        
-        {/* Logo and Brand Identity Section */}
-        <Link href="/" className="flex items-center gap-2 md:gap-3">
-          <Image src="/logo.png" alt="The Propels Logo" width={48} height={48} className="h-10 w-10 md:h-12 md:w-12 object-contain" />
-          <span className="font-montserrat text-lg md:text-xl font-extrabold tracking-wider uppercase text-white">THE PROPELS</span>
-        </Link>
-
-        {/* Desktop Navigation Links - Centered using absolute positioning */}
-        <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/70">
-          <Link href="/" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Home className="w-3 h-3" /> Home</Link>
-          <Link href="/about" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Rocket className="w-3 h-3" /> About</Link>
-          <Link href="/tools" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Wrench className="w-3 h-3" /> Tools</Link>
-          <Link href="/market-research" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><PieChart className="w-3 h-3" /> Market Research</Link>
-          <Link href="/network" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Globe className="w-3 h-3" /> Network</Link>
-          <Link href="/guide" className="hover:text-white transition-colors duration-150 flex items-center gap-2"><Map className="w-3 h-3" /> Guide</Link>
-        </nav>
-
-        {/* User Account Actions - Right-aligned */}
-        <div className="hidden md:flex items-center gap-4 text-xs uppercase tracking-widest font-bold">
-          {/* Conditional rendering based on user registration status */}
-          {isRegistered ? (
-            <div className="flex items-center gap-4">
-              {/* Profile Link with Icon */}
-              <Link href="/profile" className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 text-white/80 rounded-md hover:bg-white/10 transition-colors duration-150 text-xs">
-                <UserCircle className="w-4 h-4" /> My Profile
-              </Link>
-              <button className="text-white/50 hover:text-white/80 transition-colors duration-150 text-xs" onClick={logout}>Sign Out</button>
-            </div>
-          ) : (
-            /* Registration CTA for non-authenticated users */
-            <button className="btn-glow shrink-0" onClick={() => setRegisterModalOpen(true)}>Register</button>
-          )}
+      <div className="sticky top-0 z-[100] flex flex-col w-full shadow-2xl">
+        {/* Top Secondary Bar - Inspired by reference image hierarchy */}
+        <div className="bg-[#050505] py-2 px-8 hidden md:flex justify-end gap-6 items-center font-inter font-medium text-[11px] text-white/50 border-b border-white/5 uppercase tracking-wide">
+          <Link href="#" className="hover:text-white transition-colors">Enterprise L&D</Link>
+          <Link href="#" className="hover:text-white transition-colors">For Companies</Link>
+          <Link href="/careers" className="hover:text-white transition-colors">Jobs</Link>
+          <Link href="/success-stories" className="hover:text-white transition-colors">Events</Link>
+          <Link href="#" className="hover:text-white transition-colors">Become a Master</Link>
+          <Link href="#" className="hover:text-white transition-colors">Blog</Link>
         </div>
 
-        {/* Mobile Navigation Toggle Button (visible on small screens) */}
-        <button 
-          className="lg:hidden text-white hover:text-cyan-500 transition-colors p-2"
-          onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-        >
-          {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
+        {/* Main Navigation Bar - Bold Typography and Dark Aesthetic */}
+        <header className="bg-[#0a0a0f]/95 backdrop-blur-xl px-4 md:px-12 py-4 flex justify-between items-center relative z-20 border-b border-white/5">
+          {/* Logo and Brand Identity */}
+          <Link href="/" className="flex items-center gap-2 md:gap-3 shrink-0">
+            <Image src="/logo.png" alt="The Propels Logo" width={44} height={44} className="h-9 w-9 md:h-11 md:w-11 object-contain" />
+            <span className="font-montserrat text-lg md:text-xl font-black tracking-tight uppercase text-white">THE PROPELS</span>
+          </Link>
+
+          {/* Desktop Navigation Links - Centered bold Inter font */}
+          <nav className="hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 gap-8 items-center font-inter font-black uppercase tracking-tighter text-[14px] text-white">
+            <Link href="/" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2">Home</Link>
+            <Link href="/about" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2">About</Link>
+            <Link href="/tools" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2">Tools</Link>
+            <Link href="/market-research" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2 text-center whitespace-nowrap">Market Research</Link>
+            <Link href="/network" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2">Network</Link>
+            <Link href="/guide" className="hover:text-cyan-500 transition-colors duration-150 flex items-center gap-2">Guide</Link>
+          </nav>
+
+          {/* User Actions */}
+          <div className="hidden md:flex items-center gap-4">
+            {isRegistered ? (
+              <div className="flex items-center gap-4">
+                <Link href="/profile" className="flex items-center gap-2 px-5 py-2 bg-white/5 border border-white/10 text-white font-black text-[11px] uppercase tracking-wider rounded-md hover:bg-white/10 transition-colors">
+                  <UserCircle className="w-4 h-4" /> My Profile
+                </Link>
+                <button className="text-white/40 hover:text-white transition-colors font-black text-[11px] uppercase" onClick={logout}>Sign Out</button>
+              </div>
+            ) : (
+              <button className="btn-glow" onClick={() => setRegisterModalOpen(true)}>Register</button>
+            )}
+          </div>
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            className="lg:hidden text-white hover:text-cyan-500 transition-colors p-2"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+          >
+            {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+          </button>
         </header>
 
-        {/* Full-width Mobile Menu Overlay */}
+        {/* Mobile Menu Overlay */}
         {isMobileMenuOpen && (
-          <nav className="lg:hidden bg-[#050505]/95 backdrop-blur-xl flex flex-col font-montserrat font-bold uppercase tracking-widest text-[10px] text-white w-full border-t border-white/10 p-4 gap-4 z-10 transition-all">
-            {/* Mobile primary links */}
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Home className="w-4 h-4" /> Home</Link>
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/about" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Rocket className="w-4 h-4" /> About</Link>
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/tools" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Wrench className="w-4 h-4" /> Tools</Link>
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/market-research" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><PieChart className="w-4 h-4" /> Market Research</Link>
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/network" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Globe className="w-4 h-4" /> Network</Link>
-            <Link onClick={() => setIsMobileMenuOpen(false)} href="/guide" className="hover:text-white transition-colors duration-150 flex items-center gap-2 py-2"><Map className="w-4 h-4" /> Guide</Link>
+          <nav className="lg:hidden bg-[#0a0a0f] flex flex-col font-inter font-black uppercase tracking-tight text-[15px] text-white w-full border-t border-white/10 p-6 gap-6 z-10 animate-in fade-in slide-in-from-top-4 duration-300">
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/" className="hover:text-cyan-500 py-1">Home</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/about" className="hover:text-cyan-500 py-1">About</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/tools" className="hover:text-cyan-500 py-1">Tools</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/market-research" className="hover:text-cyan-500 py-1">Market Research</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/network" className="hover:text-cyan-500 py-1">Network</Link>
+            <Link onClick={() => setIsMobileMenuOpen(false)} href="/guide" className="hover:text-cyan-500 py-1">Guide</Link>
             
-            {/* Mobile authentication area */}
-            <div className="border-t border-white/10 mt-2 pt-4 flex flex-col gap-4">
+            <div className="border-t border-white/10 pt-6 flex flex-col gap-4">
               {isRegistered ? (
                 <>
-                  <Link onClick={() => setIsMobileMenuOpen(false)} href="/profile" className="flex items-center gap-2 text-white/70">
+                  <Link onClick={() => setIsMobileMenuOpen(false)} href="/profile" className="flex items-center gap-2 text-white">
                     <UserCircle className="w-5 h-5" /> My Profile
                   </Link>
-                  <button className="text-left text-white/40 hover:text-white/70 transition-colors duration-150 text-xs" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
+                  <button className="text-left text-white/50 uppercase text-xs" onClick={() => { logout(); setIsMobileMenuOpen(false); }}>Sign Out</button>
                 </>
               ) : (
-                <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
+                <button className="btn-glow w-full py-4" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
               )}
-            </div>
-            
-            {/* Mobile secondary links */}
-            <div className="border-t border-white/10 mt-2 pt-4 flex flex-col gap-3">
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="#" className="hover:text-cyan-500 transition-colors">Download the Report</Link>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="#" className="hover:text-cyan-500 transition-colors">Startup Playbook</Link>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="#" className="hover:text-cyan-500 transition-colors">Curriculum</Link>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="/careers" className="hover:text-cyan-500 transition-colors">Careers</Link>
-              <Link onClick={() => setIsMobileMenuOpen(false)} href="/success-stories" className="hover:text-cyan-500 transition-colors">Success Stories</Link>
             </div>
           </nav>
         )}
-
-        {/* Secondary Sub-Header Navigation (Desktop only) */}
-        {/* Displays secondary links underneath the main navigation bar */}
-        <div className="bg-[#0c0c0e]/95 backdrop-blur-xl py-2 px-8 hidden md:flex justify-center gap-6 items-center font-montserrat font-bold uppercase tracking-widest text-[10px] text-white/40 z-0 border-t border-white/5">
-          <Link href="#" className="hover:text-white/70 transition-colors duration-150">Download the Report</Link>
-          <Link href="#" className="hover:text-white/70 transition-colors duration-150">Startup Playbook</Link>
-          <Link href="#" className="hover:text-white/70 transition-colors duration-150">Curriculum</Link>
-          <Link href="/careers" className="hover:text-white/70 transition-colors duration-150">Careers</Link>
-          <Link href="/success-stories" className="hover:text-white/70 transition-colors duration-150">Success Stories</Link>
-        </div>
       </div>
     </>
   );
 }
-

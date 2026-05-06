@@ -74,7 +74,7 @@ export default function ActivationPage() {
            <Sparkles className="w-3 h-3 text-cyan-500" /> Identity Authenticated
         </div>
 
-        <h1 className="text-5xl md:text-6xl font-black font-montserrat mb-6 tracking-tighter leading-tight italic">
+        <h1 className="text-5xl md:text-6xl font-black font-inter mb-6 tracking-tighter leading-tight italic">
           Access <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600">Authorized.</span>
         </h1>
         

@@ -50,7 +50,7 @@ export default function Home() {
               <span className="l6 text-glow-gold">Real World Revenue</span>
             </div>
 
-            <p className="text-left mt-0 md:mt-4 text-[#8B9BB4] text-xs md:text-lg max-w-lg mb-4 md:mb-8 font-montserrat">
+            <p className="text-left mt-0 md:mt-4 text-[#8B9BB4] text-xs md:text-lg max-w-lg mb-4 md:mb-8 font-inter">
               Elevating startups beyond the raw concept phase with predictive AI, zero-gravity scaling,
               and elite mentor networks.
             </p>
@@ -71,14 +71,14 @@ export default function Home() {
                 <div className="w-[50px] h-[50px] md:w-[70px] md:h-[70px] rounded-full bg-white/10 border border-white/20 flex items-center justify-center mb-2 md:mb-4 group-hover:bg-white/15 transition-colors duration-300 cursor-pointer">
                   <Play className="w-5 h-5 md:w-8 md:h-8 fill-white/80 text-white/80 ml-1" />
                 </div>
-                <span className="font-montserrat text-[10px] md:text-sm text-white/60">Propulsion System Overview</span>
+                <span className="font-inter text-[10px] md:text-sm text-white/60">Propulsion System Overview</span>
               </div>
             </div>
 
             <div className="flex w-full max-w-[550px] mt-6 bg-white/[0.03] border border-white/10 rounded-lg px-6 md:px-8 py-6 flex-col sm:flex-row justify-between items-start mx-auto lg:mx-0 gap-6 min-h-[160px]"
             >
               <div className="flex flex-col items-center sm:items-start flex-1">
-                <h3 className="text-white font-montserrat font-bold text-lg mb-3">Related Links</h3>
+                <h3 className="text-white font-inter font-bold text-lg mb-3">Related Links</h3>
                 <div className="flex flex-col gap-3">
                   <Link href="/guide" className="text-white/60 text-sm font-bold hover:text-white/90 flex items-center gap-2 group transition-colors duration-150">
                     <ArrowRight className="w-4 h-4 shrink-0" /> <span className="text-left">Download the report</span>
@@ -95,7 +95,7 @@ export default function Home() {
               <div className="h-px w-full sm:w-px sm:h-auto sm:self-stretch bg-white/20 hidden sm:block mx-1"></div>
 
               <div className="flex flex-col items-center sm:items-start shrink-0">
-                <h3 className="text-white font-montserrat font-bold text-lg mb-3">Socials</h3>
+                <h3 className="text-white font-inter font-bold text-lg mb-3">Socials</h3>
                 <div className="flex flex-wrap gap-3 max-w-[140px] justify-center sm:justify-start">
                   <Link href="#" className="w-9 h-9 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/15 group transition-colors duration-150">
                     <svg className="w-4 h-4 text-white group-hover:text-black transition-colors" fill="currentColor" viewBox="0 0 24 24"><path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z"/></svg>
@@ -121,7 +121,7 @@ export default function Home() {
 
       <section className="bg-white text-black py-16 lg:py-32 mt-16 lg:mt-32 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">Propulsion Metrics</h2>
+          <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-10 lg:mb-16 text-gray-900">Propulsion Metrics</h2>
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 lg:gap-8 text-center font-archivo">
             {[
               { label: 'Founders Associated', value: '1,204+' },
@@ -132,7 +132,7 @@ export default function Home() {
             ].map((stat, i) => (
               <div key={i} className="flex flex-col items-center">
                 <div className="text-4xl md:text-5xl font-black text-cyan-600 mb-2">{stat.value}</div>
-                <div className="text-sm font-bold uppercase tracking-widest text-gray-500 font-montserrat">{stat.label}</div>
+                <div className="text-sm font-bold uppercase tracking-widest text-gray-500 font-inter">{stat.label}</div>
               </div>
             ))}
           </div>
@@ -140,33 +140,33 @@ export default function Home() {
       </section>
 
       <section className="bg-gradient-to-b from-[#0a0a0f] to-[rgba(255,95,0,0.05)] py-16 lg:py-24 px-6 lg:px-24 mb-16 rounded-[40px] shadow-2xl relative z-10 border border-white/5 mx-auto max-w-[1200px] w-[90%] lg:w-full">
-        <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-4"><span className="text-white">The</span> <span className="text-[#FF5F00]">Propulsion</span> <span className="text-white">Process</span></h2>
-        <p className="text-center mb-10 lg:mb-16 text-white/80 font-montserrat">A tested and proven framework to take you from concept to Series A.</p>
+        <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-4"><span className="text-white">The</span> <span className="text-[#FF5F00]">Propulsion</span> <span className="text-white">Process</span></h2>
+        <p className="text-center mb-10 lg:mb-16 text-white/80 font-inter">A tested and proven framework to take you from concept to Series A.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
           <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-100">
             <div className="text-4xl mb-6">🔍</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-white opacity-[0.04] leading-none">01</div>
-            <h3 className="text-xl font-bold text-white mb-3 font-montserrat">Discovery & Validation</h3>
-            <p className="text-white/55 text-sm font-montserrat leading-relaxed">Use our AI evaluators and market heat maps to finalize your product blueprint with absolute precision.</p>
+            <h3 className="text-xl font-bold text-white mb-3 font-inter">Discovery & Validation</h3>
+            <p className="text-white/55 text-sm font-inter leading-relaxed">Use our AI evaluators and market heat maps to finalize your product blueprint with absolute precision.</p>
           </div>
           <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-200">
             <div className="text-4xl mb-6">⚡</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#1a1917] opacity-[0.05] leading-none">02</div>
-            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-montserrat">MVP Acceleration</h3>
-            <p className="text-[#555] text-sm font-montserrat leading-relaxed">Get paired with top-tier engineers and cloud infrastructure credits to build a high-converting prototype.</p>
+            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">MVP Acceleration</h3>
+            <p className="text-[#555] text-sm font-inter leading-relaxed">Get paired with top-tier engineers and cloud infrastructure credits to build a high-converting prototype.</p>
           </div>
           <div className="bg-white/[0.03] border border-white/10 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-300">
             <div className="text-4xl mb-6">💰</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-white opacity-[0.04] leading-none">03</div>
-            <h3 className="text-xl font-bold text-white mb-3 font-montserrat">Capital Injection</h3>
-            <p className="text-white/55 text-sm font-montserrat leading-relaxed">Engage our closed-circuit network of 400+ investors through our structured demo days and syndicate funds.</p>
+            <h3 className="text-xl font-bold text-white mb-3 font-inter">Capital Injection</h3>
+            <p className="text-white/55 text-sm font-inter leading-relaxed">Engage our closed-circuit network of 400+ investors through our structured demo days and syndicate funds.</p>
           </div>
           <div className="bg-[#f8f7f4] border border-white/5 p-8 rounded-lg relative overflow-hidden opacity-0-init animate-fade-in-up delay-400">
             <div className="text-4xl mb-6">📈</div>
             <div className="text-[5rem] font-extrabold absolute -top-2 right-2 text-[#1a1917] opacity-[0.05] leading-none">04</div>
-            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-montserrat">Scale & Dominate</h3>
-            <p className="text-[#555] text-sm font-montserrat leading-relaxed">Utilize our legal, marketing, and HR networks to rapidly scale your team and your ARR effectively.</p>
+            <h3 className="text-xl font-bold text-[#1a1917] mb-3 font-inter">Scale & Dominate</h3>
+            <p className="text-[#555] text-sm font-inter leading-relaxed">Utilize our legal, marketing, and HR networks to rapidly scale your team and your ARR effectively.</p>
           </div>
         </div>
       </section>
@@ -176,8 +176,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row justify-between items-end mb-12 gap-4">
             <div>
-              <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-white mb-4">Elite <span className="text-cyan-500">Startup</span> Arsenal</h2>
-              <p className="text-white/60 font-montserrat max-w-xl">Don't reinvent the wheel. Use our proprietary systems to automate your growth from day one.</p>
+              <h2 className="text-3xl lg:text-4xl font-inter font-bold text-white mb-4">Elite <span className="text-cyan-500">Startup</span> Arsenal</h2>
+              <p className="text-white/60 font-inter max-w-xl">Don't reinvent the wheel. Use our proprietary systems to automate your growth from day one.</p>
             </div>
             <Link href="/tools" className="group flex items-center gap-2 text-cyan-500 font-bold uppercase tracking-widest hover:text-cyan-400 transition-all">
               EXPLORE ALL TOOLS <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
@@ -193,7 +193,7 @@ export default function Home() {
       {/* SECTION 5: TESTIMONIALS - Social proof from other founders */}
       <section className="bg-gray-50 text-black py-16 lg:py-24 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">What Founders & CEOs Say</h2>
+          <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-10 lg:mb-16 text-gray-900">What Founders & CEOs Say</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-8">
             {[1, 2, 3, 4].map((i) => (
               <div key={i} className="bg-white border border-gray-200 p-8 rounded-2xl shadow-lg hover:shadow-2xl transition-shadow relative">
@@ -205,12 +205,12 @@ export default function Home() {
                   <Star className="fill-yellow-500 w-4 h-4" />
                   <Star className="fill-yellow-500 w-4 h-4" />
                 </div>
-                <p className="text-gray-600 italic mb-8 font-montserrat text-sm">"The Propels helped us transition from a college project to a funded SaaS platform in less than 3 months."</p>
+                <p className="text-gray-600 italic mb-8 font-inter text-sm">"The Propels helped us transition from a college project to a funded SaaS platform in less than 3 months."</p>
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-gray-300 rounded-full border-2 border-white shadow-sm" />
                   <div>
-                    <h4 className="font-bold font-montserrat text-sm text-gray-900">Rahul Sharma</h4>
-                    <p className="text-xs text-gray-500 font-montserrat">CEO, TechNova</p>
+                    <h4 className="font-bold font-inter text-sm text-gray-900">Rahul Sharma</h4>
+                    <p className="text-xs text-gray-500 font-inter">CEO, TechNova</p>
                   </div>
                 </div>
               </div>
@@ -222,7 +222,7 @@ export default function Home() {
       <section className="bg-[#050505] py-16 lg:py-24 px-6 lg:px-24">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-end mb-10 lg:mb-16">
-            <h2 className="text-3xl lg:text-4xl font-montserrat font-bold">Investors Committee</h2>
+            <h2 className="text-3xl lg:text-4xl font-inter font-bold">Investors Committee</h2>
             <Link href="/network" className="text-cyan-500 text-sm font-bold uppercase tracking-widest hover:text-cyan-400">View All</Link>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 lg:gap-8">
@@ -239,9 +239,9 @@ export default function Home() {
                       <img src={`https://api.dicebear.com/7.x/notionists/svg?seed=${investor.name}`} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                    </div>
                 </div>
-                <h3 className="font-black text-sm font-montserrat uppercase tracking-tight text-white mb-1">{investor.name}</h3>
+                <h3 className="font-black text-sm font-inter uppercase tracking-tight text-white mb-1">{investor.name}</h3>
                 <p className="text-[#FF5F00] text-[9px] font-black uppercase tracking-[0.2em] mb-4 opacity-70 group-hover:opacity-100 transition-opacity">{investor.org}</p>
-                <p className="text-[11px] text-white/30 text-center font-montserrat leading-relaxed line-clamp-2 group-hover:text-white/50 transition-colors">{investor.bio}</p>
+                <p className="text-[11px] text-white/30 text-center font-inter leading-relaxed line-clamp-2 group-hover:text-white/50 transition-colors">{investor.bio}</p>
               </div>
             ))}
           </div>
@@ -250,12 +250,12 @@ export default function Home() {
 
       <section className="bg-[#0a0a0f] py-16 lg:py-24 px-6 lg:px-24 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16">Life at The Propels</h2>
+          <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-10 lg:mb-16">Life at The Propels</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div className="col-span-1 md:col-span-2 aspect-video bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden group">
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
-                <h3 className="text-2xl font-bold font-montserrat mb-2">Annual Hacker House</h3>
-                <p className="text-gray-300 font-montserrat text-sm">Where 50 founders live, build, and ship for 30 days straight.</p>
+                <h3 className="text-2xl font-bold font-inter mb-2">Annual Hacker House</h3>
+                <p className="text-gray-300 font-inter text-sm">Where 50 founders live, build, and ship for 30 days straight.</p>
               </div>
             </div>
             <div className="flex flex-col gap-6">
@@ -276,8 +276,8 @@ export default function Home() {
 
       <section className="bg-white text-black py-16 lg:py-24 px-6 lg:px-24 rounded-t-[3rem] -mb-20 pb-32 lg:pb-40">
         <div className="max-w-4xl mx-auto">
-          <h2 className="text-3xl lg:text-4xl font-montserrat font-bold text-center mb-10 lg:mb-16 text-gray-900">Frequently Asked Questions</h2>
-          <div className="space-y-4 font-montserrat">
+          <h2 className="text-3xl lg:text-4xl font-inter font-bold text-center mb-10 lg:mb-16 text-gray-900">Frequently Asked Questions</h2>
+          <div className="space-y-4 font-inter">
             {[
               { q: 'How does The Propels secure seed funding?', a: 'We leverage a direct pipeline to top-tier VCs who review our rigorously vetted "Propulsion Output" metrics.' },
               { q: 'What is the idea evaluator?', a: 'An AI-powered tool that cross-checks your concept against current market trends and historical failure rates.' },
@@ -286,7 +286,7 @@ export default function Home() {
             ].map((faq, i) => (
               <div key={i} className="border border-gray-200 rounded-xl p-6 bg-gray-50 cursor-pointer hover:bg-gray-100 transition-colors flex justify-between items-center">
                 <div>
-                  <h3 className="font-bold text-gray-900 mb-2 font-montserrat">{faq.q}</h3>
+                  <h3 className="font-bold text-gray-900 mb-2 font-inter">{faq.q}</h3>
                   <p className="text-gray-600 text-sm hidden md:block">{faq.a}</p>
                 </div>
                 <ChevronDown className="text-cyan-600" />
@@ -297,7 +297,7 @@ export default function Home() {
       </section>
       
       <section className="bg-black py-16 border-y border-[#FF5F00]/20 my-16 overflow-hidden">
-        <h2 className="text-center text-3xl mb-12 text-white font-montserrat font-bold">Powered By <span className="text-[#FF5F00]">World-Class</span> Partners</h2>
+        <h2 className="text-center text-3xl mb-12 text-white font-inter font-bold">Powered By <span className="text-[#FF5F00]">World-Class</span> Partners</h2>
         <div className="flex whitespace-nowrap overflow-hidden relative">
           <div className="flex gap-24 animate-scroll-partners w-max">
             {[...Array(2)].map((_, loopIdx) => (
@@ -318,8 +318,8 @@ export default function Home() {
       <PricingSection />
 
       <section className="bg-[#1a0f00] border border-[#FF5F00]/15 py-16 lg:py-24 px-6 lg:px-24 rounded-lg text-center my-16 lg:my-24 mx-auto max-w-[1200px] w-[90%] lg:w-full">
-        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-montserrat">Ready to <span className="text-[#FF5F00]">Propel</span> Your Startup?</h2>
-        <p className="text-lg lg:text-xl text-white/70 max-w-2xl mx-auto mb-10 lg:mb-12 font-montserrat leading-relaxed">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
+        <h2 className="text-3xl lg:text-5xl font-bold text-white mb-6 font-inter">Ready to <span className="text-[#FF5F00]">Propel</span> Your Startup?</h2>
+        <p className="text-lg lg:text-xl text-white/70 max-w-2xl mx-auto mb-10 lg:mb-12 font-inter leading-relaxed">Join thousands of founders who have successfully scaled their ideas into market-leading companies. Ignite your growth engine today.</p>
         <div className="flex flex-col sm:flex-row gap-4 lg:gap-6 justify-center">
           <button 
             onClick={() => setRegisterModalOpen(true)}
@@ -404,8 +404,8 @@ function FeaturedToolsGrid() {
           )}
         </div>
       </div>
-      <h3 className="text-xl font-bold text-white mb-2 font-montserrat line-clamp-1 group-hover:text-white/90 transition-colors duration-200">{tool.title}</h3>
-      <p className="text-white/35 text-sm line-clamp-2 mb-6 font-montserrat leading-relaxed flex-1 group-hover:text-white/50 transition-colors duration-200">{tool.description}</p>
+      <h3 className="text-xl font-bold text-white mb-2 font-inter line-clamp-1 group-hover:text-white/90 transition-colors duration-200">{tool.title}</h3>
+      <p className="text-white/35 text-sm line-clamp-2 mb-6 font-inter leading-relaxed flex-1 group-hover:text-white/50 transition-colors duration-200">{tool.description}</p>
       <div className="flex items-center gap-2 text-xs font-bold text-white/30 group-hover:text-white/60 transition-all duration-200">
         Get Started <ArrowRight className="w-3 h-3 translate-x-0 group-hover:translate-x-1 transition-transform duration-200" />
       </div>

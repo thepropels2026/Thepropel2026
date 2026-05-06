@@ -337,7 +337,7 @@ export default function AdminPortal() {
              <Image src="/logo.png" alt="Logo" width={24} height={24} className="group-hover:scale-110 transition-transform" />
           </div>
           <div>
-            <span className="font-montserrat text-xl font-black tracking-tighter uppercase text-white block leading-none">THE PROPELS</span>
+            <span className="font-inter text-xl font-black tracking-tighter uppercase text-white block leading-none">THE PROPELS</span>
             <span className="text-[10px] font-black text-cyan-500 uppercase tracking-[3px] mt-1 block">Command Center</span>
           </div>
         </div>

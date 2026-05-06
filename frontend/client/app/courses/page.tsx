@@ -61,7 +61,7 @@ export default function CoursesPage() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-orange-500/10 border border-orange-500/30 text-orange-500 text-xs font-bold uppercase tracking-widest mb-6">
             <TrendingUp className="w-4 h-4" /> Professional Mastery
           </div>
-          <h1 className="text-5xl md:text-7xl font-montserrat font-bold mb-6 tracking-tight">Master the <span className="text-orange-500">Unicorn</span> Playbook</h1>
+          <h1 className="text-5xl md:text-7xl font-inter font-bold mb-6 tracking-tight">Master the <span className="text-orange-500">Unicorn</span> Playbook</h1>
           <p className="text-lg text-slate-400 max-w-2xl mx-auto">Expert-led courses designed to give you an unfair advantage in the startup ecosystem.</p>
         </motion.div>
 
@@ -91,7 +91,7 @@ export default function CoursesPage() {
                     <Star className="w-4 h-4 text-orange-500 fill-orange-500" />
                     <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Mentor: {course.mentor}</span>
                   </div>
-                  <h3 className="text-2xl font-bold mb-4 font-montserrat group-hover:text-orange-500 transition-colors">{course.title}</h3>
+                  <h3 className="text-2xl font-bold mb-4 font-inter group-hover:text-orange-500 transition-colors">{course.title}</h3>
                   <p className="text-slate-400 text-sm mb-8 line-clamp-2">{course.description}</p>
                   
                   <div className="flex items-center justify-between mb-2">

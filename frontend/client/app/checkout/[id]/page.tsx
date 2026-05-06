@@ -84,7 +84,7 @@ export default function CheckoutPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-[0.3em] mb-4 text-white/40">
             <Lock className="w-3 h-3" /> Secure Transaction Layer
           </div>
-          <h1 className="text-4xl md:text-5xl font-montserrat font-black tracking-tight mb-4 uppercase italic">
+          <h1 className="text-4xl md:text-5xl font-inter font-black tracking-tight mb-4 uppercase italic">
             Propel <span className="text-cyan-500">Secure</span>
           </h1>
           <p className="text-white/40 text-sm font-medium tracking-wide">

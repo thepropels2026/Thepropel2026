@@ -69,7 +69,7 @@ export default function SuccessStories() {
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-bold uppercase tracking-widest mb-6">
             <TrendingUp className="w-4 h-4" /> Proven Results
           </div>
-          <h1 className="text-5xl md:text-7xl font-montserrat font-bold mb-6 tracking-tight">
+          <h1 className="text-5xl md:text-7xl font-inter font-bold mb-6 tracking-tight">
             Real Founders. <br className="hidden md:block" />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-[#FF5F00]">Real Revenue.</span>
           </h1>
@@ -154,7 +154,7 @@ export default function SuccessStories() {
                           />
                         </div>
                         <div className="pb-1">
-                          <h3 className="font-bold text-xl font-montserrat text-white">{story.founder_name}</h3>
+                          <h3 className="font-bold text-xl font-inter text-white">{story.founder_name}</h3>
                           <p className="text-cyan-400 text-sm font-semibold">{story.startup_name}</p>
                         </div>
                       </div>
@@ -165,7 +165,7 @@ export default function SuccessStories() {
                           <Zap className="w-5 h-5 text-orange-400" />
                         </div>
                         <div>
-                          <div className="text-xl font-black text-white font-montserrat">
+                          <div className="text-xl font-black text-white font-inter">
                             {story.metric}
                           </div>
                           <div className="text-[10px] text-white/50 font-bold uppercase tracking-widest">

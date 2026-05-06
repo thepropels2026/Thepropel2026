@@ -190,7 +190,7 @@ export default function JobDetailsPage() {
                 </div>
               </div>
 
-              <h1 className="text-4xl md:text-6xl font-montserrat font-black mb-8 leading-[1.1] tracking-tighter">
+              <h1 className="text-4xl md:text-6xl font-inter font-black mb-8 leading-[1.1] tracking-tighter">
                 {job.title}
               </h1>
 
@@ -219,7 +219,7 @@ export default function JobDetailsPage() {
                  transition={{ delay: 0.2 }}
                  className="space-y-6"
                >
-                  <h3 className="text-xl font-montserrat font-black uppercase tracking-tight flex items-center gap-3">
+                  <h3 className="text-xl font-inter font-black uppercase tracking-tight flex items-center gap-3">
                     <FileText className="w-5 h-5 text-cyan-500" /> Description
                   </h3>
                   <p className="text-white/40 leading-relaxed font-medium text-sm whitespace-pre-wrap italic">
@@ -233,7 +233,7 @@ export default function JobDetailsPage() {
                  transition={{ delay: 0.3 }}
                  className="space-y-6"
                >
-                  <h3 className="text-xl font-montserrat font-black uppercase tracking-tight flex items-center gap-3">
+                  <h3 className="text-xl font-inter font-black uppercase tracking-tight flex items-center gap-3">
                     <ShieldCheck className="w-5 h-5 text-cyan-500" /> Qualifications
                   </h3>
                   <div className="text-white/40 leading-relaxed font-medium text-sm whitespace-pre-wrap">
@@ -299,7 +299,7 @@ export default function JobDetailsPage() {
 
               <div className="p-10 border-b border-white/5 flex justify-between items-start sticky top-0 z-10 bg-[#0a0a0f]/80 backdrop-blur-md">
                 <div>
-                  <h2 className="text-3xl font-montserrat font-black text-white mb-2 uppercase italic">Initiate Bio-Sync</h2>
+                  <h2 className="text-3xl font-inter font-black text-white mb-2 uppercase italic">Initiate Bio-Sync</h2>
                   <p className="text-cyan-500 font-black uppercase tracking-[0.2em] text-[9px]">Targeting: {job.title}</p>
                 </div>
                 <button onClick={() => setIsApplyModalOpen(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-white/20 hover:text-white">

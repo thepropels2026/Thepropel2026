@@ -9,13 +9,13 @@ import { Mail, Phone, MapPin, Linkedin, Twitter, Instagram, ArrowUpRight, Shield
 export default function Footer() {
   return (
     // Footer container with glassmorphism styling and dark theme
-    <footer className="bg-[#0a0a0f]/80 backdrop-blur-md border-t border-white/10 py-16 mt-20 font-montserrat">
+    <footer className="bg-[#0a0a0f]/80 backdrop-blur-md border-t border-white/10 py-16 mt-20 font-inter">
       <div className="max-w-7xl mx-auto px-8 grid grid-cols-1 md:grid-cols-4 gap-12">
         
         {/* SECTION 1: Brand Information & Social Media Links */}
         <div className="col-span-1 md:col-span-1 flex flex-col items-start">
           {/* Logo and Brand Name */}
-          <Link href="/" className="flex items-center gap-3 font-montserrat text-2xl font-extrabold tracking-wider mb-4">
+          <Link href="/" className="flex items-center gap-3 font-inter text-2xl font-extrabold tracking-wider mb-4">
             <img src="/logo.png" alt="Logo" className="w-12 h-12 object-contain brightness-125 filter drop-shadow-[0_0_8px_rgba(0,242,255,0.4)]" />
             The Propels
           </Link>
@@ -34,7 +34,7 @@ export default function Footer() {
         
         {/* SECTION 2: Quick Navigation Links */}
         <div>
-          <h4 className="text-lg font-montserrat font-bold mb-4 text-white">Quick Nav</h4>
+          <h4 className="text-lg font-inter font-bold mb-4 text-white">Quick Nav</h4>
           <div className="flex flex-col gap-3 text-sm text-white">
             <Link href="/#about" className="hover:text-cyan-400 transition-colors">About Us</Link>
             <Link href="/tools" className="hover:text-cyan-400 transition-colors">Propulsion Tools</Link>
@@ -46,7 +46,7 @@ export default function Footer() {
 
         {/* SECTION 3: Contact Information */}
         <div>
-          <h4 className="text-lg font-montserrat font-bold mb-4 text-white">Contact Us</h4>
+          <h4 className="text-lg font-inter font-bold mb-4 text-white">Contact Us</h4>
           <div className="flex flex-col gap-4 text-sm text-white">
             {/* Email Contact */}
             <div className="flex items-center gap-3">
@@ -68,7 +68,7 @@ export default function Footer() {
 
         {/* SECTION 4: Location Map Preview */}
         <div>
-          <h4 className="text-lg font-montserrat font-bold mb-4 text-white">Our Coordinates</h4>
+          <h4 className="text-lg font-inter font-bold mb-4 text-white">Our Coordinates</h4>
           <div className="w-full h-32 bg-white/5 rounded-lg overflow-hidden border border-white/10 relative group cursor-pointer">
             {/* Decorative background and overlay effects */}
             <div className="absolute inset-0 bg-cyan-900/20 group-hover:bg-cyan-900/40 transition-colors z-0" />
