@@ -79,24 +79,24 @@ export default function ProfileDashboard() {
   if (!isRegistered) return null;
 
   return (
-    <div className="min-h-screen bg-[#080808] text-white font-inter">
+    <div className="min-h-screen bg-slate-50 text-slate-900 font-roboto">
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
-        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-950/10 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
-        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-orange-950/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
+        <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
+        <div className="absolute bottom-0 left-0 w-[600px] h-[600px] bg-orange-500/5 rounded-full blur-[120px] translate-y-1/2 -translate-x-1/2" />
       </div>
 
       <div className="relative z-10 max-w-[1440px] mx-auto flex flex-col lg:flex-row min-h-screen">
         
         {/* SIDEBAR */}
-        <aside className="w-full lg:w-80 border-r border-white/5 bg-[#0a0a0f]/50 backdrop-blur-xl p-8 flex flex-col">
+        <aside className="w-full lg:w-80 border-r border-slate-200 bg-white p-8 flex flex-col shadow-sm">
           <div className="flex items-center gap-4 mb-12">
-            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-white/10">
+            <div className="relative w-12 h-12 rounded-full overflow-hidden border-2 border-slate-100 shadow-sm">
               <Image src={user?.picture || "https://api.dicebear.com/7.x/notionists/svg?seed=user"} alt="Profile" fill className="object-cover" />
             </div>
             <div>
-              <h2 className="font-inter font-black text-sm uppercase tracking-tighter">{user?.firstName || 'User'}</h2>
-              <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.2em]">Tier 1 Operator</p>
+              <h2 className="font-roboto font-black text-sm uppercase tracking-tighter text-slate-900">{user?.firstName || 'User'}</h2>
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Tier 1 Operator</p>
             </div>
           </div>
 
@@ -122,11 +122,11 @@ export default function ProfileDashboard() {
               active={activeTab === 'activity'} 
               onClick={() => setActiveTab('activity')} 
             />
-            <div className="pt-8 border-t border-white/5 mt-8 space-y-2">
+            <div className="pt-8 border-t border-slate-100 mt-8 space-y-2">
               <SidebarItem icon={Settings} label="Settings" active={activeTab === 'settings'} onClick={() => setActiveTab('settings')} />
               <button 
                 onClick={logout}
-                className="w-full flex items-center gap-4 px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-red-400/60 hover:text-red-400 hover:bg-red-500/5 transition-all"
+                className="w-full flex items-center gap-4 px-6 py-4 rounded-xl text-xs font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-all border border-transparent hover:border-red-100"
               >
                 <LogOut className="w-4 h-4" /> Sign Out
               </button>
@@ -134,12 +134,12 @@ export default function ProfileDashboard() {
           </nav>
           
           <div className="mt-auto pt-10">
-            <div className="bg-gradient-to-br from-white/5 to-transparent border border-white/10 rounded-2xl p-6 relative overflow-hidden group cursor-pointer">
-               <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                  <Shield className="w-12 h-12" />
+            <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden group cursor-pointer hover:border-slate-300 transition-all">
+               <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
+                  <Shield className="w-12 h-12 text-slate-900" />
                </div>
-               <p className="text-[9px] font-black text-white/40 uppercase tracking-widest mb-2">Protocol Status</p>
-               <h4 className="text-xs font-black text-emerald-400 uppercase tracking-widest flex items-center gap-2">
+               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-2">Protocol Status</p>
+               <h4 className="text-xs font-black text-emerald-600 uppercase tracking-widest flex items-center gap-2">
                   <CheckCircle2 className="w-3 h-3" /> Encrypted
                </h4>
             </div>
@@ -155,46 +155,46 @@ export default function ProfileDashboard() {
                 
                 {/* Welcome Header */}
                 <header>
-                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-white/5 border border-white/10 text-[9px] font-black text-white/30 uppercase tracking-[0.3em] mb-6">
-                      <Sparkles className="w-3 h-3 text-orange-400" /> System Ready
+                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded bg-slate-100 border border-slate-200 text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] mb-6">
+                      <Sparkles className="w-3 h-3 text-orange-500" /> System Ready
                    </div>
-                   <h1 className="text-4xl md:text-5xl font-inter font-black text-white tracking-tighter leading-none mb-4 italic">
+                   <h1 className="text-4xl md:text-5xl font-roboto font-black text-slate-900 tracking-tighter leading-none mb-4 italic">
                       Welcome Back, <br/>
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-white to-white/40">{user?.firstName}</span>
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-slate-900 to-slate-500">{user?.firstName}</span>
                    </h1>
-                   <p className="text-white/40 text-sm font-medium tracking-wide">Interface active. All subsystems operational.</p>
+                   <p className="text-slate-500 text-sm font-medium tracking-wide">Interface active. All subsystems operational.</p>
                 </header>
 
                 {/* Stats Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <StatCard label="Active Plan" value={userPlan?.pricing_plans?.plan_key || 'Free Tier'} icon={Zap} color="text-orange-400" />
-                  <StatCard label="Tools Unlocked" value={purchasedTools.length.toString()} icon={Wrench} color="text-cyan-400" />
-                  <StatCard label="Success Index" value="84%" icon={Activity} color="text-emerald-400" />
+                  <StatCard label="Active Plan" value={userPlan?.pricing_plans?.plan_key || 'Free Tier'} icon={Zap} color="text-orange-600" />
+                  <StatCard label="Tools Unlocked" value={purchasedTools.length.toString()} icon={Wrench} color="text-cyan-600" />
+                  <StatCard label="Success Index" value="84%" icon={Activity} color="text-emerald-600" />
                 </div>
 
                 {/* Main Progress Card */}
-                <section className="bg-white/[0.03] border border-white/10 rounded-3xl p-10 relative overflow-hidden group">
-                   <div className="absolute top-0 right-0 p-10 opacity-[0.03] group-hover:opacity-[0.05] transition-opacity">
-                      <Zap className="w-40 h-40" />
+                <section className="bg-white border border-slate-200 rounded-3xl p-10 relative overflow-hidden group shadow-sm hover:shadow-md transition-shadow">
+                   <div className="absolute top-0 right-0 p-10 opacity-[0.02] group-hover:opacity-[0.04] transition-opacity">
+                      <Zap className="w-40 h-40 text-slate-900" />
                    </div>
                    
                    <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-8">
                       <div>
-                        <p className="text-[10px] font-black text-white/30 uppercase tracking-[0.3em] mb-4">Current Trajectory</p>
-                        <h3 className="text-2xl font-inter font-black uppercase italic text-white leading-tight">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Current Trajectory</p>
+                        <h3 className="text-2xl font-roboto font-black uppercase italic text-slate-900 leading-tight">
                            {userPlan?.pricing_plans?.title || 'The Propels Individual'}
                         </h3>
                       </div>
                       <div className="text-right">
-                         <span className="text-4xl font-inter font-black text-orange-500 italic">
+                         <span className="text-4xl font-roboto font-black text-orange-600 italic">
                             {userPlan?.progress_percent || 0}%
                          </span>
-                         <p className="text-[9px] font-black text-white/30 uppercase tracking-widest mt-1">Onboarding Completed</p>
+                         <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Onboarding Completed</p>
                       </div>
                    </div>
 
                    <div className="space-y-6">
-                      <div className="h-2 w-full bg-white/5 rounded-full overflow-hidden border border-white/5">
+                      <div className="h-2.5 w-full bg-slate-100 rounded-full overflow-hidden border border-slate-200 shadow-inner">
                          <motion.div 
                            initial={{ width: 0 }} 
                            animate={{ width: `${userPlan?.progress_percent || 0}%` }} 
@@ -203,8 +203,8 @@ export default function ProfileDashboard() {
                          />
                       </div>
                       <div className="flex justify-between items-center">
-                         <p className="text-xs font-bold text-white/60">Current: <span className="text-white">Foundational Audit</span></p>
-                         <button className="text-[10px] font-black text-orange-500 uppercase tracking-widest hover:text-orange-400 transition-colors flex items-center gap-2">
+                         <p className="text-xs font-bold text-slate-500">Current: <span className="text-slate-900">Foundational Audit</span></p>
+                         <button className="text-[10px] font-black text-orange-600 uppercase tracking-widest hover:text-orange-500 transition-colors flex items-center gap-2 px-4 py-2 bg-orange-50 rounded-lg border border-orange-100">
                             Resume Session <ChevronRight className="w-3 h-3" />
                          </button>
                       </div>
@@ -214,28 +214,28 @@ export default function ProfileDashboard() {
                 {/* Recent Purchases / Tools */}
                 <section>
                    <div className="flex justify-between items-center mb-8">
-                      <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/40">Acquired Assets</h3>
-                      <button onClick={() => setActiveTab('tools')} className="text-[10px] font-black text-white/20 uppercase tracking-widest hover:text-white transition-colors">View Library</button>
+                      <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Acquired Assets</h3>
+                      <button onClick={() => setActiveTab('tools')} className="text-[10px] font-black text-slate-300 uppercase tracking-widest hover:text-slate-900 transition-colors">View Library</button>
                    </div>
                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {purchasedTools.slice(0, 2).map((item, i) => (
-                        <div key={i} className="flex items-center gap-6 p-6 bg-white/[0.02] border border-white/5 rounded-2xl hover:bg-white/[0.04] transition-all group">
-                           <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center border border-white/10 group-hover:border-white/20 transition-colors">
+                        <div key={i} className="flex items-center gap-6 p-6 bg-white border border-slate-200 rounded-2xl hover:border-slate-300 transition-all group shadow-sm">
+                           <div className="w-12 h-12 bg-slate-50 rounded-xl flex items-center justify-center border border-slate-200 group-hover:border-slate-300 transition-colors">
                               {item.tools_cards?.image_url ? (
                                 <img src={item.tools_cards.image_url} alt="" className="w-full h-full object-cover rounded-lg" />
-                              ) : <Wrench className="w-5 h-5 text-white/20" />}
+                              ) : <Wrench className="w-5 h-5 text-slate-300" />}
                            </div>
                            <div className="flex-grow">
-                              <h4 className="text-sm font-black text-white uppercase tracking-wider mb-1">{item.tools_cards?.title}</h4>
-                              <p className="text-[10px] text-white/30 uppercase tracking-widest">{item.tools_cards?.category}</p>
+                              <h4 className="text-sm font-black text-slate-900 uppercase tracking-wider mb-1">{item.tools_cards?.title}</h4>
+                              <p className="text-[10px] text-slate-400 uppercase tracking-widest">{item.tools_cards?.category}</p>
                            </div>
-                           <ChevronRight className="w-4 h-4 text-white/10 group-hover:text-white/40 transition-all" />
+                           <ChevronRight className="w-4 h-4 text-slate-200 group-hover:text-slate-400 transition-all" />
                         </div>
                       ))}
                       {purchasedTools.length === 0 && (
-                        <div className="col-span-2 p-12 text-center border border-dashed border-white/5 rounded-3xl">
-                           <AlertCircle className="w-8 h-8 text-white/10 mx-auto mb-4" />
-                           <p className="text-xs font-bold text-white/20 uppercase tracking-widest">No assets acquired yet.</p>
+                        <div className="col-span-2 p-12 text-center border border-dashed border-slate-200 rounded-3xl bg-white/50">
+                           <AlertCircle className="w-8 h-8 text-slate-200 mx-auto mb-4" />
+                           <p className="text-xs font-bold text-slate-300 uppercase tracking-widest">No assets acquired yet.</p>
                         </div>
                       )}
                    </div>
@@ -244,12 +244,12 @@ export default function ProfileDashboard() {
               </motion.div>
             )}
 
-            {/* Other tabs would go here (Tools, Subscription, etc.) */}
+            {/* Other tabs */}
             {activeTab !== 'overview' && (
                <div className="flex flex-col items-center justify-center h-full py-40">
-                  <Clock className="w-12 h-12 text-white/10 mb-6" />
-                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-white/20">Protocol Under Expansion</h3>
-                  <button onClick={() => setActiveTab('overview')} className="mt-8 text-[10px] font-black text-orange-500 uppercase tracking-widest border border-orange-500/20 px-6 py-3 rounded-full hover:bg-orange-500/5 transition-all">Back to Overview</button>
+                  <Clock className="w-12 h-12 text-slate-200 mb-6" />
+                  <h3 className="text-xs font-black uppercase tracking-[0.3em] text-slate-300">Protocol Under Expansion</h3>
+                  <button onClick={() => setActiveTab('overview')} className="mt-8 text-[10px] font-black text-orange-600 uppercase tracking-widest border border-orange-200 px-6 py-3 rounded-full hover:bg-orange-50 transition-all">Back to Overview</button>
                </div>
             )}
 
@@ -264,18 +264,18 @@ function SidebarItem({ icon: Icon, label, active, onClick, count }: any) {
   return (
     <button 
       onClick={onClick}
-      className={`w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all group ${
+      className={`w-full flex items-center justify-between px-6 py-4 rounded-xl transition-all group border ${
         active 
-          ? 'bg-white/5 text-white border border-white/10 shadow-lg' 
-          : 'text-white/40 hover:text-white hover:bg-white/5 border border-transparent'
+          ? 'bg-slate-900 text-white border-slate-900 shadow-md' 
+          : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50 border-transparent hover:border-slate-200'
       }`}
     >
       <div className="flex items-center gap-4">
-        <Icon className={`w-4 h-4 ${active ? 'text-orange-500' : 'group-hover:text-orange-400/60 transition-colors'}`} />
+        <Icon className={`w-4 h-4 ${active ? 'text-orange-500' : 'group-hover:text-orange-600 transition-colors'}`} />
         <span className="text-xs font-black uppercase tracking-widest">{label}</span>
       </div>
       {count !== undefined && (
-        <span className={`text-[10px] font-black px-2 py-0.5 rounded ${active ? 'bg-orange-500 text-white' : 'bg-white/5 text-white/20'}`}>
+        <span className={`text-[10px] font-black px-2 py-0.5 rounded ${active ? 'bg-white/10 text-white' : 'bg-slate-100 text-slate-400'}`}>
           {count}
         </span>
       )}
@@ -285,14 +285,14 @@ function SidebarItem({ icon: Icon, label, active, onClick, count }: any) {
 
 function StatCard({ label, value, icon: Icon, color }: any) {
   return (
-    <div className="bg-white/[0.02] border border-white/8 rounded-2xl p-6 hover:bg-white/[0.04] transition-all">
+    <div className="bg-white border border-slate-200 rounded-2xl p-6 hover:border-slate-300 transition-all shadow-sm">
        <div className="flex justify-between items-start mb-6">
-          <div className={`p-2 rounded-lg bg-white/5 border border-white/10 ${color}`}>
+          <div className={`p-2.5 rounded-xl bg-slate-50 border border-slate-100 ${color} shadow-sm`}>
              <Icon className="w-4 h-4" />
           </div>
        </div>
-       <p className="text-[10px] font-black text-white/25 uppercase tracking-widest mb-1">{label}</p>
-       <h4 className="text-xl font-inter font-black text-white italic uppercase tracking-tighter">{value}</h4>
+       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{label}</p>
+       <h4 className="text-xl font-roboto font-black text-slate-900 italic uppercase tracking-tighter">{value}</h4>
     </div>
   );
 }
