@@ -21,6 +21,8 @@ export default function ProfileDashboard() {
   const [purchasedTools, setPurchasedTools] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
   const [profileData, setProfileData] = useState<any>({
     first_name: '',
     last_name: '',
@@ -113,8 +115,29 @@ export default function ProfileDashboard() {
 
   if (!isRegistered) return null;
 
+  const triggerSuccess = (msg: string) => {
+    setSuccessMessage(msg);
+    setShowSuccess(true);
+    setTimeout(() => setShowSuccess(false), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-[rgba(0,0,0,0.9)] font-inter">
+      {/* Global Success Notification */}
+      <AnimatePresence>
+        {showSuccess && (
+          <motion.div 
+            initial={{ opacity: 0, y: -50, x: '-50%' }}
+            animate={{ opacity: 1, y: 24, x: '-50%' }}
+            exit={{ opacity: 0, y: -50, x: '-50%' }}
+            className="fixed top-0 left-1/2 z-[300] bg-emerald-600 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 font-bold text-sm"
+          >
+            <CheckCircle2 className="w-5 h-5" />
+            {successMessage}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Background Decor */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-[800px] h-[800px] bg-cyan-500/5 rounded-full blur-[150px] -translate-y-1/2 translate-x-1/2" />
@@ -295,7 +318,7 @@ export default function ProfileDashboard() {
                          </div>
                          <label className="absolute inset-0 flex items-center justify-center bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full cursor-pointer">
                             <Camera className="w-6 h-6" />
-                            <input type="file" className="hidden" accept="image/*" onChange={async (e) => {
+                            <input id="avatar-upload" type="file" className="hidden" accept="image/*" onChange={async (e) => {
                                const file = e.target.files?.[0];
                                if (!file) return;
                                setSaving(true);
@@ -314,7 +337,16 @@ export default function ProfileDashboard() {
                                     .from('profile-pictures')
                                     .getPublicUrl(filePath);
 
+                                  // Update database immediately for image change
+                                  const { error: dbError } = await supabase
+                                    .from('profiles')
+                                    .update({ picture: publicUrl })
+                                    .eq('email', user.email);
+
+                                  if (dbError) throw dbError;
+
                                   setProfileData({ ...profileData, picture: publicUrl });
+                                  triggerSuccess("Identity visualization updated.");
                                } catch (err) {
                                   console.error("Error uploading image:", err);
                                } finally {
@@ -326,7 +358,12 @@ export default function ProfileDashboard() {
                       <div className="text-center md:text-left">
                          <h3 className="text-lg font-bold text-slate-800">Profile Picture</h3>
                          <p className="text-xs text-slate-500 font-medium mt-1 mb-4">Upload a high-resolution headshot for your network card.</p>
-                         <button className="text-[11px] font-bold text-cyan-600 uppercase tracking-widest px-4 py-2 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-all">Change Avatar</button>
+                         <button 
+                            onClick={() => document.getElementById('avatar-upload')?.click()}
+                            className="text-[11px] font-bold text-cyan-600 uppercase tracking-widest px-4 py-2 bg-cyan-50 rounded-lg hover:bg-cyan-100 transition-all"
+                         >
+                            Change Avatar
+                         </button>
                       </div>
                    </div>
 
@@ -363,7 +400,7 @@ export default function ProfileDashboard() {
                                    updated_at: new Date().toISOString()
                                 });
                               if (error) throw error;
-                              // Alert success?
+                              triggerSuccess("Protocol data synchronized successfully.");
                            } catch (err) {
                               console.error("Error saving profile:", err);
                            } finally {
