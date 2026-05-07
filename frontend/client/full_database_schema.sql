@@ -5,17 +5,20 @@
 
 -- 1. PROFILES (Network Page)
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    identifier TEXT NOT NULL, -- email or phone number
+    id UUID PRIMARY KEY DEFAULT auth.uid(),
+    email TEXT UNIQUE NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
     picture TEXT,
     designation TEXT NOT NULL,
     company TEXT NOT NULL,
-    education TEXT NOT NULL,
-    skills TEXT NOT NULL,
-    interests TEXT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
+    location TEXT,
+    bio TEXT,
+    education TEXT,
+    skills TEXT,
+    interests TEXT,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
 
 -- 2. JOB POSTINGS (Careers Page)
