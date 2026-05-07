@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 
 export default function RegisterModal() {
-  const { isRegisterModalOpen, setRegisterModalOpen, login } = useAuth();
+  const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +83,21 @@ export default function RegisterModal() {
     setIsSubmitting(true);
     setError(null);
     try {
-      // 1. Supabase Auth Registration
+      // 1. Check if user already exists in profiles (Pre-check)
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.email)
+        .single();
+
+      if (existingUser) {
+        alert("User already exists. Redirecting to login...");
+        setRegisterModalOpen(false);
+        setLoginModalOpen(true);
+        return;
+      }
+
+      // 2. Supabase Auth Registration
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -92,18 +106,31 @@ export default function RegisterModal() {
             first_name: formData.firstName,
             last_name: formData.lastName,
             mobile: formData.mobile,
+            dob: formData.dob,
+            gender: formData.gender
           }
         }
       });
 
-      if (authError) throw authError;
+      if (authError) {
+        if (authError.message.includes("already registered") || authError.status === 400) {
+          alert("This identity is already active in the network. Redirecting to login...");
+          setRegisterModalOpen(false);
+          setLoginModalOpen(true);
+          return;
+        }
+        throw authError;
+      }
 
-      // 2. Create Profile in Public Database
+      // 3. Create Profile in Public Database
       const profilePayload = {
         id: authData.user?.id,
         email: formData.email,
         first_name: formData.firstName,
         last_name: formData.lastName,
+        dob: formData.dob,
+        gender: formData.gender,
+        mobile: formData.mobile,
         designation: 'Founder @ Stealth',
         company: 'Stealth Startup',
         location: 'Global',

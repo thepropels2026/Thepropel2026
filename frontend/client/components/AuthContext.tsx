@@ -12,6 +12,7 @@ type AuthContextType = {
   setLoginModalOpen: (isOpen: boolean) => void;
   login: (userData: any) => void;
   logout: () => void;
+  syncUser: (supabaseUser: any) => Promise<void>;
 };
 
 // Create the context with default values
@@ -24,6 +25,7 @@ const AuthContext = createContext<AuthContextType>({
   setLoginModalOpen: () => {},
   login: () => {},
   logout: () => {},
+  syncUser: async () => {},
 });
 
 /**
@@ -72,15 +74,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        syncUser(session.user);
+        await syncUser(session.user);
       }
     };
     checkSession();
 
     // 2. Listen for Changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       if (session?.user) {
-        syncUser(session.user);
+        await syncUser(session.user);
       } else {
         setIsRegistered(false);
         setUser(null);
@@ -92,17 +94,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const syncUser = (supabaseUser: any) => {
-    const userData = {
-      firstName: supabaseUser.user_metadata?.first_name || supabaseUser.email?.split('@')[0],
-      lastName: supabaseUser.user_metadata?.last_name || '',
-      email: supabaseUser.email,
-      picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${supabaseUser.email}`,
-    };
-    setIsRegistered(true);
-    setUser(userData);
-    localStorage.setItem('isRegistered', 'true');
-    localStorage.setItem('userProfile', JSON.stringify(userData));
+  const syncUser = async (supabaseUser: any) => {
+    try {
+      // Fetch full profile from the database
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', supabaseUser.id)
+        .single();
+
+      if (error) {
+        // Fallback to metadata if profile doesn't exist yet (e.g. during registration)
+        console.warn("Profile fetch failed, using metadata fallback:", error.message);
+        const fallbackData = {
+          id: supabaseUser.id,
+          firstName: supabaseUser.user_metadata?.first_name || supabaseUser.email?.split('@')[0],
+          lastName: supabaseUser.user_metadata?.last_name || '',
+          email: supabaseUser.email,
+          picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${supabaseUser.email}`,
+        };
+        setIsRegistered(true);
+        setUser(fallbackData);
+        localStorage.setItem('isRegistered', 'true');
+        localStorage.setItem('userProfile', JSON.stringify(fallbackData));
+      } else {
+        // Successful profile fetch
+        const userData = {
+          ...profile,
+          firstName: profile.first_name,
+          lastName: profile.last_name,
+        };
+        setIsRegistered(true);
+        setUser(userData);
+        localStorage.setItem('isRegistered', 'true');
+        localStorage.setItem('userProfile', JSON.stringify(userData));
+      }
+    } catch (err) {
+      console.error("Auth sync error:", err);
+    }
   };
 
   return (
@@ -111,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isRegistered, user, 
       isRegisterModalOpen, setRegisterModalOpen, 
       isLoginModalOpen, setLoginModalOpen,
-      login, logout 
+      login, logout, syncUser
     }}>
       {children}
     </AuthContext.Provider>
@@ -120,3 +149,4 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 // Custom hook for easy access to the AuthContext from any component
 export const useAuth = () => useContext(AuthContext);
+
