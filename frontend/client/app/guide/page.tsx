@@ -87,12 +87,29 @@ export default function GuideLmsPage() {
       const { error } = await supabase.from('user_course_progress').upsert({
         user_id: user.id,
         module_id: moduleId,
-        course_id: courseId
-      });
+        course_id: courseId,
+        watched_percentage: 100
+      }, { onConflict: 'user_id,module_id' });
       if (error) throw error;
       fetchData(); // Refresh progress
     } catch (err) {
       console.error("Error updating progress:", err);
+    }
+  };
+
+  const updateWatchProgress = async (moduleId: string, courseId: string, percentage: number, position: number) => {
+    if (!user) return;
+    try {
+      // Use silent update to avoid layout thrashing
+      await supabase.from('user_course_progress').upsert({
+        user_id: user.id,
+        module_id: moduleId,
+        course_id: courseId,
+        watched_percentage: percentage,
+        last_position: position
+      }, { onConflict: 'user_id,module_id' });
+    } catch (err) {
+      console.error("Error updating watch progress:", err);
     }
   };
 
@@ -125,7 +142,7 @@ export default function GuideLmsPage() {
            transition={{ duration: 0.3 }}
         >
           {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} loading={loading} />}
-          {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} markComplete={markModuleComplete} loading={loading} />}
+          {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} markComplete={markModuleComplete} updateProgress={updateWatchProgress} loading={loading} />}
           {activeTab === 'Courses' && <CoursesTab courses={courses} allModules={allModules} loading={loading} />}
           {activeTab === 'Knowledge Base' && <KnowledgeBaseTab resources={kbResources} loading={loading} />}
           {activeTab === 'Blueprint' && <BlueprintTab userProgress={userProgress} allModules={allModules} />}
@@ -140,8 +157,13 @@ export default function GuideLmsPage() {
 // ------------------------------------------------------------------
 function DashboardTab({ courses, allModules, userProgress, loading }: any) {
   const totalModules = allModules.length;
-  const completedModules = userProgress.length;
-  const percentage = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+  // Calculate aggregate progress based on watched_percentage of each module
+  const totalWatchedSum = allModules.reduce((acc: number, mod: any) => {
+    const prog = userProgress.find((p: any) => p.module_id === mod.id);
+    return acc + (prog?.watched_percentage || 0);
+  }, 0);
+  const percentage = totalModules > 0 ? Math.round(totalWatchedSum / totalModules) : 0;
+  const completedModules = userProgress.filter((p: any) => p.watched_percentage === 100).length;
   
   console.log("DashboardTab Render:", { totalModules, completedModules, percentage });
 
@@ -225,13 +247,14 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
 // ------------------------------------------------------------------
 // 2. LEARNING TAB (Former page.tsx LMS code)
 // ------------------------------------------------------------------
-function LearningTab({ courses, allModules, userProgress, markComplete, loading }: any) {
+function LearningTab({ courses, allModules, userProgress, markComplete, updateProgress, loading }: any) {
   const courseIdsWithModules = Array.from(new Set(allModules.map((m: any) => m.course_id)));
   const coursesWithContent = courses.filter((c: any) => courseIdsWithModules.includes(c.id));
   
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
   const courseModules = allModules.filter((m: any) => m.course_id === selectedCourseId);
   const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
+  const videoRef = React.useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
     if (!selectedCourseId && coursesWithContent.length > 0) {
@@ -246,7 +269,31 @@ function LearningTab({ courses, allModules, userProgress, markComplete, loading 
   }, [courseModules]);
 
   const activeModule = allModules.find(m => m.id === activeModuleId);
-  const isCompleted = userProgress.some((p: any) => p.module_id === activeModuleId);
+  const isCompleted = userProgress.some((p: any) => p.module_id === activeModuleId && p.watched_percentage === 100);
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current && activeModule && selectedCourseId) {
+      const currentTime = videoRef.current.currentTime;
+      const duration = videoRef.current.duration;
+      if (duration > 0) {
+        const percentage = Math.floor((currentTime / duration) * 100);
+        // Save progress every 5% to avoid excessive DB calls
+        const currentProg = userProgress.find((p: any) => p.module_id === activeModule.id);
+        if (percentage > (currentProg?.watched_percentage || 0) && percentage % 5 === 0) {
+           updateProgress(activeModule.id, selectedCourseId, percentage, currentTime);
+        }
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (videoRef.current && activeModule) {
+      const prog = userProgress.find((p: any) => p.module_id === activeModule.id);
+      if (prog?.last_position) {
+        videoRef.current.currentTime = prog.last_position;
+      }
+    }
+  }, [activeModuleId]);
 
   const [isExamMode, setIsExamMode] = useState(false);
   const [examStatus, setExamStatus] = useState<"pending" | "running" | "failed" | "passed">("pending");
@@ -412,8 +459,10 @@ function LearningTab({ courses, allModules, userProgress, markComplete, loading 
                <div className="bg-slate-900 aspect-video rounded-2xl shadow-lg border border-slate-200 flex items-center justify-center relative overflow-hidden mb-6 group cursor-pointer">
                   {activeModule.content_url ? (
                      <video 
+                        ref={videoRef}
                         src={activeModule.content_url} 
                         controls 
+                        onTimeUpdate={handleTimeUpdate}
                         className="w-full h-full object-cover"
                         poster={courses.find((c: any) => c.id === selectedCourseId)?.image_url}
                      />
