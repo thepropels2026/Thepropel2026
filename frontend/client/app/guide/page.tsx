@@ -208,28 +208,11 @@ export default function GuideLmsPage() {
     }
   };
 
-  if (!user) return null;
+  // Removed auth guard to keep sections visible
 
-  if (!loading && !subscription) {
-    return (
-      <div className="min-h-screen bg-white flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center space-y-6">
-          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto border border-orange-100">
-             <ShieldAlert className="w-10 h-10 text-[#FF5F00]" />
-          </div>
-          <h2 className="text-2xl font-montserrat font-black text-slate-900">No Active Course Subscription</h2>
-          <p className="text-slate-500 font-medium leading-relaxed">
-            You haven't enrolled in any courses yet. Access to the Guide and LMS modules is restricted to active subscribers.
-          </p>
-          <div className="pt-4">
-             <a href="/#pricing" className="bg-[#FF5F00] text-white px-8 py-3.5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg shadow-orange-500/20 inline-block">
-                View Pricing Plans
-             </a>
-          </div>
-        </div>
-      </div>
-    );
-  }
+
+  // Removed subscription guard to keep sections visible
+
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-inter pb-20 pt-24">
