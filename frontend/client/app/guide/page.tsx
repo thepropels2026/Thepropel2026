@@ -43,26 +43,36 @@ export default function GuideLmsPage() {
 
   const fetchData = async () => {
     setLoading(true);
+    console.log("Fetching LMS data for user:", user?.id);
     try {
       // 1. Fetch Courses
-      const { data: coursesData } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      const { data: coursesData, error: cErr } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      if (cErr) throw cErr;
       setCourses(coursesData || []);
+      console.log("Courses fetched:", coursesData?.length);
 
       // 2. Fetch All Modules
-      const { data: modulesData } = await supabase.from('course_modules').select('*').order('order_index', { ascending: true });
+      const { data: modulesData, error: mErr } = await supabase.from('course_modules').select('*').order('order_index', { ascending: true });
+      if (mErr) throw mErr;
       setAllModules(modulesData || []);
+      console.log("Modules fetched:", modulesData?.length);
 
       // 3. Fetch Knowledge Base
-      const { data: kbData } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+      const { data: kbData, error: kErr } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+      if (kErr) throw kErr;
       setKbResources(kbData || []);
 
       // 4. Fetch User Progress if logged in
       if (user) {
-        const { data: progressData } = await supabase
+        const { data: progressData, error: pErr } = await supabase
           .from('user_course_progress')
           .select('*')
           .eq('user_id', user.id);
+        if (pErr) throw pErr;
         setUserProgress(progressData || []);
+        console.log("User progress fetched:", progressData?.length);
+      } else {
+        setUserProgress([]);
       }
     } catch (err) {
       console.error("Error fetching LMS data:", err);
@@ -132,6 +142,8 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
   const totalModules = allModules.length;
   const completedModules = userProgress.length;
   const percentage = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+  
+  console.log("DashboardTab Render:", { totalModules, completedModules, percentage });
 
   // Find the first module that isn't completed
   const nextModule = allModules.find(m => !userProgress.some((p: any) => p.module_id === m.id));
