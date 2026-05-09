@@ -27,6 +27,8 @@ export default function GuideLmsPage() {
   const [allModules, setAllModules] = useState<any[]>([]);
   const [userProgress, setUserProgress] = useState<any[]>([]);
   const [kbResources, setKbResources] = useState<any[]>([]);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [enrollments, setEnrollments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
   const tabs = [
@@ -45,17 +47,32 @@ export default function GuideLmsPage() {
     setLoading(true);
     console.log("Fetching LMS data for user:", user?.id);
     try {
+      // 0. Check Subscription
+      const { data: subData } = await supabase
+        .from('user_subscriptions')
+        .select('*')
+        .eq('user_email', user?.email)
+        .single();
+      
+      setSubscription(subData);
+
       // 1. Fetch Courses
       const { data: coursesData, error: cErr } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
       if (cErr) throw cErr;
       setCourses(coursesData || []);
-      console.log("Courses fetched:", coursesData?.length);
 
       // 2. Fetch All Modules
       const { data: modulesData, error: mErr } = await supabase.from('course_modules').select('*').order('order_index', { ascending: true });
       if (mErr) throw mErr;
       setAllModules(modulesData || []);
-      console.log("Modules fetched:", modulesData?.length);
+
+      // 2.5 Fetch Enrollments
+      let enrolledData: any[] = [];
+      if (user?.id) {
+         const { data: eData } = await supabase.from('user_enrollments').select('*').eq('user_id', user.id);
+         enrolledData = eData || [];
+         setEnrollments(enrolledData);
+      }
 
       // 3. Fetch Knowledge Base
       const { data: kbData, error: kErr } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
@@ -71,6 +88,11 @@ export default function GuideLmsPage() {
         if (pErr) throw pErr;
         setUserProgress(progressData || []);
         console.log("User progress fetched:", progressData?.length);
+        
+        // Initial sync to ensure consistency (only for enrolled modules)
+        const enrolledCourseIds = enrolledData.map(e => e.course_id);
+        const enrolledModules = modulesData?.filter(m => enrolledCourseIds.includes(m.course_id)) || [];
+        syncGlobalProgress(progressData || [], enrolledModules);
       } else {
         setUserProgress([]);
       }
@@ -78,6 +100,31 @@ export default function GuideLmsPage() {
       console.error("Error fetching LMS data:", err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const syncGlobalProgress = async (currentProgress: any[], currentModules: any[]) => {
+    if (!user?.email) return;
+    
+    const totalModules = currentModules.length;
+    let percentage = 0;
+    
+    if (totalModules > 0) {
+      const totalWatchedSum = currentModules.reduce((acc: number, mod: any) => {
+        const prog = currentProgress.find((p: any) => p.module_id === mod.id);
+        return acc + (prog?.watched_percentage || 0);
+      }, 0);
+      percentage = Math.round(totalWatchedSum / totalModules);
+    }
+
+    console.log("Syncing global progress to database:", percentage + "%");
+    try {
+      await supabase
+        .from('user_subscriptions')
+        .update({ progress_percent: percentage })
+        .eq('user_email', user.email);
+    } catch (err) {
+      console.error("Error syncing global progress:", err);
     }
   };
 
@@ -91,7 +138,19 @@ export default function GuideLmsPage() {
         watched_percentage: 100
       }, { onConflict: 'user_id,module_id' });
       if (error) throw error;
-      fetchData(); // Refresh progress
+      
+      // Update local state and sync
+      const { data: updatedProgress } = await supabase
+        .from('user_course_progress')
+        .select('*')
+        .eq('user_id', user.id);
+      
+      if (updatedProgress) {
+        setUserProgress(updatedProgress);
+        const enrolledCourseIds = enrollments.map(e => e.course_id);
+        const enrolledModules = allModules.filter(m => enrolledCourseIds.includes(m.course_id));
+        syncGlobalProgress(updatedProgress, enrolledModules);
+      }
     } catch (err) {
       console.error("Error updating progress:", err);
     }
@@ -100,7 +159,17 @@ export default function GuideLmsPage() {
   const updateWatchProgress = async (moduleId: string, courseId: string, percentage: number, position: number) => {
     if (!user) return;
     try {
-      // Use silent update to avoid layout thrashing
+      // 1. Update local state for immediate feedback
+      const updatedProgress = [...userProgress];
+      const index = updatedProgress.findIndex(p => p.module_id === moduleId);
+      if (index > -1) {
+        updatedProgress[index] = { ...updatedProgress[index], watched_percentage: percentage, last_position: position };
+      } else {
+        updatedProgress.push({ user_id: user.id, module_id: moduleId, course_id: courseId, watched_percentage: percentage, last_position: position });
+      }
+      setUserProgress(updatedProgress);
+
+      // 2. Database update (Silent)
       await supabase.from('user_course_progress').upsert({
         user_id: user.id,
         module_id: moduleId,
@@ -108,10 +177,59 @@ export default function GuideLmsPage() {
         watched_percentage: percentage,
         last_position: position
       }, { onConflict: 'user_id,module_id' });
+
+      // 3. Global sync
+      const enrolledCourseIds = enrollments.map(e => e.course_id);
+      const enrolledModules = allModules.filter(m => enrolledCourseIds.includes(m.course_id));
+      syncGlobalProgress(updatedProgress, enrolledModules);
     } catch (err) {
       console.error("Error updating watch progress:", err);
     }
   };
+
+  const handleEnrollUser = async (courseId: string) => {
+    if (!user) return;
+    try {
+      const { data, error } = await supabase.from('user_enrollments').insert({
+        user_id: user.id,
+        course_id: courseId
+      }).select().single();
+      
+      if (error && error.code !== '23505') throw error; // Ignore unique constraint if already enrolled
+      
+      if (data) {
+        setEnrollments(prev => [...prev, data]);
+        // Switch to learning tab after enrollment
+        setActiveTab('Learning');
+      }
+    } catch (err) {
+      console.error("Error enrolling user:", err);
+      alert("Could not enroll in course. Please try again.");
+    }
+  };
+
+  if (!user) return null;
+
+  if (!loading && !subscription) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center p-6">
+        <div className="max-w-md w-full text-center space-y-6">
+          <div className="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto border border-orange-100">
+             <ShieldAlert className="w-10 h-10 text-[#FF5F00]" />
+          </div>
+          <h2 className="text-2xl font-montserrat font-black text-slate-900">No Active Course Subscription</h2>
+          <p className="text-slate-500 font-medium leading-relaxed">
+            You haven't enrolled in any courses yet. Access to the Guide and LMS modules is restricted to active subscribers.
+          </p>
+          <div className="pt-4">
+             <a href="/#pricing" className="bg-[#FF5F00] text-white px-8 py-3.5 rounded-xl font-bold uppercase text-xs tracking-widest shadow-lg shadow-orange-500/20 inline-block">
+                View Pricing Plans
+             </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-inter pb-20 pt-24">
@@ -141,9 +259,9 @@ export default function GuideLmsPage() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.3 }}
         >
-          {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} loading={loading} />}
-          {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} markComplete={markModuleComplete} updateProgress={updateWatchProgress} loading={loading} />}
-          {activeTab === 'Courses' && <CoursesTab courses={courses} allModules={allModules} loading={loading} />}
+          {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} enrollments={enrollments} loading={loading} />}
+          {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} enrollments={enrollments} markComplete={markModuleComplete} updateProgress={updateWatchProgress} loading={loading} />}
+          {activeTab === 'Courses' && <CoursesTab courses={courses} allModules={allModules} enrollments={enrollments} onEnroll={handleEnrollUser} loading={loading} />}
           {activeTab === 'Knowledge Base' && <KnowledgeBaseTab resources={kbResources} loading={loading} />}
           {activeTab === 'Blueprint' && <BlueprintTab userProgress={userProgress} allModules={allModules} />}
         </motion.div>
@@ -155,20 +273,24 @@ export default function GuideLmsPage() {
 // ------------------------------------------------------------------
 // 1. DASHBOARD TAB
 // ------------------------------------------------------------------
-function DashboardTab({ courses, allModules, userProgress, loading }: any) {
-  const totalModules = allModules.length;
-  // Calculate aggregate progress based on watched_percentage of each module
-  const totalWatchedSum = allModules.reduce((acc: number, mod: any) => {
+function DashboardTab({ courses, allModules, userProgress, enrollments, loading }: any) {
+  const enrolledCourseIds = enrollments.map((e: any) => e.course_id);
+  const enrolledModules = allModules.filter((m: any) => enrolledCourseIds.includes(m.course_id));
+  
+  const totalModules = enrolledModules.length;
+  const totalWatchedSum = enrolledModules.reduce((acc: number, mod: any) => {
     const prog = userProgress.find((p: any) => p.module_id === mod.id);
     return acc + (prog?.watched_percentage || 0);
   }, 0);
   const percentage = totalModules > 0 ? Math.round(totalWatchedSum / totalModules) : 0;
-  const completedModules = userProgress.filter((p: any) => p.watched_percentage === 100).length;
+  const completedModules = userProgress.filter((p: any) => 
+    enrolledModules.some((m: any) => m.id === p.module_id) && p.watched_percentage === 100
+  ).length;
   
-  console.log("DashboardTab Render:", { totalModules, completedModules, percentage });
+  console.log("DashboardTab Render:", { totalModules, completedModules, percentage, enrolledCourseIds });
 
-  // Find the first module that isn't completed
-  const nextModule = allModules.find(m => !userProgress.some((p: any) => p.module_id === m.id));
+  // Find the first module that isn't completed in enrolled courses
+  const nextModule = enrolledModules.find((m: any) => !userProgress.some((p: any) => p.module_id === m.id && p.watched_percentage === 100));
   const ongoingCourse = nextModule ? courses.find((c: any) => c.id === nextModule.course_id) : null;
 
   if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
@@ -194,11 +316,13 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
                </div>
             </div>
             <div>
-               <h3 className="text-xl font-bold mb-2 text-slate-800">{ongoingCourse ? `Ongoing: ${ongoingCourse.title}` : 'No Active Course'}</h3>
+               <h3 className="text-xl font-bold mb-2 text-slate-800">
+                 {totalModules === 0 ? 'No Modules Available' : ongoingCourse ? `Ongoing: ${ongoingCourse.title}` : 'No Active Course'}
+               </h3>
                <p className="text-slate-500 text-sm mb-4">
-                 {nextModule ? `You are currently at ${nextModule.title}. Complete it to progress further.` : 'All modules completed! Wait for more content.'}
+                 {totalModules === 0 ? 'Content is being uploaded. Please check back later.' : nextModule ? `You are currently at ${nextModule.title}. Complete it to progress further.` : 'All modules completed! Wait for more content.'}
                </p>
-               {nextModule && (
+               {nextModule && totalModules > 0 && (
                  <button className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm">
                    Resume Module
                  </button>
@@ -206,15 +330,18 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
             </div>
          </div>
 
-         {/* Stats Card */}
          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-4">
             <div className="pb-4 border-b border-slate-100">
-               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Modules Cleared</div>
-               <div className="text-3xl font-inter font-bold text-slate-800">{completedModules}<span className="text-base text-slate-400 font-normal">/{totalModules}</span></div>
+               <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Modules Cleared</div>
+               <div className="text-3xl font-inter font-black text-slate-800">
+                 {String(completedModules).padStart(2, '0')}<span className="text-base text-slate-400 font-normal">/{String(totalModules).padStart(2, '0')}</span>
+               </div>
             </div>
             <div>
-               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Status</div>
-               <div className="text-xl font-inter font-bold text-slate-800">{percentage === 100 ? 'Certified' : 'In Training'}</div>
+               <div className="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Hours Logged</div>
+               <div className="text-xl font-inter font-bold text-slate-800">
+                  {percentage > 0 ? (percentage * 0.25).toFixed(1) : "0.0"} <span className="text-sm text-slate-400 font-normal">hrs</span>
+               </div>
             </div>
          </div>
       </div>
@@ -223,7 +350,7 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
       <div>
         <h2 className="text-xl font-bold font-inter text-slate-800 mb-4">Upcoming Modules</h2>
         <div className="space-y-3">
-          {allModules.filter(m => !userProgress.some((p: any) => p.module_id === m.id)).slice(0, 3).map((item, i) => (
+          {enrolledModules.filter((m: any) => !userProgress.some((p: any) => p.module_id === m.id)).slice(0, 3).map((item: any, i: number) => (
              <div key={i} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition">
                <div className="flex items-center gap-4">
                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
@@ -237,7 +364,7 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
                <div className="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded">Pending</div>
              </div>
           ))}
-          {allModules.length === 0 && <p className="text-slate-500 italic">No modules uploaded yet. Coming Soon.</p>}
+          {enrolledModules.length === 0 && <p className="text-slate-500 italic">No modules uploaded yet. Coming Soon.</p>}
         </div>
       </div>
     </div>
@@ -247,14 +374,18 @@ function DashboardTab({ courses, allModules, userProgress, loading }: any) {
 // ------------------------------------------------------------------
 // 2. LEARNING TAB (Former page.tsx LMS code)
 // ------------------------------------------------------------------
-function LearningTab({ courses, allModules, userProgress, markComplete, updateProgress, loading }: any) {
-  const courseIdsWithModules = Array.from(new Set(allModules.map((m: any) => m.course_id)));
-  const coursesWithContent = courses.filter((c: any) => courseIdsWithModules.includes(c.id));
-  
+function LearningTab({ courses, allModules, userProgress, enrollments, markComplete, updateProgress, loading }: any) {
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const courseModules = allModules.filter((m: any) => m.course_id === selectedCourseId);
   const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
   const videoRef = React.useRef<HTMLVideoElement>(null);
+
+  const enrolledCourseIds = enrollments.map((e: any) => e.course_id);
+  const enrolledCourses = courses.filter((c: any) => enrolledCourseIds.includes(c.id));
+  const enrolledModules = allModules.filter((m: any) => enrolledCourseIds.includes(m.course_id));
+
+  // Courses that have modules
+  const coursesWithContent = enrolledCourses.filter((c: any) => enrolledModules.some((m: any) => m.course_id === c.id));
+  const courseModules = enrolledModules.filter((m: any) => m.course_id === selectedCourseId);
 
   useEffect(() => {
     if (!selectedCourseId && coursesWithContent.length > 0) {
@@ -268,7 +399,7 @@ function LearningTab({ courses, allModules, userProgress, markComplete, updatePr
     }
   }, [courseModules]);
 
-  const activeModule = allModules.find(m => m.id === activeModuleId);
+  const activeModule = allModules.find((m: any) => m.id === activeModuleId);
   const isCompleted = userProgress.some((p: any) => p.module_id === activeModuleId && p.watched_percentage === 100);
 
   const handleTimeUpdate = () => {
@@ -346,6 +477,16 @@ function LearningTab({ courses, allModules, userProgress, markComplete, updatePr
   };
 
   if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
+
+  if (enrolledCourseIds.length === 0) {
+      return (
+         <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 text-center">
+            <GraduationCap className="w-16 h-16 text-slate-300 mb-4" />
+            <h2 className="text-2xl font-bold text-slate-800">Not Enrolled</h2>
+            <p className="text-slate-500 max-w-sm mt-2">You haven't enrolled in any courses yet. Please visit the Courses tab to enroll.</p>
+         </div>
+      );
+  }
 
   if (coursesWithContent.length === 0) {
      return (
@@ -516,7 +657,11 @@ function LearningTab({ courses, allModules, userProgress, markComplete, updatePr
 // ------------------------------------------------------------------
 // 3. COURSES TAB
 // ------------------------------------------------------------------
-function CoursesTab({ courses, allModules, loading }: any) {
+function CoursesTab({ courses, allModules, enrollments, onEnroll, loading }: any) {
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
+  
+  const enrolledCourseIds = enrollments?.map((e: any) => e.course_id) || [];
+
   const displayCourses = courses.map((c: any, i: number) => {
     const grads = ['from-blue-500 to-indigo-600', 'from-orange-400 to-pink-500', 'from-emerald-500 to-teal-700', 'from-purple-500 to-fuchsia-600'];
     const moduleCount = allModules.filter((m: any) => m.course_id === c.id).length;
@@ -567,9 +712,15 @@ function CoursesTab({ courses, allModules, loading }: any) {
                         <span className="text-[12px] text-red-500 font-black uppercase tracking-widest line-through decoration-red-600 decoration-2 mb-1">₹{course.actual_price}</span>
                         <span className="text-2xl font-inter font-black text-slate-900 tracking-tighter">₹{course.discounted_price}</span>
                      </div>
-                     <a href={course.enroll_link} target="_blank" rel="noreferrer" className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
-                        Enroll Now
-                     </a>
+                     {enrolledCourseIds.includes(course.id) ? (
+                        <button disabled className="bg-slate-200 text-slate-500 font-bold px-5 py-2 rounded-lg text-sm shadow-sm text-center cursor-not-allowed">
+                           Enrolled
+                        </button>
+                     ) : (
+                        <button onClick={() => onEnroll(course.id)} className="bg-slate-900 text-white font-bold px-5 py-2 rounded-lg hover:bg-cyan-600 transition-colors text-sm shadow-md text-center">
+                           Enroll Now
+                        </button>
+                     )}
                   </div>
                </div>
             </div>
@@ -691,7 +842,7 @@ function BlueprintTab({ userProgress, allModules }: any) {
       </div>
 
       <div className="relative border-l-4 border-slate-200 ml-4 md:ml-10 space-y-12 pb-10">
-         {steps.map((step, idx) => (
+         {steps.map((step: any, idx: number) => (
             <div key={idx} className="relative pl-8 md:pl-12 group">
                {/* Node Line Marker */}
                <div className={`absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 shadow-sm z-10 transition-colors duration-500 ${

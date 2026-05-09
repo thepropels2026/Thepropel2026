@@ -59,7 +59,7 @@ export default function ProfileDashboard() {
         } else {
           // Demo fallback
           setUserPlan({
-            progress_percent: 15,
+            progress_percent: 0,
             pricing_plans: { title: 'The Propels Individual (Trial)', plan_key: 'Free' }
           });
         }

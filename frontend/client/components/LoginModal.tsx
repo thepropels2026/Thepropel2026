@@ -99,9 +99,8 @@ export default function LoginModal() {
     setError(null);
     setSuccess(null);
     try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        [method === 'email' ? 'email' : 'phone']: inputValue,
-      });
+      const payload = method === 'email' ? { email: inputValue } : { phone: inputValue };
+      const { error: otpError } = await supabase.auth.signInWithOtp(payload);
       if (otpError) throw otpError;
       setTimer(120);
       setSuccess("New credentials dispatched to your terminal.");
