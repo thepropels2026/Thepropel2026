@@ -5,7 +5,7 @@
 
 -- 1. PROFILES (Network Page)
 CREATE TABLE IF NOT EXISTS public.profiles (
-    id UUID PRIMARY KEY DEFAULT auth.uid(),
+    id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
     email TEXT UNIQUE NOT NULL,
     first_name TEXT NOT NULL,
     last_name TEXT NOT NULL,
@@ -13,9 +13,9 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     gender TEXT,
     mobile TEXT,
     picture TEXT,
-    designation TEXT NOT NULL,
-    company TEXT NOT NULL,
-    location TEXT,
+    designation TEXT DEFAULT 'Founder @ Stealth',
+    company TEXT DEFAULT 'Stealth Startup',
+    location TEXT DEFAULT 'Global',
     bio TEXT,
     education TEXT,
     skills TEXT,
@@ -23,6 +23,30 @@ CREATE TABLE IF NOT EXISTS public.profiles (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW()),
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc', NOW())
 );
+
+-- Function to handle automated profile creation on Auth Sign-up
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS trigger AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, first_name, last_name, dob, gender, mobile)
+  VALUES (
+    new.id,
+    new.email,
+    COALESCE(new.raw_user_meta_data->>'first_name', ''),
+    COALESCE(new.raw_user_meta_data->>'last_name', ''),
+    (new.raw_user_meta_data->>'dob')::DATE,
+    new.raw_user_meta_data->>'gender',
+    new.raw_user_meta_data->>'mobile'
+  );
+  RETURN new;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger to execute the function on every new user
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
 -- 2. JOB POSTINGS (Careers Page)
 CREATE TABLE IF NOT EXISTS public.job_postings (
@@ -139,7 +163,8 @@ INSERT INTO storage.buckets (id, name, public) VALUES ('kb', 'kb', true) ON CONF
 -- Profiles
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read" ON public.profiles FOR SELECT USING (true);
-CREATE POLICY "Allow public insert" ON public.profiles FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow individual update" ON public.profiles FOR UPDATE USING (auth.uid() = id);
+-- Note: Insert is handled by the database trigger, so public insert is no longer needed.
 
 -- Job Postings
 ALTER TABLE public.job_postings ENABLE ROW LEVEL SECURITY;

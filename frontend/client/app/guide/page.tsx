@@ -6,8 +6,9 @@ import {
   BookOpen, FileText, FileSpreadsheet, Download, Clock,
   ChevronRight, Circle, Play, CheckSquare
 } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import { useAuth } from '../../components/AuthContext';
 
 // Mock Knowledge Base Data
 const kbFiles = [
@@ -20,7 +21,13 @@ const kbFiles = [
 ];
 
 export default function GuideLmsPage() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [courses, setCourses] = useState<any[]>([]);
+  const [allModules, setAllModules] = useState<any[]>([]);
+  const [userProgress, setUserProgress] = useState<any[]>([]);
+  const [kbResources, setKbResources] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   
   const tabs = [
     { name: 'Dashboard', icon: LayoutDashboard },
@@ -29,6 +36,55 @@ export default function GuideLmsPage() {
     { name: 'Knowledge Base', icon: Search },
     { name: 'Blueprint', icon: Map },
   ];
+
+  useEffect(() => {
+    fetchData();
+  }, [user]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      // 1. Fetch Courses
+      const { data: coursesData } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
+      setCourses(coursesData || []);
+
+      // 2. Fetch All Modules
+      const { data: modulesData } = await supabase.from('course_modules').select('*').order('order_index', { ascending: true });
+      setAllModules(modulesData || []);
+
+      // 3. Fetch Knowledge Base
+      const { data: kbData } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+      setKbResources(kbData || []);
+
+      // 4. Fetch User Progress if logged in
+      if (user) {
+        const { data: progressData } = await supabase
+          .from('user_course_progress')
+          .select('*')
+          .eq('user_id', user.id);
+        setUserProgress(progressData || []);
+      }
+    } catch (err) {
+      console.error("Error fetching LMS data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const markModuleComplete = async (moduleId: string, courseId: string) => {
+    if (!user) return;
+    try {
+      const { error } = await supabase.from('user_course_progress').upsert({
+        user_id: user.id,
+        module_id: moduleId,
+        course_id: courseId
+      });
+      if (error) throw error;
+      fetchData(); // Refresh progress
+    } catch (err) {
+      console.error("Error updating progress:", err);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-inter pb-20 pt-24">
@@ -58,11 +114,11 @@ export default function GuideLmsPage() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.3 }}
         >
-          {activeTab === 'Dashboard' && <DashboardTab />}
-          {activeTab === 'Learning' && <LearningTab />}
-          {activeTab === 'Courses' && <CoursesTab />}
-          {activeTab === 'Knowledge Base' && <KnowledgeBaseTab />}
-          {activeTab === 'Blueprint' && <BlueprintTab />}
+          {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} loading={loading} />}
+          {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} markComplete={markModuleComplete} loading={loading} />}
+          {activeTab === 'Courses' && <CoursesTab courses={courses} allModules={allModules} loading={loading} />}
+          {activeTab === 'Knowledge Base' && <KnowledgeBaseTab resources={kbResources} loading={loading} />}
+          {activeTab === 'Blueprint' && <BlueprintTab userProgress={userProgress} allModules={allModules} />}
         </motion.div>
       </div>
     </div>
@@ -72,7 +128,17 @@ export default function GuideLmsPage() {
 // ------------------------------------------------------------------
 // 1. DASHBOARD TAB
 // ------------------------------------------------------------------
-function DashboardTab() {
+function DashboardTab({ courses, allModules, userProgress, loading }: any) {
+  const totalModules = allModules.length;
+  const completedModules = userProgress.length;
+  const percentage = totalModules > 0 ? Math.round((completedModules / totalModules) * 100) : 0;
+
+  // Find the first module that isn't completed
+  const nextModule = allModules.find(m => !userProgress.some((p: any) => p.module_id === m.id));
+  const ongoingCourse = nextModule ? courses.find((c: any) => c.id === nextModule.course_id) : null;
+
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
+
   return (
     <div className="space-y-8">
       <div>
@@ -86,19 +152,23 @@ function DashboardTab() {
             <div className="relative w-32 h-32 shrink-0">
                <svg className="w-full h-full -rotate-90" viewBox="0 0 36 36">
                   <path className="text-slate-100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  <path className="text-cyan-500" strokeDasharray="65, 100" strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                  <path className="text-cyan-500" strokeDasharray={`${percentage}, 100`} strokeWidth="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
                </svg>
                <div className="absolute inset-0 flex items-center justify-center flex-col">
-                  <span className="text-2xl font-bold font-inter text-slate-800">45%</span>
+                  <span className="text-2xl font-bold font-inter text-slate-800">{percentage}%</span>
                   <span className="text-[10px] uppercase text-slate-500 font-bold">Progress</span>
                </div>
             </div>
             <div>
-               <h3 className="text-xl font-bold mb-2 text-slate-800">Ongoing: Validating your MVP</h3>
-               <p className="text-slate-500 text-sm mb-4">You are currently placed in Module 2. Finish the lecture videos to unlock the strict evaluation protocol.</p>
-               <button className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm">
-                 Resume Module
-               </button>
+               <h3 className="text-xl font-bold mb-2 text-slate-800">{ongoingCourse ? `Ongoing: ${ongoingCourse.title}` : 'No Active Course'}</h3>
+               <p className="text-slate-500 text-sm mb-4">
+                 {nextModule ? `You are currently at ${nextModule.title}. Complete it to progress further.` : 'All modules completed! Wait for more content.'}
+               </p>
+               {nextModule && (
+                 <button className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm">
+                   Resume Module
+                 </button>
+               )}
             </div>
          </div>
 
@@ -106,37 +176,34 @@ function DashboardTab() {
          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-center gap-4">
             <div className="pb-4 border-b border-slate-100">
                <div className="text-slate-400 text-xs font-bold uppercase mb-1">Modules Cleared</div>
-               <div className="text-3xl font-inter font-bold text-slate-800">01<span className="text-base text-slate-400 font-normal">/05</span></div>
+               <div className="text-3xl font-inter font-bold text-slate-800">{completedModules}<span className="text-base text-slate-400 font-normal">/{totalModules}</span></div>
             </div>
             <div>
-               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Hours Logged</div>
-               <div className="text-3xl font-inter font-bold text-slate-800">12.5 <span className="text-base text-slate-400 font-normal">hrs</span></div>
+               <div className="text-slate-400 text-xs font-bold uppercase mb-1">Status</div>
+               <div className="text-xl font-inter font-bold text-slate-800">{percentage === 100 ? 'Certified' : 'In Training'}</div>
             </div>
          </div>
       </div>
 
       {/* Upcoming Flow */}
       <div>
-        <h2 className="text-xl font-bold font-inter text-slate-800 mb-4">Upcoming Schedule</h2>
+        <h2 className="text-xl font-bold font-inter text-slate-800 mb-4">Upcoming Modules</h2>
         <div className="space-y-3">
-          {[
-            { tag: 'Module 02', title: 'Customer Discovery', time: 'Pending' },
-            { tag: 'Module 03', title: 'Product Market Fit', time: 'Locked' },
-            { tag: 'Module 04', title: 'Seed Funding Strategy', time: 'Locked' },
-          ].map((item, i) => (
+          {allModules.filter(m => !userProgress.some((p: any) => p.module_id === m.id)).slice(0, 3).map((item, i) => (
              <div key={i} className="flex items-center justify-between p-4 bg-white border border-slate-200 rounded-xl hover:shadow-md transition">
                <div className="flex items-center gap-4">
                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center shrink-0">
                     <Lock className="w-4 h-4 text-slate-400" />
                  </div>
                  <div>
-                    <div className="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-1">{item.tag}</div>
+                    <div className="text-xs font-bold text-cyan-600 uppercase tracking-wider mb-1">Module {item.order_index}</div>
                     <div className="font-bold text-slate-800">{item.title}</div>
                  </div>
                </div>
-               <div className="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded">{item.time}</div>
+               <div className="text-sm font-bold text-slate-400 bg-slate-50 px-3 py-1 rounded">Pending</div>
              </div>
           ))}
+          {allModules.length === 0 && <p className="text-slate-500 italic">No modules uploaded yet. Coming Soon.</p>}
         </div>
       </div>
     </div>
@@ -146,8 +213,29 @@ function DashboardTab() {
 // ------------------------------------------------------------------
 // 2. LEARNING TAB (Former page.tsx LMS code)
 // ------------------------------------------------------------------
-function LearningTab() {
-  const [activeModule, setActiveModule] = useState(1);
+function LearningTab({ courses, allModules, userProgress, markComplete, loading }: any) {
+  const courseIdsWithModules = Array.from(new Set(allModules.map((m: any) => m.course_id)));
+  const coursesWithContent = courses.filter((c: any) => courseIdsWithModules.includes(c.id));
+  
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const courseModules = allModules.filter((m: any) => m.course_id === selectedCourseId);
+  const [activeModuleId, setActiveModuleId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!selectedCourseId && coursesWithContent.length > 0) {
+      setSelectedCourseId(coursesWithContent[0].id);
+    }
+  }, [coursesWithContent]);
+
+  useEffect(() => {
+    if (courseModules.length > 0 && !activeModuleId) {
+      setActiveModuleId(courseModules[0].id);
+    }
+  }, [courseModules]);
+
+  const activeModule = allModules.find(m => m.id === activeModuleId);
+  const isCompleted = userProgress.some((p: any) => p.module_id === activeModuleId);
+
   const [isExamMode, setIsExamMode] = useState(false);
   const [examStatus, setExamStatus] = useState<"pending" | "running" | "failed" | "passed">("pending");
   const [warnings, setWarnings] = useState(0);
@@ -191,6 +279,25 @@ function LearningTab() {
     }
   };
 
+  const handleClearModule = async () => {
+     if (activeModule && selectedCourseId) {
+        await markComplete(activeModule.id, selectedCourseId);
+        setExamStatus('passed');
+     }
+  };
+
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
+
+  if (coursesWithContent.length === 0) {
+     return (
+        <div className="flex flex-col items-center justify-center p-12 bg-white rounded-2xl border border-slate-200 text-center">
+           <Library className="w-16 h-16 text-slate-300 mb-4" />
+           <h2 className="text-2xl font-bold text-slate-800">Coming Soon</h2>
+           <p className="text-slate-500 max-w-sm mt-2">Our team is currently preparing the curriculum. Check back shortly for uploaded modules.</p>
+        </div>
+     );
+  }
+
   if (isExamMode) {
     if (examStatus === 'failed') {
       return (
@@ -222,14 +329,14 @@ function LearningTab() {
           <span className="flex items-center gap-2"><Lock className="w-4 h-4" /> MONITORING ENABLED</span>
         </div>
         <div className="bg-white border border-slate-200 shadow-md p-8 rounded-b-xl border-t-0">
-          <h2 className="text-2xl font-inter font-bold text-slate-800 mb-2">Module 1 Final Evaluation</h2>
+          <h2 className="text-2xl font-inter font-bold text-slate-800 mb-2">{activeModule?.title} - Evaluation</h2>
           <p className="text-slate-500 mb-8 border-b border-slate-100 pb-4">Do not switch tabs, minimize the browser, or interact with other applications.</p>
           
           <div className="space-y-8">
             <div className="p-6 border border-slate-200 rounded-xl bg-slate-50">
-              <h3 className="font-bold text-slate-800 text-lg mb-4">1. What is the primary focus of Early Stage VCs?</h3>
+              <h3 className="font-bold text-slate-800 text-lg mb-4">1. Did you fully understand the concepts presented in this module?</h3>
               <div className="space-y-3">
-                {['Traction', 'Founding Team', 'Revenue Profitability', 'IP Protection'].map(opt => (
+                {['Yes, completely', 'Mostly understood', 'Requires review', 'Not at all'].map(opt => (
                   <label key={opt} className="flex flex-row items-center gap-3 p-4 border border-slate-200 bg-white rounded cursor-pointer hover:border-cyan-400 transition hover:shadow-sm">
                     <input type="radio" name="q1" className="w-4 h-4 text-cyan-600 focus:ring-cyan-500 border-slate-300" />
                     <span className="text-slate-700 font-medium">{opt}</span>
@@ -237,7 +344,7 @@ function LearningTab() {
                 ))}
               </div>
             </div>
-            <button onClick={() => setExamStatus('passed')} className="bg-slate-900 text-white hover:bg-slate-800 w-full py-4 rounded-xl font-bold text-lg shadow-md transition">Submit Secure Exam</button>
+            <button onClick={handleClearModule} className="bg-slate-900 text-white hover:bg-slate-800 w-full py-4 rounded-xl font-bold text-lg shadow-md transition">Submit Secure Exam</button>
           </div>
         </div>
       </div>
@@ -245,59 +352,100 @@ function LearningTab() {
   }
 
   return (
-    <div className="flex flex-col lg:flex-row gap-8">
-      {/* Module Sidebar */}
-      <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
-        <h2 className="text-xl font-inter font-bold text-slate-800">Curriculum</h2>
-        <div className="flex flex-col gap-3">
-          {[1, 2, 3, 4].map(mod => (
+    <div className="space-y-6">
+      {/* Course Selector */}
+      <div className="flex gap-3 overflow-x-auto pb-2 hide-scrollbar">
+         {coursesWithContent.map((c: any) => (
             <button 
-              key={mod} 
-              onClick={() => setActiveModule(mod)} 
-              className={`text-left p-4 rounded-xl border transition-all pointer-events-auto ${activeModule === mod ? 'bg-cyan-50 border-cyan-300 text-cyan-900 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'}`}
+               key={c.id} 
+               onClick={() => { setSelectedCourseId(c.id); setActiveModuleId(null); }}
+               className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all ${selectedCourseId === c.id ? 'bg-slate-900 text-white shadow-lg' : 'bg-white border border-slate-200 text-slate-500 hover:border-slate-400'}`}
             >
-              <div className="text-xs font-bold uppercase tracking-widest text-cyan-600 mb-1">Module 0{mod}</div>
-              <h3 className="font-bold">Introduction to Seed Funding</h3>
-              <div className="flex items-center gap-2 mt-3 text-xs text-slate-400 font-bold">
-                 <Clock className="w-3 h-3" /> 45 mins
-              </div>
+               {c.title}
             </button>
-          ))}
-        </div>
+         ))}
       </div>
 
-      {/* Video & Material Area */}
-      <div className="flex-1">
-        <div className="bg-slate-900 aspect-video rounded-2xl shadow-lg border border-slate-200 flex items-center justify-center relative overflow-hidden mb-6 group cursor-pointer">
-            <div className="absolute inset-0 bg-gradient-to-tr from-cyan-900/40 to-transparent z-0 opacity-50 transition-opacity group-hover:opacity-100" />
-            <div className="w-20 h-20 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center z-10 transition-transform group-hover:scale-110 border border-white/20">
-               <Play className="w-8 h-8 text-white ml-2" />
-            </div>
-            <div className="absolute bottom-4 left-4 z-10 text-white">
-               <div className="uppercase tracking-widest text-[10px] font-bold text-cyan-400 mb-1">Lesson 1</div>
-               <div className="font-bold">The Pitch Breakdown</div>
-            </div>
-        </div>
-        
-        <h1 className="text-3xl font-inter font-bold text-slate-900 mb-4">Mastering The VC Mindset</h1>
-        <p className="text-slate-600 mb-8 leading-relaxed text-lg">
-          In this module, you will learn the exact psychological frameworks that investors look for when writing $1M+ checks. Watch the 45-minute lecture and complete the mandatory evaluation to proceed.
-        </p>
-
-        {/* Exam Trigger Block */}
-        <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start gap-6 shadow-inner">
-            <div className="bg-orange-100 p-3 rounded-full shrink-0">
-               <MonitorUp className="w-8 h-8 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="text-xl font-bold font-inter text-orange-900 mb-2">Module Evaluation Checkpoint</h3>
-              <p className="text-sm text-orange-800 text-opacity-80 mb-6 leading-relaxed">
-                To proceed to Module 2, you must clear this test. The system requires camera, microphone, and strict tab focus. Any attempt to switch tabs or minimize the browser will result in automatic exam rejection.
-              </p>
-              <button onClick={startExam} className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-colors w-full sm:w-auto">
-                Verify Hardware & Start Exam
+      <div className="flex flex-col lg:flex-row gap-8">
+        {/* Module Sidebar */}
+        <div className="w-full lg:w-80 shrink-0 flex flex-col gap-4">
+          <h2 className="text-xl font-inter font-bold text-slate-800">Modules</h2>
+          <div className="flex flex-col gap-3">
+            {courseModules.map((mod: any) => (
+              <button 
+                key={mod.id} 
+                onClick={() => setActiveModuleId(mod.id)} 
+                className={`text-left p-4 rounded-xl border transition-all pointer-events-auto flex items-start gap-3 ${activeModuleId === mod.id ? 'bg-cyan-50 border-cyan-300 text-cyan-900 shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300 hover:shadow-sm'}`}
+              >
+                <div className="mt-1">
+                   {userProgress.some((p: any) => p.module_id === mod.id) ? (
+                      <CheckCircle className="w-4 h-4 text-emerald-500" />
+                   ) : (
+                      <Circle className="w-4 h-4 text-slate-300" />
+                   )}
+                </div>
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-cyan-600 mb-1">Module {mod.order_index}</div>
+                  <h3 className="font-bold text-sm leading-tight">{mod.title}</h3>
+                </div>
               </button>
-            </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Video & Material Area */}
+        <div className="flex-1">
+          {activeModule ? (
+             <>
+               <div className="bg-slate-900 aspect-video rounded-2xl shadow-lg border border-slate-200 flex items-center justify-center relative overflow-hidden mb-6 group cursor-pointer">
+                  {activeModule.content_url ? (
+                     <video 
+                        src={activeModule.content_url} 
+                        controls 
+                        className="w-full h-full object-cover"
+                        poster={courses.find((c: any) => c.id === selectedCourseId)?.image_url}
+                     />
+                  ) : (
+                     <div className="flex flex-col items-center">
+                        <Play className="w-12 h-12 text-white/50 mb-4" />
+                        <p className="text-white/50 font-bold">Video Content Pending</p>
+                     </div>
+                  )}
+               </div>
+               
+               <h1 className="text-3xl font-inter font-bold text-slate-900 mb-4">{activeModule.title}</h1>
+               <p className="text-slate-600 mb-8 leading-relaxed text-lg">
+                 {activeModule.description || 'Watch this module to unlock the evaluation checkpoint and progress in the curriculum.'}
+               </p>
+
+               {/* Exam Trigger Block */}
+               {!isCompleted ? (
+                 <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6 flex flex-col sm:flex-row items-start gap-6 shadow-inner">
+                     <div className="bg-orange-100 p-3 rounded-full shrink-0">
+                        <MonitorUp className="w-8 h-8 text-orange-600" />
+                     </div>
+                     <div>
+                       <h3 className="text-xl font-bold font-inter text-orange-900 mb-2">Module Evaluation Checkpoint</h3>
+                       <p className="text-sm text-orange-800 text-opacity-80 mb-6 leading-relaxed">
+                         To mark this module as complete, you must clear the security-verified evaluation. Any attempt to switch tabs or minimize the browser will result in rejection.
+                       </p>
+                       <button onClick={startExam} className="bg-orange-600 hover:bg-orange-700 text-white px-6 py-3 rounded-lg font-bold shadow-md transition-colors w-full sm:w-auto">
+                         Verify Hardware & Start Exam
+                       </button>
+                     </div>
+                 </div>
+               ) : (
+                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-6 flex items-center gap-4 text-emerald-800 font-bold">
+                    <CheckCircle className="w-6 h-6 text-emerald-500" />
+                    You have successfully completed this module.
+                 </div>
+               )}
+             </>
+          ) : (
+             <div className="h-full flex items-center justify-center text-slate-400 font-medium">
+                Select a module to begin learning.
+             </div>
+          )}
         </div>
       </div>
     </div>
@@ -307,44 +455,21 @@ function LearningTab() {
 // ------------------------------------------------------------------
 // 3. COURSES TAB
 // ------------------------------------------------------------------
-function CoursesTab() {
-  const [courses, setCourses] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchCourses() {
-      try {
-        const { data, error } = await supabase.from('courses').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        setCourses(data || []);
-      } catch (err) {
-        console.error("Error fetching courses:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchCourses();
-  }, []);
-
-  const mockCourses = [
-    { title: 'Y-Combinator Application Masterclass', category: 'Incubation', grad: 'from-blue-500 to-indigo-600', actual_price: 2999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Zero to One: SaaS Product Strategy', category: 'Product', grad: 'from-orange-400 to-pink-500', actual_price: 1999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Financial Modeling for Pre-Seed Founders', category: 'Finance', grad: 'from-emerald-500 to-teal-700', actual_price: 4999, discounted_price: 0, enroll_link: '#' },
-    { title: 'Growth Hacking your first 1,000 Users', category: 'Marketing', grad: 'from-purple-500 to-fuchsia-600', actual_price: 1499, discounted_price: 0, enroll_link: '#' },
-  ];
-
-  const displayCourses = courses.length > 0 ? courses.map((c, i) => {
+function CoursesTab({ courses, allModules, loading }: any) {
+  const displayCourses = courses.map((c: any, i: number) => {
     const grads = ['from-blue-500 to-indigo-600', 'from-orange-400 to-pink-500', 'from-emerald-500 to-teal-700', 'from-purple-500 to-fuchsia-600'];
+    const moduleCount = allModules.filter((m: any) => m.course_id === c.id).length;
     return {
       title: c.title,
-      category: 'Masterclass',
+      category: moduleCount > 0 ? `${moduleCount} Modules` : 'Coming Soon',
       grad: grads[i % grads.length],
       actual_price: c.actual_price,
       discounted_price: c.discounted_price,
       enroll_link: c.enroll_link,
-      description: c.description
+      description: c.description,
+      moduleCount
     };
-  }) : mockCourses;
+  });
 
   return (
     <div>
@@ -353,9 +478,6 @@ function CoursesTab() {
             <h2 className="text-2xl font-bold font-inter text-slate-800">Available Masterclasses</h2>
             <p className="text-slate-500 mt-1">Unlock premium curriculum with your subscription.</p>
           </div>
-          <button className="bg-slate-100 text-slate-700 font-bold px-4 py-2 border border-slate-200 rounded-lg shadow-sm">
-             Filter Options
-          </button>
        </div>
 
        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -363,11 +485,11 @@ function CoursesTab() {
              <div className="col-span-full py-10 flex justify-center">
                <div className="w-8 h-8 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div>
              </div>
-          ) : displayCourses.map((course, i) => (
+          ) : displayCourses.length > 0 ? displayCourses.map((course: any, i: number) => (
             <div key={i} className="group bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden flex flex-col hover:shadow-xl transition-all duration-300">
                {/* Abstract Gradient Thumbnail */}
                <div className={`h-40 bg-gradient-to-tr ${course.grad} relative p-6 flex items-end overflow-hidden`}>
-                  <div className="absolute top-4 right-4 bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white border border-white/30 tracking-wider">
+                  <div className={`absolute top-4 right-4 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold text-white border border-white/30 tracking-wider ${course.moduleCount > 0 ? 'bg-white/20' : 'bg-red-500/40'}`}>
                      {course.category}
                   </div>
                   {/* Decorative Elements */}
@@ -390,7 +512,12 @@ function CoursesTab() {
                   </div>
                </div>
             </div>
-          ))}
+          )) : (
+             <div className="col-span-full py-20 text-center bg-white border border-slate-200 rounded-2xl">
+                <Library className="w-12 h-12 text-slate-200 mx-auto mb-4" />
+                <p className="text-slate-500 font-medium">No courses found. Check back later.</p>
+             </div>
+          )}
        </div>
     </div>
   );
@@ -399,41 +526,23 @@ function CoursesTab() {
 // ------------------------------------------------------------------
 // 4. KNOWLEDGE BASE TAB
 // ------------------------------------------------------------------
-function KnowledgeBaseTab() {
+function KnowledgeBaseTab({ resources, loading }: any) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [resources, setResources] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function fetchKB() {
-      try {
-        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
-        if (error) throw error;
-        setResources(data || []);
-      } catch (err) {
-        console.error("Error fetching knowledge base:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchKB();
-  }, []);
-
-  const displayFiles = resources.length > 0 ? resources.map(r => {
-    const isPdf = r.download_link?.toLowerCase().endsWith('.pdf');
-    return {
-      id: r.id,
-      title: r.title,
-      desc: r.description,
-      download_link: r.download_link,
-      icon: isPdf ? FileText : BookOpen
-    };
-  }) : kbFiles;
+  const displayFiles = resources.map((r: any) => ({
+    id: r.id,
+    title: r.title,
+    desc: r.description,
+    download_link: r.download_link,
+    icon: r.file_type === 'pdf' ? FileText : (r.file_type === 'spreadsheet' ? FileSpreadsheet : BookOpen)
+  }));
   
-  const filteredFiles = displayFiles.filter(f => 
+  const filteredFiles = displayFiles.filter((f: any) => 
     f.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
     f.desc.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  if (loading) return <div className="py-20 flex justify-center"><div className="w-10 h-10 border-4 border-cyan-200 border-t-cyan-600 rounded-full animate-spin"></div></div>;
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -457,7 +566,7 @@ function KnowledgeBaseTab() {
 
       <div className="space-y-4">
         {filteredFiles.length > 0 ? (
-          filteredFiles.map((file) => (
+          filteredFiles.map((file: any) => (
             <motion.div 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -476,9 +585,9 @@ function KnowledgeBaseTab() {
                   <Download className="w-4 h-4" /> Download
                 </a>
               ) : (
-                <button className="hidden sm:flex text-slate-400 hover:text-cyan-600 transition-colors items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg group-hover:bg-cyan-50 group-hover:text-cyan-600">
-                  <Download className="w-4 h-4" /> Download
-                </button>
+                <div className="hidden sm:flex text-slate-300 items-center gap-2 font-bold text-sm bg-slate-50 px-4 py-2 rounded-lg">
+                  <Lock className="w-4 h-4" /> Locked
+                </div>
               )}
             </motion.div>
           ))
@@ -496,10 +605,18 @@ function KnowledgeBaseTab() {
 // ------------------------------------------------------------------
 // 5. BLUEPRINT TAB
 // ------------------------------------------------------------------
-function BlueprintTab() {
-  const steps = [
-    { title: 'The Genesis', desc: 'Identify core problem, analyze market gaps, and synthesize a bare-bones thesis.', status: 'completed' },
-    { title: 'Market Validation', desc: 'Customer interviews, landing page smoke tests, and intent gathering without code.', status: 'active' },
+function BlueprintTab({ userProgress, allModules }: any) {
+  const steps = allModules.length > 0 ? allModules.map((m: any, i: number) => {
+    const isCompleted = userProgress.some((p: any) => p.module_id === m.id);
+    const isActive = !isCompleted && (i === 0 || userProgress.some((p: any) => p.module_id === allModules[i-1]?.id));
+    return {
+      title: m.title,
+      desc: m.description || 'Module content description pending.',
+      status: isCompleted ? 'completed' : (isActive ? 'active' : 'locked')
+    };
+  }) : [
+    { title: 'The Genesis', desc: 'Identify core problem, analyze market gaps, and synthesize a bare-bones thesis.', status: 'active' },
+    { title: 'Market Validation', desc: 'Customer interviews, landing page smoke tests, and intent gathering without code.', status: 'locked' },
     { title: 'MVP Assembly', desc: 'Building the fundamental feature set that solves the strict pain point efficiently.', status: 'locked' },
     { title: 'Early Traction Engine', desc: 'Acquiring the first 100 paying customers through unscalable efforts and targeted outreach.', status: 'locked' },
     { title: 'Seed Funding & Scale', desc: 'Real-world revenue demonstration, pitch deck creation, and investor networking.', status: 'locked' },

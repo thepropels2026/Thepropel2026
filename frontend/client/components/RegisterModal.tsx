@@ -84,14 +84,21 @@ export default function RegisterModal() {
     setError(null);
     try {
       // 1. Check if user already exists in profiles (Pre-check)
-      const { data: existingUser } = await supabase
+      const { data: existingUser, error: checkError } = await supabase
         .from('profiles')
         .select('id')
         .eq('email', formData.email)
         .single();
 
+      // If checkError is PGRST116, it means no user was found, which is fine
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Profile check error:", checkError);
+        // If it's a network error, it will likely have an empty message or "Failed to fetch"
+        throw new Error(checkError.message || "Network error during identity verification");
+      }
+
       if (existingUser) {
-        alert("User already exists. Redirecting to login...");
+        alert("This identity is already active in the network. Redirecting to login...");
         setRegisterModalOpen(false);
         setLoginModalOpen(true);
         return;
@@ -114,7 +121,7 @@ export default function RegisterModal() {
 
       if (authError) {
         if (authError.message.includes("already registered") || authError.status === 400) {
-          alert("This identity is already active in the network. Redirecting to login...");
+          alert("This identity is already active in the auth system. Redirecting to login...");
           setRegisterModalOpen(false);
           setLoginModalOpen(true);
           return;
@@ -122,33 +129,18 @@ export default function RegisterModal() {
         throw authError;
       }
 
-      // 3. Create Profile in Public Database
-      const profilePayload = {
-        id: authData.user?.id,
-        email: formData.email,
-        first_name: formData.firstName,
-        last_name: formData.lastName,
-        dob: formData.dob,
-        gender: formData.gender,
-        mobile: formData.mobile,
-        designation: 'Founder @ Stealth',
-        company: 'Stealth Startup',
-        location: 'Global',
-        bio: 'Innovating at the intersection of technology and impact.',
-        picture: `https://api.dicebear.com/7.x/notionists/svg?seed=${formData.firstName}`,
-        updated_at: new Date().toISOString()
-      };
+      if (!authData.user) {
+        throw new Error("Authentication failed: No user data returned");
+      }
 
-      const { error: dbError } = await supabase
-        .from('profiles')
-        .upsert(profilePayload);
-
-      if (dbError) throw dbError;
-
-      // Note: AuthContext useEffect will pick up the new session and update the UI
+      // 3. Success! 
+      // The database trigger 'on_auth_user_created' will automatically create the profile record.
+      // We can now close the modal. The AuthContext will pick up the new session.
+      alert("Registration successful! Welcome to The Propels.");
       setRegisterModalOpen(false);
     } catch (err: any) {
-      setError(err.message || "Registration failed");
+      console.error("Registration error details:", err);
+      setError(err.message || "Registration failed. Please check your connection.");
     } finally {
       setIsSubmitting(false);
     }

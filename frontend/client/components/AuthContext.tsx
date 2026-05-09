@@ -94,7 +94,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const syncUser = async (supabaseUser: any) => {
+  const syncUser = async (supabaseUser: any, retryCount = 0): Promise<void> => {
     try {
       // Fetch full profile from the database
       const { data: profile, error } = await supabase
@@ -104,14 +104,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .single();
 
       if (error) {
-        // Fallback to metadata if profile doesn't exist yet (e.g. during registration)
-        console.warn("Profile fetch failed, using metadata fallback:", error.message);
+        // If profile doesn't exist yet, retry a few times (trigger might be running)
+        if (retryCount < 3) {
+          console.log(`Profile not found, retrying sync (${retryCount + 1}/3)...`);
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          return syncUser(supabaseUser, retryCount + 1);
+        }
+
+        // Final fallback to metadata
+        console.warn("Profile fetch failed after retries, using metadata fallback:", error.message);
         const fallbackData = {
           id: supabaseUser.id,
           firstName: supabaseUser.user_metadata?.first_name || supabaseUser.email?.split('@')[0],
           lastName: supabaseUser.user_metadata?.last_name || '',
           email: supabaseUser.email,
-          picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${supabaseUser.email}`,
+          picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${supabaseUser.id}`,
         };
         setIsRegistered(true);
         setUser(fallbackData);
@@ -129,8 +136,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.setItem('isRegistered', 'true');
         localStorage.setItem('userProfile', JSON.stringify(userData));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error("Auth sync error:", err);
+      if (err.message === 'Failed to fetch') {
+        console.warn("Network error during auth sync. Check Supabase connection.");
+      }
     }
   };
 

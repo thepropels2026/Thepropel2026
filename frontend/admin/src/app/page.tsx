@@ -4,7 +4,7 @@ import {
   ShieldAlert, Terminal, Plus, Video, Wrench, Image as ImageIcon, 
   Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
   Download, Eye, Mail, Phone, Linkedin, User, FileText, 
-  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, DollarSign, Check
+  RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, DollarSign, Check, Library
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -14,7 +14,7 @@ export default function AdminPortal() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState('');
   const [error, setError] = useState('');
-  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'pricing'>('tools');
+  const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'pricing' | 'kb'>('tools');
   const [loading, setLoading] = useState(false);
 
   // Data states
@@ -24,6 +24,9 @@ export default function AdminPortal() {
   const [applications, setApplications] = useState<any[]>([]);
   const [jobs, setJobs] = useState<any[]>([]);
   const [pricingPlans, setPricingPlans] = useState<any[]>([]);
+  const [knowledgeBase, setKnowledgeBase] = useState<any[]>([]);
+  const [modules, setModules] = useState<any[]>([]);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   useEffect(() => {
     const adminSession = localStorage.getItem('adminSession');
@@ -59,6 +62,10 @@ export default function AdminPortal() {
         const { data, error } = await supabase.from('pricing_plans').select('*').order('sort_order', { ascending: true });
         if (error) throw error;
         setPricingPlans(data || []);
+      } else if (activeTab === 'kb') {
+        const { data, error } = await supabase.from('knowledge_base').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        setKnowledgeBase(data || []);
       }
     } catch (err: any) {
       console.error(`Error fetching ${activeTab}:`, err.message);
@@ -197,6 +204,98 @@ export default function AdminPortal() {
     }
   };
 
+  const uploadFile = async (file: File, bucket: string) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from(bucket)
+      .upload(fileName, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from(bucket)
+      .getPublicUrl(fileName);
+
+    return publicUrl;
+  };
+
+  const handleAddKB = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const file = formData.get('file') as File;
+    setLoading(true);
+    try {
+      let download_link = formData.get('download_link') as string;
+      if (file && file.size > 0) {
+        download_link = await uploadFile(file, 'kb-documents');
+      }
+
+      const { error } = await supabase.from('knowledge_base').insert({
+        title: formData.get('title'),
+        description: formData.get('description'),
+        download_link: download_link,
+        file_type: formData.get('file_type') || 'pdf',
+        category: formData.get('category') || 'Template'
+      });
+      if (error) throw error;
+      alert("Document added to Knowledge Base!");
+      (e.target as HTMLFormElement).reset();
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchModules = async (courseId: string) => {
+    setSelectedCourseId(courseId);
+    try {
+      const { data, error } = await supabase
+        .from('course_modules')
+        .select('*')
+        .eq('course_id', courseId)
+        .order('order_index', { ascending: true });
+      if (error) throw error;
+      setModules(data || []);
+    } catch (err: any) {
+      console.error("Error fetching modules:", err.message);
+    }
+  };
+
+  const handleAddModule = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!selectedCourseId) return;
+    const formData = new FormData(e.currentTarget);
+    const file = formData.get('file') as File;
+    setLoading(true);
+    try {
+      let content_url = formData.get('content_url') as string;
+      if (file && file.size > 0) {
+        content_url = await uploadFile(file, 'course-content');
+      }
+
+      const { error } = await supabase.from('course_modules').insert({
+        course_id: selectedCourseId,
+        title: formData.get('title'),
+        description: formData.get('description'),
+        content_url: content_url,
+        content_type: formData.get('content_type') || 'video',
+        order_index: parseInt(formData.get('order_index') as string) || 0
+      });
+      if (error) throw error;
+      alert("Module added!");
+      (e.target as HTMLFormElement).reset();
+      fetchModules(selectedCourseId);
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleUpdatePricing = async (id: string, field: string, value: any) => {
     try {
       const updateVal = field === 'features' ? JSON.parse(value) : value;
@@ -293,6 +392,7 @@ export default function AdminPortal() {
               { id: 'stories', name: 'Success Stories', icon: Award, color: 'text-purple-400' },
               { id: 'careers', name: 'Career Manager', icon: MapPin, color: 'text-yellow-400' },
               { id: 'pricing', name: 'Pricing Plans', icon: DollarSign, color: 'text-emerald-400' },
+              { id: 'kb', name: 'Knowledge Base', icon: Library, color: 'text-indigo-400' },
               { id: 'applications', name: 'Applications', icon: Briefcase, color: 'text-rose-400' }
             ].map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id as any)} className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all font-semibold text-sm ${activeTab === tab.id ? 'bg-white/5 text-white border border-white/10' : 'text-slate-400 hover:bg-white/5 border border-transparent'}`}>
@@ -339,36 +439,119 @@ export default function AdminPortal() {
               </motion.div>
             )}
 
-            {activeTab === 'courses' && (
-              <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+            {activeTab === 'kb' && (
+              <motion.div key="kb" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
-                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-orange-400" /> Add New Course</h2>
-                  <form onSubmit={handleAddCourse} className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                    <input name="title" required placeholder="Course Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <input name="mentor" required placeholder="Mentor Name" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <input name="image_url" type="url" required placeholder="Image URL" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <input name="enroll_link" type="url" required placeholder="Enroll Link" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <input name="actual_price" type="number" required placeholder="Actual Price" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <input name="discounted_price" type="number" required placeholder="Discounted Price" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
-                    <textarea name="description" required placeholder="Course Description" rows={3} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500 md:col-span-2 resize-none" />
-                    <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Add Course</button></div>
+                  <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-indigo-400" /> Add KB Document</h2>
+                  <form onSubmit={handleAddKB} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <input name="title" required placeholder="Document Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" />
+                    <input name="category" placeholder="Category (e.g. Legal, Finance)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" />
+                    <select name="file_type" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500">
+                      <option value="pdf">PDF</option>
+                      <option value="doc">Document</option>
+                      <option value="spreadsheet">Spreadsheet</option>
+                    </select>
+                    <input name="download_link" placeholder="External URL (optional)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500" />
+                    <div className="md:col-span-2">
+                       <label className="text-xs text-slate-400 mb-2 block">Upload File (Recommended)</label>
+                       <input name="file" type="file" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-indigo-500 w-full" />
+                    </div>
+                    <textarea name="description" required placeholder="Description" rows={3} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-indigo-500 md:col-span-2 resize-none" />
+                    <div className="md:col-span-2 flex justify-end"><button type="submit" disabled={loading} className="bg-indigo-600 text-white px-6 py-2 rounded-xl font-bold text-sm disabled:opacity-50">{loading ? 'Uploading...' : 'Add Document'}</button></div>
                   </form>
                 </div>
 
                 <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
-                  <h3 className="text-white font-bold mb-4">Existing Courses</h3>
+                  <h3 className="text-white font-bold mb-4">Resource Library</h3>
                   <div className="space-y-3">
-                    {courses.map(course => (
-                      <div key={course.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                    {knowledgeBase.map(kb => (
+                      <div key={kb.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
                         <div className="flex items-center gap-3">
-                          <img src={course.image_url} className="w-10 h-10 rounded-lg object-cover" />
-                          <div><p className="text-sm font-bold text-white">{course.title}</p><p className="text-xs text-slate-500">{course.mentor}</p></div>
+                          <div className="bg-white/5 p-2 rounded-lg"><Library className="w-5 h-5 text-indigo-400" /></div>
+                          <div><p className="text-sm font-bold text-white">{kb.title}</p><p className="text-xs text-slate-500">{kb.category} • {kb.file_type}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete('knowledge_base', kb.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
                 </div>
+              </motion.div>
+            )}
+
+            {activeTab === 'courses' && (
+              <motion.div key="courses" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                {selectedCourseId ? (
+                   <div className="space-y-6">
+                      <button onClick={() => setSelectedCourseId(null)} className="text-orange-400 text-sm font-bold flex items-center gap-1 hover:underline"><Plus className="w-4 h-4 rotate-45" /> Back to Courses</button>
+                      <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                        <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-orange-400" /> Add Module</h2>
+                        <form onSubmit={handleAddModule} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                          <input name="title" required placeholder="Module Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                          <input name="order_index" type="number" required placeholder="Order (0, 1, 2...)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                          <select name="content_type" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500">
+                             <option value="video">Video</option>
+                             <option value="pdf">PDF</option>
+                          </select>
+                          <input name="content_url" placeholder="Direct URL (optional)" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                          <div className="md:col-span-2">
+                             <label className="text-xs text-slate-400 mb-2 block">Upload Content</label>
+                             <input name="file" type="file" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2 text-sm text-white outline-none focus:border-orange-500 w-full" />
+                          </div>
+                          <textarea name="description" required placeholder="Short Description" rows={2} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500 md:col-span-2 resize-none" />
+                          <div className="md:col-span-2 flex justify-end"><button type="submit" disabled={loading} className="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold text-sm disabled:opacity-50">{loading ? 'Uploading...' : 'Add Module'}</button></div>
+                        </form>
+                      </div>
+                      <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                        <h3 className="text-white font-bold mb-4">Course Modules</h3>
+                        <div className="space-y-3">
+                           {modules.length === 0 && <p className="text-slate-500 text-sm text-center py-4">No modules uploaded yet.</p>}
+                           {modules.map(mod => (
+                              <div key={mod.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                                 <div className="flex items-center gap-3">
+                                    <div className="text-orange-400 font-bold">#{mod.order_index}</div>
+                                    <div><p className="text-sm font-bold text-white">{mod.title}</p><p className="text-xs text-slate-500">{mod.content_type}</p></div>
+                                 </div>
+                                 <button onClick={() => handleDelete('course_modules', mod.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                           ))}
+                        </div>
+                      </div>
+                   </div>
+                ) : (
+                   <div className="space-y-6">
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6 shadow-xl">
+                      <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2"><Plus className="w-5 h-5 text-orange-400" /> Add New Course</h2>
+                      <form onSubmit={handleAddCourse} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <input name="title" required placeholder="Course Title" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <input name="mentor" required placeholder="Mentor Name" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <input name="image_url" type="url" required placeholder="Image URL" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <input name="enroll_link" type="url" required placeholder="Enroll Link" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <input name="actual_price" type="number" required placeholder="Actual Price" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <input name="discounted_price" type="number" required placeholder="Discounted Price" className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500" />
+                        <textarea name="description" required placeholder="Course Description" rows={3} className="bg-[#111] border border-white/10 rounded-xl px-4 py-2.5 text-sm text-white outline-none focus:border-orange-500 md:col-span-2 resize-none" />
+                        <div className="md:col-span-2 flex justify-end"><button type="submit" className="bg-orange-600 text-white px-6 py-2 rounded-xl font-bold text-sm">Add Course</button></div>
+                      </form>
+                    </div>
+
+                    <div className="bg-[#0a0a0a] border border-white/10 rounded-2xl p-6">
+                      <h3 className="text-white font-bold mb-4">Existing Courses</h3>
+                      <div className="space-y-3">
+                        {courses.map(course => (
+                          <div key={course.id} className="flex items-center justify-between p-4 bg-[#111] rounded-xl border border-white/5">
+                            <div className="flex items-center gap-3">
+                              <img src={course.image_url} className="w-10 h-10 rounded-lg object-cover" />
+                              <div><p className="text-sm font-bold text-white">{course.title}</p><p className="text-xs text-slate-500">{course.mentor}</p></div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                               <button onClick={() => fetchModules(course.id)} className="px-3 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-lg border border-orange-500/20 hover:bg-orange-500/20">Manage Modules</button>
+                               <button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
