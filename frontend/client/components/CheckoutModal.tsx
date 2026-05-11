@@ -6,6 +6,8 @@ import {
   ChevronRight, Lock, CreditCard, Sparkles 
 } from 'lucide-react';
 
+import { API_BASE_URL } from '../lib/api';
+
 interface ToolCard {
   id: string;
   title: string;
@@ -55,7 +57,7 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
       const amount = tool.discount_price || tool.price;
       
       // 1. Call backend to create Order and get payment_session_id
-      const response = await fetch('http://localhost:8000/api/checkout', {
+      const response = await fetch(`${API_BASE_URL}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Zap, ExternalLink, Loader2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
+import { API_BASE_URL } from '../../lib/api';
+
 /**
  * ActivationPage: The premium landing page after a successful purchase.
  * Features a "System Authorized" aesthetic with consistent brand identity.
@@ -24,8 +26,7 @@ export default function ActivationPage() {
 
   const handleActivate = () => {
     // Redirect to backend masked redirector
-    // Using a relative path or environment variable is better, but following current pattern
-    window.location.href = `http://localhost:8000/api/activate/${orderId}`;
+    window.location.href = `${API_BASE_URL}/api/activate/${orderId}`;
   };
 
   if (loading) {

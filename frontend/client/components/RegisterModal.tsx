@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { API_BASE_URL } from '../lib/api';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
@@ -51,11 +52,30 @@ export default function RegisterModal() {
   const sendOTPs = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 800)); // Faster simulation
+      // 1. Send Email OTP via Backend
+      const emailResp = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      
+      if (!emailResp.ok) throw new Error("Failed to send email verification code");
+
+      // 2. Send Mobile OTP (Mocked in backend main.py but still a real call)
+      const mobileResp = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile })
+      });
+
+      if (!mobileResp.ok) throw new Error("Failed to send mobile verification code");
+
       nextStep();
     } catch (err: any) {
-      setError("Failed to send verification codes.");
+      console.error("OTP send error:", err);
+      setError(err.message || "Failed to send verification codes. Check your terminal.");
     } finally {
       setIsSubmitting(false);
     }
@@ -64,11 +84,30 @@ export default function RegisterModal() {
   const verifyOTPs = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 600)); // Faster simulation
+      // 1. Verify Email OTP
+      const emailVerify = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp: formData.emailOtp })
+      });
+
+      if (!emailVerify.ok) throw new Error("Incorrect Email verification code.");
+
+      // 2. Verify Mobile OTP
+      const mobileVerify = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobile: formData.mobile, otp: formData.mobileOtp })
+      });
+
+      if (!mobileVerify.ok) throw new Error("Incorrect Mobile verification code.");
+
       nextStep();
     } catch (err: any) {
-      setError("OTP verification failed.");
+      console.error("OTP verify error:", err);
+      setError(err.message || "OTP verification failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -76,6 +115,7 @@ export default function RegisterModal() {
 
   const finalizeRegistration = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("[DEBUG] Finalizing Registration - Protocol v2.1 (Refreshed)");
     if (formData.password !== formData.confirmPassword) {
       setError("Passwords do not match");
       return;
@@ -83,25 +123,21 @@ export default function RegisterModal() {
     setIsSubmitting(true);
     setError(null);
     try {
-      // 1. Check if user already exists in profiles (Pre-check)
-      const { data: existingUser, error: checkError } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('email', formData.email)
-        .single();
+      // 1. Identity Check via Backend (More stable than direct Supabase hit)
+      const checkResp = await fetch(`${API_BASE_URL}/api/auth/check-email`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
 
-      // If checkError is PGRST116, it means no user was found, which is fine
-      if (checkError && checkError.code !== 'PGRST116') {
-        console.error("Profile check error:", checkError);
-        // If it's a network error, it will likely have an empty message or "Failed to fetch"
-        throw new Error(checkError.message || "Network error during identity verification");
-      }
-
-      if (existingUser) {
-        alert("This identity is already active in the network. Redirecting to login...");
-        setRegisterModalOpen(false);
-        setLoginModalOpen(true);
-        return;
+      if (checkResp.ok) {
+        const { exists } = await checkResp.json();
+        if (exists) {
+          alert("This identity is already registered in the vault. Redirecting to login...");
+          setRegisterModalOpen(false);
+          setLoginModalOpen(true);
+          return;
+        }
       }
 
       // 2. Supabase Auth Registration
@@ -120,7 +156,15 @@ export default function RegisterModal() {
       });
 
       if (authError) {
-        if (authError.message.includes("already registered") || authError.status === 400) {
+        console.error("Supabase Auth Protocol Error:", authError);
+        const msg = authError.message || "";
+        
+        // Robust check for "Invalid path" or 404
+        if (msg.toLowerCase().includes("invalid path") || authError.status === 404) {
+          throw new Error("CRITICAL: Supabase API endpoint mismatch. Verify your URL in the dashboard.");
+        }
+
+        if (msg.includes("already registered") || authError.status === 400) {
           alert("This identity is already active in the auth system. Redirecting to login...");
           setRegisterModalOpen(false);
           setLoginModalOpen(true);

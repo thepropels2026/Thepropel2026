@@ -1,7 +1,5 @@
--- ==========================================
--- THE PROPELS - COMPREHENSIVE SUPABASE SCHEMA
--- ==========================================
--- Run this in your Supabase SQL Editor to set up all required tables.
+-- 0. EXTENSIONS (Required for uuid_generate_v4())
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- 1. PROFILES (Network Page)
 CREATE TABLE IF NOT EXISTS public.profiles (

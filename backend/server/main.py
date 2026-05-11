@@ -137,6 +137,20 @@ async def verify_otp(req: OTPVerifyRequest):
         return {"status": "success", "message": "OTP verified"}
     raise HTTPException(status_code=400, detail="Invalid or expired OTP")
 
+@app.post("/api/auth/check-email")
+async def check_email(req: OTPRequest):
+    if not req.email:
+        raise HTTPException(status_code=400, detail="Email is required")
+    
+    try:
+        # Query Supabase profiles table
+        res = supabase.table("profiles").select("id").eq("email", req.email).execute()
+        return {"exists": len(res.data) > 0}
+    except Exception as e:
+        print(f"SUPABASE ERROR (check_email): {str(e)}")
+        # If table doesn't exist yet, we treat it as "not exists" to allow registration
+        return {"exists": False, "warning": "Profiles table may not be initialized"}
+
 # Root endpoint
 @app.get("/")
 def read_root():
