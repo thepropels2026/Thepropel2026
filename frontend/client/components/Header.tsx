@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import Link from 'next/link'; // Next.js link for optimized client-side navigation
 import { useAuth } from './AuthContext'; // Access global authentication state
+import { useCart } from '../context/CartContext';
 // Import icons from lucide-react for visual navigation cues
-import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin, LogOut, AlertCircle } from 'lucide-react';
+import { UserCircle, Home, Rocket, Wrench, PieChart, Globe, Map, Menu, X, Linkedin, LogOut, AlertCircle, ShoppingCart } from 'lucide-react';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -14,6 +15,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 export default function Header() {
   // Extract auth state and logout function from context
   const { isRegistered, logout, setRegisterModalOpen, setLoginModalOpen } = useAuth();
+  const { itemCount, setIsCartOpen } = useCart();
   // State to manage mobile menu visibility
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   // State to manage logout confirmation modal
@@ -50,6 +52,19 @@ export default function Header() {
 
         {/* User Account Actions - Right-aligned */}
         <div className="hidden md:flex items-center gap-5 text-[13px] font-bold tracking-tight font-inter">
+          {/* Cart Icon with Badge */}
+          <button 
+            onClick={() => setIsCartOpen(true)}
+            className="relative p-2 text-white/70 hover:text-white transition-colors group"
+          >
+            {itemCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-cyan-500 text-black text-[10px] font-black rounded-full flex items-center justify-center border-2 border-black group-hover:scale-110 transition-transform">
+                {itemCount}
+              </span>
+            )}
+            <ShoppingCart className="w-6 h-6" />
+          </button>
+
           {/* Conditional rendering based on user registration status */}
           {isRegistered ? (
             <div className="flex items-center gap-5">

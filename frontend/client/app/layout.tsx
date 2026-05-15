@@ -10,6 +10,8 @@ import Header from '../components/Header'
 import Footer from '../components/Footer'
 // Import Authentication context provider
 import { AuthProvider } from '../components/AuthContext'
+// Import Cart context provider
+import { CartProvider } from '../context/CartContext'
 // Import icons from lucide-react
 import { MessageCircle } from 'lucide-react'
 // Import smooth scrolling utility component
@@ -17,6 +19,7 @@ import SmoothScroll from '../components/SmoothScroll'
 // Import Global Register & Login Modals
 import RegisterModal from '../components/RegisterModal'
 import LoginModal from '../components/LoginModal'
+import CartDrawer from '../components/CartDrawer'
 
 // Configure font subsets and weights, and define CSS variables for use in Tailwind/CSS
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['300', '400', '500', '600', '700', '800'], variable: '--font-montserrat' })
@@ -58,25 +61,28 @@ export default function RootLayout({
         <SmoothScroll>
           {/* Provide authentication state to all child components */}
           <AuthProvider>
-            <div className="flex flex-col min-h-screen relative z-0">
-              {/* Persistent Header */}
-              <Header />
-              
-              {/* Global Modals */}
-              <RegisterModal />
-              <LoginModal />
-              
-              {/* Main content area where individual page components are rendered */}
-              <main className="flex-grow">{children}</main>
-              
-              {/* Persistent Footer */}
-              <Footer />
-              
-              {/* Global Floating Action Button for Help/Chat Support - Visible on all pages */}
-              <div className="help-fab">
-                 <MessageCircle className="w-8 h-8 text-white/70" />
+            <CartProvider>
+              <div className="flex flex-col min-h-screen relative z-0">
+                {/* Persistent Header */}
+                <Header />
+                
+                {/* Global Modals */}
+                <RegisterModal />
+                <LoginModal />
+                <CartDrawer />
+                
+                {/* Main content area where individual page components are rendered */}
+                <main className="flex-grow">{children}</main>
+                
+                {/* Persistent Footer */}
+                <Footer />
+                
+                {/* Global Floating Action Button for Help/Chat Support - Visible on all pages */}
+                <div className="help-fab">
+                   <MessageCircle className="w-8 h-8 text-white/70" />
+                </div>
               </div>
-            </div>
+            </CartProvider>
           </AuthProvider>
         </SmoothScroll>
       </body>

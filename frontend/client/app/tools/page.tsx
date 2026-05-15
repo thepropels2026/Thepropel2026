@@ -8,8 +8,10 @@ import {
 import { supabase } from '../../lib/supabase';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, ShoppingCart } from 'lucide-react';
 import CheckoutModal from '../../components/CheckoutModal';
+import { useCart } from '../../context/CartContext';
+import CartDrawer from '../../components/CartDrawer';
 
 type ToolCard = {
   id: string;
@@ -60,8 +62,9 @@ export default function Tools() {
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const { addToCart, setIsCartOpen } = useCart();
   
-  // Modal state
+  // Modal state (keeping legacy single checkout for now, but adding cart support)
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTool, setSelectedTool] = useState<ToolCard | null>(null);
 
@@ -263,9 +266,16 @@ export default function Tools() {
                       <p className="text-[rgba(0,0,0,0.5)] text-xs font-medium leading-relaxed mb-6 line-clamp-2 group-hover:text-[rgba(0,0,0,0.7)] transition-colors">{tool.description}</p>
                       
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest text-cyan-600 group-hover:text-cyan-700 transition-all">
-                          Claim <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                        </div>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            addToCart(tool);
+                            setIsCartOpen(true);
+                          }}
+                          className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-cyan-50 text-[10px] font-bold uppercase tracking-widest text-cyan-600 hover:bg-cyan-100 transition-all border border-cyan-100"
+                        >
+                          Add to Cart <ShoppingCart className="w-3.5 h-3.5" />
+                        </button>
                         <div className="flex -space-x-1.5">
                           {[1,2].map(i => (
                             <div key={i} className="w-5 h-5 rounded-full border-2 border-white bg-slate-100 flex items-center justify-center">
@@ -282,6 +292,7 @@ export default function Tools() {
           </div>
         )}
       </div>
+
 
       {/* Checkout Modal Overlay */}
       {selectedTool && (

@@ -46,7 +46,7 @@ export default function CheckoutPage() {
 
         await cashfree.checkout({
           paymentSessionId: sessionId,
-          returnUrl: `${window.location.origin}/activate/{order_id}`
+          returnUrl: `${window.location.origin}/receipt/${orderId}`
         });
 
       } catch (err: any) {
@@ -117,8 +117,30 @@ export default function CheckoutPage() {
                   </div>
                 </div>
                 <h3 className="text-xl font-bold text-white mb-3">Initializing Vault</h3>
-                <p className="text-white/30 text-xs font-medium uppercase tracking-[0.2em] animate-pulse">Syncing with Cashfree PG...</p>
+                <p className="text-white/30 text-xs font-medium uppercase tracking-[0.2em] animate-pulse mb-8">Syncing with Cashfree PG...</p>
                 
+                {/* Payment Modes Preview */}
+                <div className="flex gap-4 opacity-50">
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      <CreditCard className="w-5 h-5 text-cyan-500" />
+                    </div>
+                    <span className="text-[8px] font-bold uppercase tracking-widest">Cards</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-cyan-500 font-bold text-xs">
+                      UPI
+                    </div>
+                    <span className="text-[8px] font-bold uppercase tracking-widest">UPI</span>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                      <RefreshCcw className="w-5 h-5 text-cyan-500" />
+                    </div>
+                    <span className="text-[8px] font-bold uppercase tracking-widest">Netbanking</span>
+                  </div>
+                </div>
+
                 <div className="mt-12 w-full space-y-4 opacity-30">
                    <div className="h-1 bg-white/5 rounded-full overflow-hidden">
                       <motion.div 

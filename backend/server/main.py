@@ -63,7 +63,7 @@ class OTPVerifyRequest(BaseModel):
 
 # Define a data model for checkout requests
 class CheckoutRequest(BaseModel):
-    tool_id: str
+    tool_ids: list[str]
     user_email: str
     amount: float
 
@@ -159,12 +159,41 @@ def read_root():
 # Endpoint to initiate a Cashfree checkout session
 @app.post("/api/checkout")
 async def create_checkout_session(req: CheckoutRequest):
-    tool_resp = supabase.table("tools_cards").select("*").eq("id", req.tool_id).execute()
-    if not tool_resp.data:
-        raise HTTPException(status_code=404, detail="Tool not found")
+    # Verify tools exist
+    tools_resp = supabase.table("tools_cards").select("*").in_("id", req.tool_ids).execute()
+    if not tools_resp.data:
+        raise HTTPException(status_code=404, detail="No valid tools found")
     
     order_id = f"order_{uuid.uuid4().hex[:12]}"
     
+    # Create order in database
+    order_data_insert = {
+        "cashfree_order_id": order_id,
+        "user_email": req.user_email,
+        "total_amount": req.amount,
+        "status": "pending"
+    }
+    
+    try:
+        order_res = supabase.table("orders").insert(order_data_insert).execute()
+        db_order_id = order_res.data[0]["id"]
+        
+        # Create order items
+        order_items = []
+        for tool in tools_resp.data:
+            order_items.append({
+                "order_id": db_order_id,
+                "tool_id": tool["id"],
+                "amount": tool.get("discount_price") or tool["price"]
+            })
+        
+        supabase.table("order_items").insert(order_items).execute()
+        
+    except Exception as e:
+        print(f"DB ERROR: Failed to create order: {str(e)}")
+        raise HTTPException(status_code=500, detail="Database error during order creation")
+
+    # Call Cashfree to create payment order
     url = f"{CASHFREE_BASE_URL}/orders"
     headers = {
         "x-api-version": "2023-08-01",
@@ -187,21 +216,13 @@ async def create_checkout_session(req: CheckoutRequest):
     try:
         response = requests.post(url, headers=headers, json=payload)
         response.raise_for_status()
-        order_data = response.json()
+        cf_order_data = response.json()
     except Exception as e:
         print(f"ERROR: Cashfree Order Creation failed: {str(e)}")
         raise HTTPException(status_code=500, detail="Failed to create payment order")
     
-    supabase.table("transactions").insert({
-        "cashfree_order_id": order_id,
-        "user_email": req.user_email,
-        "tool_id": req.tool_id,
-        "amount": req.amount,
-        "status": "pending"
-    }).execute()
-    
     return {
-        "payment_session_id": order_data.get("payment_session_id"),
+        "payment_session_id": cf_order_data.get("payment_session_id"),
         "order_id": order_id
     }
 
@@ -216,40 +237,77 @@ async def payment_webhook(request: Request):
     order_id = order_data.get("order_id")
     
     if event_type == "PAYMENT_SUCCESS_COMPLETED":
-        trans_resp = supabase.table("transactions").select("*").eq("cashfree_order_id", order_id).execute()
-        if not trans_resp.data:
+        # 1. Update Order status
+        order_resp = supabase.table("orders").select("*").eq("cashfree_order_id", order_id).execute()
+        if not order_resp.data:
             return {"status": "ignored"}
         
-        transaction = trans_resp.data[0]
-        if transaction["status"] == "completed":
+        db_order = order_resp.data[0]
+        if db_order["status"] == "paid":
             return {"status": "already_processed"}
             
-        tool_resp = supabase.table("tools_cards").select("*").eq("id", transaction["tool_id"]).execute()
-        tool = tool_resp.data[0]
-        pool = tool.get("voucher_pool", [])
+        # 2. Get Order Items
+        items_resp = supabase.table("order_items").select("*, tool_id(*)").eq("order_id", db_order["id"]).execute()
         
-        if not pool:
-            print(f"CRITICAL: Voucher Pool Empty for tool {tool['id']}")
-            return {"status": "error", "message": "No vouchers available"}
+        email_items = []
+        
+        for item in items_resp.data:
+            tool = item["tool_id"]
+            pool = tool.get("voucher_pool", [])
             
-        assigned_link = pool.pop(0)
+            if pool:
+                assigned_link = pool.pop(0)
+                # Update voucher pool
+                supabase.table("tools_cards").update({"voucher_pool": pool}).eq("id", tool["id"]).execute()
+                # Update order item with assigned link
+                supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
+                
+                email_items.append({
+                    "title": tool["title"],
+                    "link": assigned_link
+                })
         
-        supabase.table("tools_cards").update({"voucher_pool": pool}).eq("id", tool["id"]).execute()
+        # 3. Mark Order as Paid
+        supabase.table("orders").update({"status": "paid"}).eq("id", db_order["id"]).execute()
         
-        supabase.table("transactions").update({
-            "status": "completed",
-            "assigned_link": assigned_link
-        }).eq("cashfree_order_id", order_id).execute()
+        # 4. SEND CONSOLIDATED EMAIL
+        tool_names = ", ".join([i["title"] for i in email_items])
+        html_list = "".join([f"<li><strong>{i['title']}</strong>: <a href='{i['link']}'>{i['link']}</a></li>" for i in email_items])
         
-        # SEND EMAIL WITH CREDENTIALS
-        send_credentials_email(
-            email=transaction["user_email"],
-            tool_name=tool["title"],
-            assigned_link=assigned_link,
-            amount=transaction["amount"],
-            order_id=order_id
-        )
-        
+        try:
+            resend.Emails.send({
+                "from": "The Propels <onboarding@resend.dev>",
+                "to": [db_order["user_email"]],
+                "subject": f"Access Granted: Your {len(email_items)} Tools are Ready!",
+                "html": f"""
+                    <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
+                        <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Order Confirmed!</h2>
+                        <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase. Your premium access for the following tools is now active:</p>
+                        
+                        <ul style="color: #0f172a; font-size: 14px; line-height: 1.8; margin-bottom: 32px;">
+                            {html_list}
+                        </ul>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+                            <tr>
+                                <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Order ID</td>
+                                <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">{order_id}</td>
+                            </tr>
+                            <tr>
+                                <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Total Paid</td>
+                                <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">₹{db_order['total_amount']}</td>
+                            </tr>
+                        </table>
+                        
+                        <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">If you have any issues, please contact support.</p>
+                        <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
+                        <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
+                    </div>
+                """
+            })
+        except Exception as e:
+            print(f"RESEND ERROR: {str(e)}")
+            
         return {"status": "success"}
     
     return {"status": "received"}
