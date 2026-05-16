@@ -105,57 +105,82 @@ export default function ReceiptPage() {
           
           <div className="p-8 md:p-12">
             <div className="flex flex-col md:flex-row justify-between gap-8 mb-12 border-b border-slate-100 pb-12">
-              <div className="space-y-4">
+              <div className="space-y-6">
                 <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                  <Sparkles className="w-3 h-3" /> Official Receipt
+                  <Sparkles className="w-3 h-3 text-cyan-500" /> Official Asset Receipt
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Order ID</p>
-                  <p className="text-lg font-black text-slate-900 font-mono uppercase">{order.cashfree_order_id}</p>
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Unique Transaction Code</p>
+                  <div className="flex items-center gap-3">
+                    <p className="text-2xl font-black text-slate-900 font-mono uppercase tracking-tighter">{order.cashfree_order_id}</p>
+                    <div className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[8px] font-black uppercase rounded-md border border-emerald-100">Verified</div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Date</p>
-                  <p className="text-sm font-bold text-slate-700">{new Date(order.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
+                <div className="flex gap-10">
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Issue Date</p>
+                    <p className="text-sm font-bold text-slate-700">{new Date(order.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status</p>
+                    <p className="text-sm font-bold text-emerald-600 uppercase italic">Paid in Full</p>
+                  </div>
                 </div>
               </div>
-              <div className="md:text-right space-y-4">
-                <div>
+              
+              {/* QR Code Section */}
+              <div className="flex flex-col items-center md:items-end gap-4">
+                <div className="p-3 bg-white border-2 border-slate-100 rounded-3xl shadow-inner group transition-all hover:border-cyan-200">
+                  <img 
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${order.cashfree_order_id}`} 
+                    alt="Scan to verify" 
+                    className="w-24 h-24 md:w-32 md:h-32 rounded-xl"
+                  />
+                </div>
+                <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Scan to verify authenticity</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+               <div>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Sent To</p>
                   <p className="text-sm font-bold text-slate-900">{order.user_email}</p>
-                </div>
-                <div>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Paid</p>
-                  <p className="text-4xl font-black text-slate-900 tracking-tighter">₹{order.total_amount}</p>
-                </div>
-              </div>
+               </div>
+               <div className="md:text-right">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Total Investment</p>
+                  <p className="text-5xl font-black text-slate-900 tracking-tighter">₹{order.total_amount}</p>
+               </div>
             </div>
 
             {/* Items Table */}
             <div className="space-y-6 mb-12">
               <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Purchased Assets</h3>
               {items.map((item, idx) => (
-                <div key={idx} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-slate-50 rounded-2xl border border-slate-100 group hover:border-cyan-200 transition-all">
+                <div key={idx} className="flex flex-col md:flex-row md:items-center justify-between gap-4 p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:border-cyan-200 transition-all relative overflow-hidden">
+                  <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-opacity">
+                    <Sparkles className="w-4 h-4 text-cyan-500" />
+                  </div>
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-400">
-                      <Package className="w-6 h-6" />
+                    <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-cyan-500 shadow-sm">
+                      <Package className="w-7 h-7" />
                     </div>
                     <div>
-                      <h4 className="font-bold text-slate-900">{item.tool_id?.title || 'Startup Tool'}</h4>
-                      <p className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest">Active License</p>
+                      <h4 className="font-bold text-slate-900 text-lg tracking-tight">{item.tool_id?.title || 'Startup Tool'}</h4>
+                      <p className="text-[10px] font-black text-cyan-600 uppercase tracking-[0.2em]">Unlimited Access License</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-6">
                     <div className="text-right">
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Price</p>
-                      <p className="font-bold text-slate-900">₹{item.amount}</p>
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Asset Value</p>
+                      <p className="font-black text-slate-900">₹{item.amount}</p>
                     </div>
                     <a 
                       href={item.assigned_link} 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="px-6 py-3 bg-black text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2"
+                      className="px-8 py-4 bg-black text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all flex items-center gap-2 shadow-lg shadow-black/10"
                     >
-                      Access <ExternalLink className="w-3 h-3" />
+                      Access Asset <ExternalLink className="w-3 h-3" />
                     </a>
                   </div>
                 </div>

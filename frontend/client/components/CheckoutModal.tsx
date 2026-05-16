@@ -27,9 +27,10 @@ interface CheckoutModalProps {
  * Now redirects to a dedicated white checkout page for focused payment.
  */
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) => {
-  const [email, setEmail] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   // Autofill email from profile if available
   useEffect(() => {
@@ -48,20 +49,58 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
     }
   }, [isOpen]);
 
+  const handleSendOtp = async () => {
+    if (!email) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('Failed to send verification code');
+      setIsOtpSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return;
+    setIsVerifying(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      if (!res.ok) throw new Error('Invalid verification code');
+      setIsVerified(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isVerified) return;
     setLoading(true);
     setError('');
 
     try {
       const amount = tool.discount_price || tool.price;
       
-      // 1. Call backend to create Order and get payment_session_id
       const response = await fetch(`${API_BASE_URL}/api/checkout`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tool_id: tool.id,
+          tool_ids: [tool.id],
           user_email: email,
           amount: amount
         }),
@@ -70,8 +109,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
       if (!response.ok) throw new Error('Failed to initiate checkout');
       
       const { payment_session_id, order_id } = await response.json();
-
-      // 2. Redirect to the dedicated white checkout page
       window.location.href = `/checkout/${order_id}?session=${payment_session_id}`;
 
     } catch (err: any) {
@@ -86,7 +123,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -95,81 +131,130 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
             className="absolute inset-0 bg-black/80 backdrop-blur-md"
           />
 
-          {/* Modal Container */}
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-xl bg-[#0a0a0f] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_80px_rgba(6,182,212,0.15)]"
+            className="relative w-full max-w-xl bg-white border border-slate-200 rounded-[3rem] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.2)]"
           >
-            {/* Close Button */}
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 p-2 text-white/40 hover:text-white transition-colors z-10"
+              className="absolute top-6 right-6 p-2 text-slate-400 hover:text-black transition-colors z-10"
             >
               <X className="w-6 h-6" />
             </button>
 
             <div className="p-10 md:p-12">
-              {/* Tool Summary */}
-              <div className="flex items-center gap-6 mb-10 pb-10 border-b border-white/5">
-                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-white/5 border border-white/10 flex-shrink-0">
+              <div className="flex items-center gap-6 mb-10 pb-10 border-b border-slate-100">
+                <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-50 border border-slate-200 flex-shrink-0">
                   <img src={tool.image_url} alt={tool.title} className="w-full h-full object-cover" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-black font-inter text-white mb-2">{tool.title}</h3>
+                  <h3 className="text-xl font-black font-inter text-slate-900 mb-2">{tool.title}</h3>
                   <div className="flex items-center gap-3">
-                    <span className="text-2xl font-black text-cyan-400">₹{tool.discount_price || tool.price}</span>
-                    <span className="text-[10px] font-black uppercase tracking-widest text-white/20 line-through">₹{tool.price}</span>
+                    <span className="text-2xl font-bold text-cyan-600">₹{tool.discount_price || tool.price}</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-300 line-through">₹{tool.price}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Checkout Form */}
-              <form onSubmit={handleCheckout} className="space-y-8">
+              <div className="space-y-8">
                 <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-500/80 flex items-center gap-2">
+                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600 flex items-center gap-2">
                     <Mail className="w-3 h-3" /> Delivery Email
                   </label>
-                  <div className="relative group">
-                    <input
-                      required
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="Enter your email"
-                      className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 px-6 text-white placeholder-white/20 focus:outline-none focus:border-cyan-500/50 transition-all group-hover:bg-white/[0.08]"
-                    />
-                    <Sparkles className="absolute right-6 top-1/2 -translate-y-1/2 w-5 h-5 text-cyan-500/20 group-hover:text-cyan-500 transition-colors" />
+                  <div className="flex gap-3">
+                    <div className="relative group flex-grow">
+                      <input
+                        required
+                        type="email"
+                        disabled={isOtpSent || isVerified}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Enter your email"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 text-black placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-50"
+                      />
+                    </div>
+                    {!isVerified && !isOtpSent && (
+                      <button
+                        onClick={handleSendOtp}
+                        disabled={loading || !email}
+                        className="px-6 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50"
+                      >
+                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send OTP'}
+                      </button>
+                    )}
                   </div>
                 </div>
 
+                {isOtpSent && !isVerified && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-4"
+                  >
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600">Enter Verification Code</label>
+                    <div className="flex gap-3">
+                      <input
+                        type="text"
+                        maxLength={6}
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value)}
+                        placeholder="000000"
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 text-black font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
+                      />
+                      <button
+                        onClick={handleVerifyOtp}
+                        disabled={isVerifying || otp.length < 6}
+                        className="px-6 rounded-2xl bg-cyan-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all disabled:opacity-50"
+                      >
+                        {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                      </button>
+                    </div>
+                    <button 
+                      onClick={() => { setIsOtpSent(false); setOtp(''); }}
+                      className="text-[9px] font-bold text-slate-400 hover:text-black transition-colors uppercase tracking-widest underline underline-offset-4"
+                    >
+                      Change Email
+                    </button>
+                  </motion.div>
+                )}
+
+                {isVerified && (
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-600"
+                  >
+                    <ShieldCheck className="w-5 h-5" />
+                    <span className="text-[10px] font-black uppercase tracking-widest">Email Verified Successfully</span>
+                  </motion.div>
+                )}
+
                 {error && (
-                  <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-xl text-xs font-bold">
+                  <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest">
                     {error}
                   </div>
                 )}
 
                 <button
-                  type="submit"
-                  disabled={loading}
-                  className="relative group w-full bg-cyan-500 hover:bg-cyan-400 disabled:bg-cyan-500/50 disabled:cursor-not-allowed text-black font-black py-6 rounded-[2rem] transition-all transform hover:scale-[1.02] active:scale-95 shadow-[0_20px_50px_-10px_rgba(6,182,212,0.3)] overflow-hidden"
+                  onClick={handleCheckout}
+                  disabled={loading || !isVerified}
+                  className="relative group w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-black py-6 rounded-[2rem] transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl overflow-hidden"
                 >
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                  
                   <div className="relative flex items-center justify-center gap-3">
                     {loading ? (
                       <Loader2 className="w-6 h-6 animate-spin" />
                     ) : (
                       <>
-                        <Zap className="w-6 h-6 fill-current" />
-                        <span className="text-lg tracking-tight uppercase">PROCEED TO SECURE PAYMENT</span>
-                        <ChevronRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+                        <Zap className="w-5 h-5 fill-cyan-400 text-cyan-400" />
+                        <span className="text-sm tracking-widest uppercase">Proceed to Checkout</span>
+                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                       </>
                     )}
                   </div>
                 </button>
-              </form>
+              </div>
 
               {/* Trust Badges */}
               <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between opacity-40">
