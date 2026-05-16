@@ -140,6 +140,17 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="relative w-full max-w-xl bg-white border border-slate-200 rounded-[3rem] overflow-hidden shadow-[0_32px_128px_-16px_rgba(0,0,0,0.2)]"
           >
+            <style dangerouslySetInnerHTML={{ __html: `
+              #checkout-email-input, #checkout-otp-input {
+                color: black !important;
+                -webkit-text-fill-color: black !important;
+              }
+              #checkout-email-input::placeholder, #checkout-otp-input::placeholder {
+                color: #94a3b8 !important;
+                -webkit-text-fill-color: #94a3b8 !important;
+              }
+            `}} />
+
             <button
               onClick={onClose}
               className="absolute top-6 right-6 p-2 text-slate-400 hover:text-black transition-colors z-10"
@@ -168,14 +179,13 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                   </label>
                   <div className="flex gap-3">
                     <div className="relative group flex-grow">
-                      <input
+                        id="checkout-email-input"
                         required
                         type="email"
                         disabled={isOtpSent || isVerified}
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email"
-                        style={{ color: 'black' }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-50"
                       />
                     </div>
@@ -200,12 +210,12 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                     <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600">Enter Verification Code</label>
                     <div className="flex gap-3">
                       <input
+                        id="checkout-otp-input"
                         type="text"
                         maxLength={6}
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="000000"
-                        style={{ color: 'black' }}
                         className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
                       />
                       <button
