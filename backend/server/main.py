@@ -152,6 +152,23 @@ async def check_email(req: OTPRequest):
         return {"exists": False, "warning": "Profiles table may not be initialized"}
 
 # Root endpoint
+@app.get("/api/health")
+async def health_check():
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+@app.get("/api/tools")
+async def get_tools():
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase client not initialized")
+    
+    try:
+        # Fetch all tools from the tools_cards table
+        resp = supabase.table("tools_cards").select("*").order("created_at", desc=True).execute()
+        return resp.data
+    except Exception as e:
+        print(f"Error fetching tools: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/")
 def read_root():
     return {"message": "Welcome to The Propels API. All systems nominal."}

@@ -72,18 +72,25 @@ export default function Tools() {
     async function fetchTools() {
       try {
         setIsLoading(true);
-        const { data, error } = await supabase
-          .from('tools_cards')
-          .select('*')
-          .order('created_at', { ascending: false });
-          
-        if (error) throw error;
+        setError(null);
+        
+        // Fetch from centralized backend API instead of direct Supabase call
+        const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://thepropels-production.up.railway.app';
+        const response = await fetch(`${apiBase}/api/tools`);
+        
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        }
+        
+        const data = await response.json();
         setTools(data || []);
       } catch (err: any) {
-        console.error('CRITICAL: Supabase Fetch Error', err);
-        const errorMessage = err.message || 'Unknown network error';
-        const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'Hardcoded Default';
-        setError(`Connection failed: ${errorMessage}. (Project: ${url.split('//')[1]?.split('.')[0] || 'Unknown'})`);
+        console.error('Fetch error:', err);
+        const errorMessage = err.message || 'Unknown error';
+        const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'mjwadwxwnwkbcfndvnfy';
+        const projectId = url.includes('//') ? url.split('//')[1]?.split('.')[0] : url;
+        setError(`Connection failed: ${errorMessage}. (Project: ${projectId})`);
       } finally {
         setIsLoading(false);
       }

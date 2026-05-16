@@ -7,8 +7,8 @@ import {
   ExternalLink, Sparkles, Printer
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { supabase } from '../../lib/supabase';
-import { useCart } from '../../context/CartContext';
+import { supabase } from '@/lib/supabase';
+import { useCart } from '@/context/CartContext';
 
 export default function ReceiptPage() {
   const params = useParams();

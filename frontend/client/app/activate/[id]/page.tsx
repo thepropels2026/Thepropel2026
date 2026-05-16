@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { CheckCircle, Zap, ExternalLink, Loader2, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 
-import { API_BASE_URL } from '../../lib/api';
+import { API_BASE_URL } from '@/lib/api';
 
 /**
  * ActivationPage: The premium landing page after a successful purchase.
