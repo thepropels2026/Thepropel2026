@@ -12,7 +12,13 @@ from supabase import create_client, Client
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
-load_dotenv()
+# Try local then parent directories to find the project root .env
+if os.path.exists(".env.local"):
+    load_dotenv(".env.local")
+elif os.path.exists("../../.env.local"):
+    load_dotenv("../../.env.local")
+else:
+    load_dotenv()
 
 # Initialize the FastAPI application with a custom title
 app = FastAPI(title="The Propels API")

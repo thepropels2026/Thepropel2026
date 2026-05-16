@@ -74,19 +74,32 @@ export default function Tools() {
         setIsLoading(true);
         setError(null);
         
-        // Fetch from centralized backend API instead of direct Supabase call
+        // Strategy 1: Try centralized backend API
         const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://thepropels-production.up.railway.app';
-        const response = await fetch(`${apiBase}/api/tools`);
-        
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.detail || `HTTP error! status: ${response.status}`);
+        try {
+          const response = await fetch(`${apiBase}/api/tools`);
+          if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+              setTools(data);
+              return; // Success, exit function
+            }
+          }
+        } catch (apiErr) {
+          console.warn('API fetch failed, falling back to direct Supabase:', apiErr);
         }
+
+        // Strategy 2: Fallback to direct Supabase fetch
+        const { data, error: sbError } = await supabase
+          .from('tools_cards')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (sbError) throw sbError;
         
-        const data = await response.json();
         setTools(data || []);
       } catch (err: any) {
-        console.error('Fetch error:', err);
+        console.error('Final fetch error:', err);
         const errorMessage = err.message || 'Unknown error';
         const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'mjwadwxwnwkbcfndvnfy';
         const projectId = url.includes('//') ? url.split('//')[1]?.split('.')[0] : url;
