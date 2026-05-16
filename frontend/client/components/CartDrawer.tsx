@@ -14,12 +14,55 @@ export default function CartDrawer() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
+  const [otp, setOtp] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [isVerified, setIsVerified] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const handleSendOtp = async () => {
+    if (!email) return;
+    setLoading(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('Failed to send verification code');
+      setIsOtpSent(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyOtp = async () => {
+    if (!otp) return;
+    setIsVerifying(true);
+    setError('');
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, otp }),
+      });
+      if (!res.ok) throw new Error('Invalid verification code');
+      setIsVerified(true);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const handleCheckout = async () => {
     if (!email) {
       setError('Please enter your email for tool delivery.');
       return;
     }
+    if (!isVerified) return;
     
     setLoading(true);
     setError('');
@@ -71,6 +114,17 @@ export default function CartDrawer() {
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
             className="fixed right-0 top-0 h-full w-full max-w-md bg-white shadow-2xl z-[101] flex flex-col font-inter"
           >
+            <style dangerouslySetInnerHTML={{ __html: `
+              #drawer-email-input, #drawer-otp-input {
+                color: black !important;
+                -webkit-text-fill-color: black !important;
+              }
+              #drawer-email-input::placeholder, #drawer-otp-input::placeholder {
+                color: #94a3b8 !important;
+                -webkit-text-fill-color: #94a3b8 !important;
+              }
+            `}} />
+            
             {/* Header */}
             <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
               <div className="flex items-center gap-3">
@@ -124,8 +178,8 @@ export default function CartDrawer() {
               <div className="p-6 border-t border-slate-100 bg-slate-50 space-y-6">
                 <div className="space-y-4">
                   <div className="flex justify-between items-end">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount</span>
-                    <span className="text-3xl font-black text-slate-900">₹{totalAmount}</span>
+                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Amount</span>
+                     <span className="text-3xl font-black text-slate-900">₹{totalAmount}</span>
                   </div>
                   
                   {/* Email Input */}
@@ -133,22 +187,84 @@ export default function CartDrawer() {
                     <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest flex items-center gap-2">
                       <Sparkles className="w-3 h-3 text-cyan-500" /> Delivery Email
                     </label>
-                    <input 
-                      type="email"
-                      placeholder="founder@startup.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full bg-white border border-slate-200 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-black transition-all"
-                    />
+                    <div className="flex gap-2">
+                      <input 
+                        id="drawer-email-input"
+                        type="email"
+                        disabled={isOtpSent || isVerified}
+                        placeholder="founder@startup.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        style={{ color: 'black' }}
+                        className="w-full bg-white border border-slate-200 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-black transition-all disabled:opacity-50"
+                      />
+                      {!isVerified && !isOtpSent && (
+                        <button
+                          onClick={handleSendOtp}
+                          disabled={loading || !email}
+                          className="px-4 rounded-xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50 whitespace-nowrap"
+                        >
+                          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send OTP'}
+                        </button>
+                      )}
+                    </div>
                   </div>
+
+                  {/* OTP Input */}
+                  {isOtpSent && !isVerified && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-2"
+                    >
+                      <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600">Verification Code</label>
+                      <div className="flex gap-2">
+                        <input
+                          id="drawer-otp-input"
+                          type="text"
+                          maxLength={6}
+                          value={otp}
+                          onChange={(e) => setOtp(e.target.value)}
+                          placeholder="000000"
+                          style={{ color: 'black' }}
+                          className="w-full bg-white border border-slate-200 rounded-xl py-4 px-4 font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
+                        />
+                        <button
+                          onClick={handleVerifyOtp}
+                          disabled={isVerifying || otp.length < 6}
+                          className="px-4 rounded-xl bg-cyan-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all disabled:opacity-50"
+                        >
+                          {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
+                        </button>
+                      </div>
+                      <button 
+                        onClick={() => { setIsOtpSent(false); setOtp(''); }}
+                        className="text-[9px] font-bold text-slate-400 hover:text-black transition-colors uppercase tracking-widest underline underline-offset-4"
+                      >
+                        Change Email
+                      </button>
+                    </motion.div>
+                  )}
+
+                  {isVerified && (
+                    <motion.div 
+                      initial={{ scale: 0.9, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-100 rounded-xl text-emerald-600"
+                    >
+                      <ShieldCheck className="w-4 h-4" />
+                      <span className="text-[9px] font-black uppercase tracking-widest">Email Verified</span>
+                    </motion.div>
+                  )}
+
                 </div>
 
                 {error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
 
                 <button 
                   onClick={handleCheckout}
-                  disabled={loading}
-                  className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-400 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-95"
+                  disabled={loading || !isVerified}
+                  className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl"
                 >
                   {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
