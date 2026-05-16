@@ -9,8 +9,8 @@ export const getApiBaseUrl = () => {
     return process.env.NEXT_PUBLIC_API_URL;
   }
   
-  // Default to the local backend port used in main.py
-  return 'http://localhost:8000';
+  // Default to the production backend if no local override
+  return 'https://thepropels-production.up.railway.app';
 };
 
 export const API_BASE_URL = getApiBaseUrl();

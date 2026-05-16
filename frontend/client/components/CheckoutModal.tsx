@@ -27,6 +27,9 @@ interface CheckoutModalProps {
  * Now redirects to a dedicated white checkout page for focused payment.
  */
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) => {
+  const [email, setEmail] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
@@ -172,7 +175,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="Enter your email"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 text-black placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-50"
+                        style={{ color: 'black' }}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-50"
                       />
                     </div>
                     {!isVerified && !isOtpSent && (
@@ -201,7 +205,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                         value={otp}
                         onChange={(e) => setOtp(e.target.value)}
                         placeholder="000000"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 text-black font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
+                        style={{ color: 'black' }}
+                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
                       />
                       <button
                         onClick={handleVerifyOtp}
