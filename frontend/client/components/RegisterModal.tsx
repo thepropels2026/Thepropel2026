@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { API_BASE_URL } from '../lib/api';
+import { signUpWithEmail } from '../lib/authService';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
@@ -140,7 +141,10 @@ export default function RegisterModal() {
         }
       }
 
-      // 2. Supabase Auth Registration
+      // 2. Firebase Auth Registration & Email Verification Dispatch
+      await signUpWithEmail(formData.email, formData.password);
+
+      // 3. Supabase Auth Registration
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,

@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { loginWithEmail } from '../lib/authService';
 
 export default function LoginModal() {
   const { isLoginModalOpen, setLoginModalOpen, setRegisterModalOpen, login } = useAuth();
@@ -66,8 +67,11 @@ export default function LoginModal() {
     setError(null);
 
     try {
-      // 1. Authenticate with Supabase
+      // 1. Authenticate with Firebase & Enforce Email Verification Check
       if (method === 'email') {
+        await loginWithEmail(inputValue, password);
+
+        // 2. Authenticate with Supabase to maintain database sync
         const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
           email: inputValue,
           password: password,
