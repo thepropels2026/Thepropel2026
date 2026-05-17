@@ -9,7 +9,7 @@
     "start": "cd frontend/client && npm run start"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.105.0"
+    "@supabase/supabase-js": "^2.105.0",
+    "firebase": "^12.13.0"
   }
 }
-
