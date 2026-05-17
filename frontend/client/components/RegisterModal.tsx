@@ -50,8 +50,8 @@ export default function RegisterModal() {
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(Math.max(1, step - 1));
 
-  const sendOTPs = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendOTPs = async (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     try {
@@ -63,6 +63,10 @@ export default function RegisterModal() {
       });
       
       if (!emailResp.ok) throw new Error("Failed to send email verification code");
+      const emailData = await emailResp.json();
+      if (emailData.debug_otp) {
+        console.log(`[DEBUG OTP] Email OTP is: ${emailData.debug_otp}`);
+      }
 
       // 2. Send Mobile OTP (Mocked in backend main.py but still a real call)
       const mobileResp = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
@@ -72,6 +76,10 @@ export default function RegisterModal() {
       });
 
       if (!mobileResp.ok) throw new Error("Failed to send mobile verification code");
+      const mobileData = await mobileResp.json();
+      if (mobileData.debug_otp) {
+        console.log(`[DEBUG OTP] Mobile OTP is: ${mobileData.debug_otp}`);
+      }
 
       nextStep();
     } catch (err: any) {
@@ -82,8 +90,8 @@ export default function RegisterModal() {
     }
   };
 
-  const verifyOTPs = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const verifyOTPs = async (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
     setIsSubmitting(true);
     setError(null);
     try {
@@ -364,6 +372,8 @@ export default function RegisterModal() {
                       </div>
                    </div>
 
+                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
+
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
@@ -401,6 +411,8 @@ export default function RegisterModal() {
                          />
                       </div>
                    </div>
+
+                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
 
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
