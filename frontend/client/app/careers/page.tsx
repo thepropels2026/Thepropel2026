@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '../../lib/supabase';
 import { MapPin, Briefcase, Clock, ArrowRight, X, Building, CheckCircle2, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -48,6 +49,7 @@ const MOCK_JOBS: Job[] = [
 ];
 
 export default function CareersPage() {
+  const router = useRouter();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
@@ -401,7 +403,7 @@ export default function CareersPage() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.4, delay: index * 0.1 }}
                   key={job.id} 
-                  onClick={() => setSelectedJob(job)}
+                  onClick={() => router.push(`/careers/${job.id}`)}
                   className="bg-white border border-slate-200 rounded-3xl p-6 md:p-8 hover:border-cyan-200 hover:shadow-xl transition-all duration-300 cursor-pointer group flex flex-col md:flex-row md:items-center justify-between gap-6"
                 >
                   <div className="flex-1">
@@ -429,7 +431,7 @@ export default function CareersPage() {
                       View Details <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <button 
-                      onClick={(e) => openApplyModal(job, e)}
+                      onClick={(e) => { e.stopPropagation(); router.push(`/careers/${job.id}`); }}
                       className="bg-black hover:bg-slate-800 text-white px-6 py-3 rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-md"
                     >
                       Apply Now

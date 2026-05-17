@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { supabase } from '../../../lib/supabase';
+import { API_BASE_URL } from '../../../lib/api';
 import { 
   MapPin, Briefcase, Clock, ArrowLeft, ArrowRight, Building, 
   CheckCircle2, Download, Users, Calendar, ShieldCheck, 
@@ -38,6 +39,7 @@ export default function JobDetailsPage() {
   const [otp, setOtp] = useState('');
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -85,12 +87,21 @@ export default function JobDetailsPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setError(null);
     try {
-      // Simulate premium OTP delay
-      await new Promise(resolve => setTimeout(resolve, 1800));
+      const resp = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email })
+      });
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.detail || "Failed to send verification code. Please check your email format.");
+      }
       setIsOtpSent(true);
     } catch (err: any) {
-      alert("Error sending OTP");
+      console.error("Error sending OTP:", err);
+      setError(err.message || "Error sending verification code.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,11 +110,21 @@ export default function JobDetailsPage() {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsVerifying(true);
+    setError(null);
     try {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      const resp = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp })
+      });
+      if (!resp.ok) {
+        const errData = await resp.json().catch(() => ({}));
+        throw new Error(errData.detail || "Incorrect verification code.");
+      }
       await finalizeApplication();
-    } catch (err) {
-      alert("Invalid OTP code.");
+    } catch (err: any) {
+      console.error("Error verifying OTP:", err);
+      setError(err.message || "Invalid OTP code.");
     } finally {
       setIsVerifying(false);
     }
@@ -129,8 +150,9 @@ export default function JobDetailsPage() {
 
       if (error) throw error;
       setApplySuccess(true);
-    } catch (err) {
-      alert("Submission failed.");
+    } catch (err: any) {
+      console.error("Application finalization error:", err);
+      setError(err.message || "Submission failed.");
     }
   };
 
@@ -201,7 +223,7 @@ export default function JobDetailsPage() {
               </div>
 
               <button 
-                onClick={() => setIsApplyModalOpen(true)}
+                onClick={() => { setError(null); setIsApplyModalOpen(true); }}
                 className="w-full group relative h-16 rounded-2xl bg-white text-black font-black text-sm uppercase tracking-widest overflow-hidden transition-all hover:scale-[1.02] shadow-[0_20px_40px_-10px_rgba(255,255,255,0.1)]"
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -302,12 +324,18 @@ export default function JobDetailsPage() {
                   <h2 className="text-3xl font-inter font-black text-white mb-2 uppercase italic">Initiate Bio-Sync</h2>
                   <p className="text-cyan-500 font-black uppercase tracking-[0.2em] text-[9px]">Targeting: {job.title}</p>
                 </div>
-                <button onClick={() => setIsApplyModalOpen(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-white/20 hover:text-white">
+                <button onClick={() => { setError(null); setIsApplyModalOpen(false); }} className="p-3 hover:bg-white/5 rounded-2xl transition-all text-white/20 hover:text-white">
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
               <div className="p-10 overflow-y-auto custom-scrollbar">
+                {error && (
+                  <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 text-red-400 text-xs font-bold rounded-xl flex items-center gap-2">
+                    <ShieldAlert className="w-4 h-4 shrink-0" />
+                    <span>{error}</span>
+                  </div>
+                )}
                 {applySuccess ? (
                   <div className="text-center py-16">
                     <div className="w-24 h-24 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-2xl">

@@ -22,6 +22,63 @@ type Story = {
   roadmap: Milestone[];
 };
 
+const DETAIL_MOCK_STORIES: Story[] = [
+  {
+    id: 'story-1',
+    founder_name: 'Aravind K.',
+    startup_name: 'PropelFlow AI',
+    niche: 'AI',
+    metric: '₹4.5 Lakhs/mo',
+    metric_label: 'Recurring Revenue (MRR)',
+    summary: 'Automated founders database intelligence & pipeline generation. Aravind scaled from an idea to 12 active enterprise clients within his first 45 days.',
+    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300&h=300',
+    media_url: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=1200&h=800',
+    media_type: 'image',
+    roadmap: [
+      { title: 'Idea & Pipeline Conception', description: 'Conceived the idea of automating database intelligence for high-growth venture pipelines after manually scraping hundreds of profiles.', icon: 'Lightbulb' },
+      { title: 'MVP Launch', description: 'Built a minimal Python-based scraper and linked it to a sleek web portal to fetch key decision makers instantly.', icon: 'Target' },
+      { title: 'Beta Acquisition', description: 'Offered the tool for free to 10 early founders, generating massive buzz and gaining initial feedback to refine precision.', icon: 'Rocket' },
+      { title: 'Enterprise Scaling', description: 'Signed first 3 enterprise contracts within 30 days, hitting ₹4.5 Lakhs MRR with high gross margins.', icon: 'DollarSign' }
+    ]
+  },
+  {
+    id: 'story-2',
+    founder_name: 'Sneha Patel',
+    startup_name: 'GlowSphere',
+    niche: 'E-commerce',
+    metric: '₹2.8 Lakhs',
+    metric_label: 'First Month Gross Sales',
+    summary: 'Next-gen organic beauty brand targeted at Tier-1 college students. Sneha built an active micro-influencer referral program that exploded her sales.',
+    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300&h=300',
+    media_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200&h=800',
+    media_type: 'image',
+    roadmap: [
+      { title: 'Niche Skin Research', description: 'Researched organic cosmetics targeted at college-goers facing stress and sleeplessness.', icon: 'Lightbulb' },
+      { title: 'Custom Formulations', description: 'Sourced raw local materials and worked with certified labs to produce initial test batches.', icon: 'Target' },
+      { title: 'College Referral Explode', description: 'Enlisted 50 student ambassadors across Tier-1 colleges, driving viral social media campaigns.', icon: 'Rocket' },
+      { title: '₹2.8L First Sales', description: 'Processed over 800 individual orders in the first 30 days of launch, selling out all initial inventory.', icon: 'DollarSign' }
+    ]
+  },
+  {
+    id: 'story-3',
+    founder_name: 'Rohan Mehta',
+    startup_name: 'DevSync',
+    niche: 'SaaS',
+    metric: '1,200+ Active Users',
+    metric_label: 'Organic Signups',
+    summary: 'Developer productivity tool syncing environment secrets dynamically. Rohan built a cult following on Dev.to and launched to the top of Product Hunt.',
+    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300&h=300',
+    media_url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=1200&h=800',
+    media_type: 'image',
+    roadmap: [
+      { title: 'Secret Sync Pain', description: 'Faced constant headaches keeping developer environment variables and secret files in sync across remote teammates.', icon: 'Lightbulb' },
+      { title: 'End-to-End Encryption', description: 'Engineered a secure client-side end-to-end encrypted protocol to securely sync variables.', icon: 'Target' },
+      { title: 'Product Hunt #1', description: 'Launched public beta on Product Hunt and stood #1 Product of the Day with massive engagement.', icon: 'Rocket' },
+      { title: '1,200+ Active Users', description: 'Scaled to over 1,200+ active weekly developers organically, laying foundation for future enterprise model.', icon: 'DollarSign' }
+    ]
+  }
+];
+
 const IconMap: Record<string, JSX.Element> = {
   Lightbulb: <Lightbulb className="w-5 h-5 text-blue-500" />,
   Target: <Target className="w-5 h-5 text-purple-500" />,
@@ -45,7 +102,12 @@ export default function StoryDetail({ params }: { params: { id: string } }) {
         if (error) throw error;
         setStory(data);
       } catch (error) {
-        console.error('Error fetching story:', error);
+        console.error('Error fetching story from database:', error);
+        // Fallback to mock stories if database fetch fails or row does not exist
+        const matchedMock = DETAIL_MOCK_STORIES.find(s => s.id === params.id);
+        if (matchedMock) {
+          setStory(matchedMock);
+        }
       } finally {
         setLoading(false);
       }

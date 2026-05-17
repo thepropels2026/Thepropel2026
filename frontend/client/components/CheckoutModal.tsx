@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 
 import { API_BASE_URL } from '../lib/api';
+import { useAuth } from './AuthContext';
 
 interface ToolCard {
   id: string;
@@ -27,6 +28,7 @@ interface CheckoutModalProps {
  * Now redirects to a dedicated white checkout page for focused payment.
  */
 const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) => {
+  const { isRegistered, user, setLoginModalOpen, setRegisterModalOpen } = useAuth();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -35,22 +37,27 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  // Autofill email from profile if available
+  // Autofill email from profile if available or user is logged in
   useEffect(() => {
     if (isOpen) {
-      const savedData = localStorage.getItem('userProfile');
-      if (savedData) {
-        try {
-          const profile = JSON.parse(savedData);
-          if (profile.identifier && profile.identifier.includes('@')) {
-            setEmail(profile.identifier);
+      if (isRegistered && user?.email) {
+        setEmail(user.email);
+        setIsVerified(true);
+      } else {
+        const savedData = localStorage.getItem('userProfile');
+        if (savedData) {
+          try {
+            const profile = JSON.parse(savedData);
+            if (profile.identifier && profile.identifier.includes('@')) {
+              setEmail(profile.identifier);
+            }
+          } catch (e) {
+            console.error('Failed to parse userProfile', e);
           }
-        } catch (e) {
-          console.error('Failed to parse userProfile', e);
         }
       }
     }
-  }, [isOpen]);
+  }, [isOpen, isRegistered, user]);
 
   const handleSendOtp = async () => {
     if (!email) return;
@@ -172,118 +179,100 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
                 </div>
               </div>
 
-              <div className="space-y-8">
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600 flex items-center gap-2">
-                    <Mail className="w-3 h-3" /> Delivery Email
-                  </label>
-                  <div className="flex gap-3">
-                    <div className="relative group flex-grow">
-                        id="checkout-email-input"
-                        required
-                        type="email"
-                        disabled={isOtpSent || isVerified}
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Enter your email"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-50"
-                      />
-                    </div>
-                    {!isVerified && !isOtpSent && (
-                      <button
-                        onClick={handleSendOtp}
-                        disabled={loading || !email}
-                        className="px-6 rounded-2xl bg-black text-white text-[10px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all disabled:opacity-50"
-                      >
-                        {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Send OTP'}
-                      </button>
-                    )}
+              {!isRegistered ? (
+                <div className="bg-slate-50 border border-slate-200 rounded-[2rem] p-8 text-center space-y-6">
+                  <div className="w-16 h-16 bg-orange-100 rounded-3xl flex items-center justify-center mx-auto text-orange-600 border border-orange-200 shadow-sm">
+                    <Lock className="w-8 h-8 animate-pulse" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-black text-slate-900 tracking-tight">Authentication Required</h3>
+                    <p className="text-xs text-slate-500 font-medium leading-relaxed max-w-sm mx-auto">
+                      To complete secure checkout on The Propels, you must have an active identity. Credentials will be used to dispatch the tools.
+                    </p>
+                  </div>
+                  <div className="flex gap-4 pt-2">
+                    <button 
+                      onClick={() => {
+                        onClose();
+                        setLoginModalOpen(true);
+                      }}
+                      className="flex-1 py-4 bg-white border border-slate-200 text-slate-700 rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+                    >
+                      Sign In
+                    </button>
+                    <button 
+                      onClick={() => {
+                        onClose();
+                        setRegisterModalOpen(true);
+                      }}
+                      className="flex-[1.5] py-4 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md"
+                    >
+                      Create Propels ID
+                    </button>
                   </div>
                 </div>
-
-                {isOtpSent && !isVerified && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="space-y-4"
-                  >
-                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600">Enter Verification Code</label>
+              ) : (
+                <div className="space-y-8">
+                  <div className="space-y-4">
+                    <label className="text-[10px] font-black uppercase tracking-[0.2em] text-cyan-600 flex items-center gap-2">
+                      <Mail className="w-3 h-3" /> Delivery Email
+                    </label>
                     <div className="flex gap-3">
-                      <input
-                        id="checkout-otp-input"
-                        type="text"
-                        maxLength={6}
-                        value={otp}
-                        onChange={(e) => setOtp(e.target.value)}
-                        placeholder="000000"
-                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-6 font-mono text-center tracking-[0.5em] focus:outline-none focus:border-cyan-500 transition-all"
-                      />
-                      <button
-                        onClick={handleVerifyOtp}
-                        disabled={isVerifying || otp.length < 6}
-                        className="px-6 rounded-2xl bg-cyan-500 text-black text-[10px] font-black uppercase tracking-widest hover:bg-cyan-400 transition-all disabled:opacity-50"
-                      >
-                        {isVerifying ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Verify'}
-                      </button>
+                      <div className="relative group flex-grow">
+                        <input
+                          id="checkout-email-input"
+                          required
+                          type="email"
+                          disabled={true}
+                          value={email}
+                          className="w-full bg-slate-100 border border-slate-200 rounded-2xl py-4 px-6 placeholder-slate-300 focus:outline-none focus:border-cyan-500 transition-all disabled:opacity-80 font-semibold"
+                        />
+                      </div>
+                      <span className="px-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-1.5 shadow-sm">
+                        <ShieldCheck className="w-4 h-4" /> Verified ID
+                      </span>
                     </div>
-                    <button 
-                      onClick={() => { setIsOtpSent(false); setOtp(''); }}
-                      className="text-[9px] font-bold text-slate-400 hover:text-black transition-colors uppercase tracking-widest underline underline-offset-4"
-                    >
-                      Change Email
-                    </button>
-                  </motion.div>
-                )}
+                  </div>
 
-                {isVerified && (
-                  <motion.div 
-                    initial={{ scale: 0.9, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    className="flex items-center gap-3 p-4 bg-emerald-50 border border-emerald-100 rounded-2xl text-emerald-600"
+                  {error && (
+                    <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest">
+                      {error}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCheckout}
+                    disabled={loading}
+                    className="relative group w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-black py-6 rounded-[2rem] transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl overflow-hidden"
                   >
-                    <ShieldCheck className="w-5 h-5" />
-                    <span className="text-[10px] font-black uppercase tracking-widest">Email Verified Successfully</span>
-                  </motion.div>
-                )}
-
-                {error && (
-                  <div className="bg-red-50 border border-red-100 text-red-500 px-4 py-3 rounded-xl text-[10px] font-bold uppercase tracking-widest">
-                    {error}
-                  </div>
-                )}
-
-                <button
-                  onClick={handleCheckout}
-                  disabled={loading || !isVerified}
-                  className="relative group w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:cursor-not-allowed text-white font-black py-6 rounded-[2rem] transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl overflow-hidden"
-                >
-                  <div className="relative flex items-center justify-center gap-3">
-                    {loading ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <>
-                        <Zap className="w-5 h-5 fill-cyan-400 text-cyan-400" />
-                        <span className="text-sm tracking-widest uppercase">Proceed to Checkout</span>
-                        <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                      </>
-                    )}
-                  </div>
-                </button>
-              </div>
+                    <div className="relative flex items-center justify-center gap-3">
+                      {loading ? (
+                        <Loader2 className="w-6 h-6 animate-spin" />
+                      ) : (
+                        <>
+                          <Zap className="w-5 h-5 fill-cyan-400 text-cyan-400" />
+                          <span className="text-sm tracking-widest uppercase">Proceed to Secure Checkout</span>
+                          <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                        </>
+                      )}
+                    </div>
+                  </button>
+                </div>
+              )}
 
               {/* Trust Badges */}
-              <div className="mt-12 pt-8 border-t border-white/5 flex items-center justify-between opacity-40">
+              <div className="mt-12 pt-8 border-t border-slate-100 flex items-center justify-between opacity-40">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-cyan-500" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white">SSL</span>
+                  <ShieldCheck className="w-4 h-4 text-cyan-600" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-800">SSL Secure</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Lock className="w-4 h-4 text-cyan-500" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white">PCI DSS</span>
+                  <Lock className="w-4 h-4 text-cyan-600" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-800">PCI DSS</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-cyan-500" />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-white">SECURE</span>
+                  <CreditCard className="w-4 h-4 text-cyan-600" />
+                  <span className="text-[9px] font-black uppercase tracking-widest text-slate-800">CASHFREE</span>
                 </div>
               </div>
             </div>

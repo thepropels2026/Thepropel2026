@@ -242,11 +242,11 @@ export default function GuideLmsPage() {
            animate={{ opacity: 1, y: 0 }}
            transition={{ duration: 0.3 }}
         >
-          {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} enrollments={enrollments} loading={loading} />}
+          {activeTab === 'Dashboard' && <DashboardTab courses={courses} allModules={allModules} userProgress={userProgress} enrollments={enrollments} loading={loading} setActiveTab={setActiveTab} />}
           {activeTab === 'Learning' && <LearningTab courses={courses} allModules={allModules} userProgress={userProgress} enrollments={enrollments} markComplete={markModuleComplete} updateProgress={updateWatchProgress} loading={loading} />}
           {activeTab === 'Courses' && <CoursesTab courses={courses} allModules={allModules} enrollments={enrollments} onEnroll={handleEnrollUser} loading={loading} />}
           {activeTab === 'Knowledge Base' && <KnowledgeBaseTab resources={kbResources} loading={loading} />}
-          {activeTab === 'Blueprint' && <BlueprintTab userProgress={userProgress} allModules={allModules} />}
+          {activeTab === 'Blueprint' && <BlueprintTab userProgress={userProgress} allModules={allModules} setActiveTab={setActiveTab} />}
         </motion.div>
       </div>
     </div>
@@ -256,7 +256,7 @@ export default function GuideLmsPage() {
 // ------------------------------------------------------------------
 // 1. DASHBOARD TAB
 // ------------------------------------------------------------------
-function DashboardTab({ courses, allModules, userProgress, enrollments, loading }: any) {
+function DashboardTab({ courses, allModules, userProgress, enrollments, loading, setActiveTab }: any) {
   const enrolledCourseIds = enrollments.map((e: any) => e.course_id);
   const enrolledModules = allModules.filter((m: any) => enrolledCourseIds.includes(m.course_id));
   
@@ -306,7 +306,10 @@ function DashboardTab({ courses, allModules, userProgress, enrollments, loading 
                  {totalModules === 0 ? 'Content is being uploaded. Please check back later.' : nextModule ? `You are currently at ${nextModule.title}. Complete it to progress further.` : 'All modules completed! Wait for more content.'}
                </p>
                {nextModule && totalModules > 0 && (
-                 <button className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm">
+                 <button 
+                   onClick={() => setActiveTab('Learning')}
+                   className="bg-cyan-50 text-cyan-700 font-bold px-4 py-2 rounded border border-cyan-100 hover:bg-cyan-100 transition shadow-sm text-sm"
+                 >
                    Resume Module
                  </button>
                )}
@@ -800,7 +803,7 @@ function KnowledgeBaseTab({ resources, loading }: any) {
 // ------------------------------------------------------------------
 // 5. BLUEPRINT TAB
 // ------------------------------------------------------------------
-function BlueprintTab({ userProgress, allModules }: any) {
+function BlueprintTab({ userProgress, allModules, setActiveTab }: any) {
   const steps = allModules.length > 0 ? allModules.map((m: any, i: number) => {
     const isCompleted = userProgress.some((p: any) => p.module_id === m.id);
     const isActive = !isCompleted && (i === 0 || userProgress.some((p: any) => p.module_id === allModules[i-1]?.id));
@@ -861,7 +864,10 @@ function BlueprintTab({ userProgress, allModules }: any) {
                   <p className="text-slate-500 leading-relaxed">{step.desc}</p>
                   
                   {step.status === 'active' && (
-                     <button className="mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded shadow-md shadow-orange-500/20 transition-all text-sm flex items-center gap-2">
+                     <button 
+                       onClick={() => setActiveTab('Learning')}
+                       className="mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded shadow-md shadow-orange-500/20 transition-all text-sm flex items-center gap-2"
+                     >
                         Enter Curriculum <ChevronRight className="w-4 h-4" />
                      </button>
                   )}

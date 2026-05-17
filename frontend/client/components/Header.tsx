@@ -118,7 +118,10 @@ export default function Header() {
                   <button className="text-left text-white/40 hover:text-white/70 transition-colors duration-150 text-xs" onClick={() => setShowLogoutConfirm(true)}>Sign Out</button>
                 </>
               ) : (
-                <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
+                <div className="flex flex-col gap-3">
+                  <button className="text-white bg-white/5 border border-white/10 hover:bg-white/10 shrink-0 w-full py-3 rounded-xl transition-all duration-300 font-bold uppercase tracking-wider text-[10px]" onClick={() => { setLoginModalOpen(true); setIsMobileMenuOpen(false); }}>Login</button>
+                  <button className="btn-glow shrink-0 w-full" onClick={() => { setRegisterModalOpen(true); setIsMobileMenuOpen(false); }}>Register</button>
+                </div>
               )}
             </div>
             

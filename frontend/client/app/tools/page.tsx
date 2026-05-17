@@ -12,6 +12,7 @@ import { RefreshCw, ShoppingCart } from 'lucide-react';
 import CheckoutModal from '../../components/CheckoutModal';
 import { useCart } from '../../context/CartContext';
 import CartDrawer from '../../components/CartDrawer';
+import { useAuth } from '../../components/AuthContext';
 
 type ToolCard = {
   id: string;
@@ -57,6 +58,7 @@ const getHoverBorderColor = (category: string) => {
 }
 
 export default function Tools() {
+  const { isRegistered, setRegisterModalOpen } = useAuth();
   const [tools, setTools] = useState<ToolCard[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -289,6 +291,10 @@ export default function Tools() {
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
+                            if (!isRegistered) {
+                              setRegisterModalOpen(true);
+                              return;
+                            }
                             addToCart(tool);
                             setIsCartOpen(true);
                           }}
