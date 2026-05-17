@@ -16,6 +16,7 @@ export default function RegisterModal() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [debugOtp, setDebugOtp] = useState<{ email?: string; mobile?: string } | null>(null);
 
   // Lock scroll while registration modal is active
   useEffect(() => {
@@ -64,7 +65,9 @@ export default function RegisterModal() {
       
       if (!emailResp.ok) throw new Error("Failed to send email verification code");
       const emailData = await emailResp.json();
+      let emailOtpVal = '';
       if (emailData.debug_otp) {
+        emailOtpVal = emailData.debug_otp;
         console.log(`[DEBUG OTP] Email OTP is: ${emailData.debug_otp}`);
       }
 
@@ -77,8 +80,16 @@ export default function RegisterModal() {
 
       if (!mobileResp.ok) throw new Error("Failed to send mobile verification code");
       const mobileData = await mobileResp.json();
+      let mobileOtpVal = '';
       if (mobileData.debug_otp) {
+        mobileOtpVal = mobileData.debug_otp;
         console.log(`[DEBUG OTP] Mobile OTP is: ${mobileData.debug_otp}`);
+      }
+
+      if (emailOtpVal || mobileOtpVal) {
+        setDebugOtp({ email: emailOtpVal, mobile: mobileOtpVal });
+      } else {
+        setDebugOtp(null);
       }
 
       nextStep();
@@ -411,6 +422,16 @@ export default function RegisterModal() {
                          />
                       </div>
                    </div>
+
+                   {debugOtp && (
+                      <div className="bg-orange-50/80 border border-orange-200/50 backdrop-blur-sm rounded-2xl p-4 text-center space-y-2">
+                        <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-orange-100 text-orange-700 text-[9px] font-extrabold uppercase tracking-widest">
+                          ⚡ Sandbox Mode Active
+                        </div>
+                        {debugOtp.email && <p className="text-[11px] font-semibold text-slate-700">Email Verification Code: <strong className="text-black font-mono text-sm tracking-wider bg-white/80 border border-slate-100 px-2 py-0.5 rounded-md shadow-sm ml-1">{debugOtp.email}</strong></p>}
+                        {debugOtp.mobile && <p className="text-[11px] font-semibold text-slate-700">Mobile Verification Code: <strong className="text-black font-mono text-sm tracking-wider bg-white/80 border border-slate-100 px-2 py-0.5 rounded-md shadow-sm ml-1">{debugOtp.mobile}</strong></p>}
+                      </div>
+                   )}
 
                    {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
 
