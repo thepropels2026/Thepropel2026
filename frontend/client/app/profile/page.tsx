@@ -14,7 +14,7 @@ import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 
 export default function ProfileDashboard() {
-  const { isRegistered, user, logout } = useAuth();
+  const { isRegistered, user, logout, updateUser } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('overview');
   const [userPlan, setUserPlan] = useState<any>(null);
@@ -346,6 +346,7 @@ export default function ProfileDashboard() {
                                   if (dbError) throw dbError;
 
                                   setProfileData({ ...profileData, picture: publicUrl });
+                                  updateUser({ picture: publicUrl }); // Global Bundle Sync
                                   triggerSuccess("Identity visualization updated.");
                                } catch (err) {
                                   console.error("Error uploading image:", err);
@@ -400,6 +401,11 @@ export default function ProfileDashboard() {
                                    updated_at: new Date().toISOString()
                                 });
                               if (error) throw error;
+                              updateUser({
+                                firstName: profileData.first_name,
+                                lastName: profileData.last_name,
+                                ...profileData
+                              }); // Global Bundle Sync
                               triggerSuccess("Protocol data synchronized successfully.");
                            } catch (err) {
                               console.error("Error saving profile:", err);

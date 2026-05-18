@@ -16,6 +16,8 @@ export default function RegisterModal() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [otp, setOtp] = useState('');
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
 
 
   // Lock scroll while registration modal is active
@@ -50,16 +52,16 @@ export default function RegisterModal() {
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(Math.max(1, step - 1));
 
-  const registerUser = async (e?: any) => {
+  const sendOtpAndProceed = async (e?: any) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!formData.password || formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
-    setIsSubmitting(true);
+    setIsSendingOtp(true);
     setError(null);
     try {
-      // 1. Identity Check via Backend (Check if email already exists in Supabase/DB)
+      // 1. Identity Check via Backend
       const checkResp = await fetch(`${API_BASE_URL}/api/auth/check-email`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -75,6 +77,34 @@ export default function RegisterModal() {
           return;
         }
       }
+
+      // 2. Send OTP
+      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email }),
+      });
+      if (!res.ok) throw new Error('Failed to send verification code');
+      
+      nextStep(); // Move to Step 4 (OTP input)
+    } catch (err: any) {
+      setError(err.message || "Failed to initiate verification.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
+  const registerUser = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      // 1. Verify OTP First
+      const otpResp = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: formData.email, otp }),
+      });
+      if (!otpResp.ok) throw new Error('Invalid verification code. Please try again.');
 
       // 2. Register Firebase Auth & Send Email Verification Link
       await signUpWithEmail(formData.email, formData.password);
@@ -99,7 +129,7 @@ export default function RegisterModal() {
         throw authError;
       }
 
-      nextStep(); // Move to step 4 (Success / Verification notice)
+      nextStep(); // Move to step 5 (Success / Verification notice)
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message || "Failed to register. Please check your inputs.");
@@ -166,7 +196,7 @@ export default function RegisterModal() {
            {/* Progress Indicator */}
            <div className="flex items-center justify-between relative mb-12 px-4 max-w-md mx-auto w-full">
               <div className="absolute top-1/2 left-0 right-0 h-[1px] border-t border-slate-100 -z-0" />
-              {[1, 2, 3, 4].map((num) => (
+              {[1, 2, 3, 4, 5].map((num) => (
                 <div key={num} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs relative z-10 transition-all duration-300 ${step >= num ? 'bg-black text-white' : 'bg-white text-slate-300 border border-slate-200'}`}>
                    {num}
                 </div>
@@ -295,10 +325,10 @@ export default function RegisterModal() {
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
-                        onClick={registerUser} disabled={isSubmitting || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword}
+                        onClick={sendOtpAndProceed} disabled={isSendingOtp || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword}
                         className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
                       >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Create Account"}
+                        {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Verify & Continue"}
                       </button>
                    </div>
                 </motion.div>
@@ -307,8 +337,38 @@ export default function RegisterModal() {
               {step === 4 && (
                 <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Email Verification</h3>
-                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 4: Identity Verification</p>
+                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Verify Email</h3>
+                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 5: Enter OTP Code</p>
+                   </div>
+
+                   <div className="space-y-4">
+                     <p className="text-sm text-center text-slate-500 mb-4">We've sent a 6-digit code to <strong>{formData.email}</strong>. Enter it below.</p>
+                     <input 
+                       required type="text" name="otp" placeholder="6-digit code" maxLength={6}
+                       value={otp} onChange={(e) => setOtp(e.target.value)} 
+                       className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-12 text-center text-xl tracking-[0.5em] font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all" 
+                     />
+                   </div>
+
+                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
+
+                   <div className="flex gap-3 pt-4">
+                      <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
+                      <button 
+                        onClick={registerUser} disabled={isSubmitting || otp.length < 6}
+                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
+                      >
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Create Account"}
+                      </button>
+                   </div>
+                </motion.div>
+              )}
+
+              {step === 5 && (
+                <motion.div key="step5" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
+                   <div className="text-center mb-6">
+                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">System Locked</h3>
+                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 5 of 5: Final Identity Verification</p>
                    </div>
 
                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3.5">

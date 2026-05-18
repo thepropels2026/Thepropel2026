@@ -15,6 +15,7 @@ type AuthContextType = {
   login: (userData: any) => void;
   logout: () => void;
   syncUser: (supabaseUser: any) => Promise<void>;
+  updateUser: (newData: any) => void;
 };
 
 // Create the context with default values
@@ -28,6 +29,7 @@ const AuthContext = createContext<AuthContextType>({
   login: () => {},
   logout: () => {},
   syncUser: async () => {},
+  updateUser: () => {},
 });
 
 /**
@@ -63,6 +65,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setRegisterModalOpen(false); // Close modal on success
     setLoginModalOpen(false);
+  };
+  
+  const updateUser = (newData: any) => {
+    setUser((prev: any) => {
+      const updated = { ...prev, ...newData };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('userProfile', JSON.stringify(updated));
+      }
+      return updated;
+    });
   };
   
   const logout = async () => {
@@ -204,7 +216,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       isRegistered, user, 
       isRegisterModalOpen, setRegisterModalOpen, 
       isLoginModalOpen, setLoginModalOpen,
-      login, logout, syncUser
+      login, logout, syncUser, updateUser
     }}>
       {children}
     </AuthContext.Provider>

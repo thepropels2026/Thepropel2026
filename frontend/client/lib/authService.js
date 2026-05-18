@@ -94,4 +94,3 @@ export async function resendVerificationEmail(email, password) {
     throw new Error("Failed to resend verification email. Please check your credentials.");
   }
 }
-
