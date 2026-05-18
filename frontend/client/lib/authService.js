@@ -2,7 +2,8 @@ import { auth } from './firebaseConfig.js';
 import { 
   createUserWithEmailAndPassword, 
   sendEmailVerification, 
-  signInWithEmailAndPassword 
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
 } from "firebase/auth";
 
 /**
@@ -58,3 +59,39 @@ export async function loginWithEmail(email, password) {
     }
   }
 }
+
+/**
+ * Sends a password reset email to the given email address.
+ * @param {string} email 
+ */
+export async function sendPasswordResetLink(email) {
+  try {
+    await sendPasswordResetEmail(auth, email);
+  } catch (error) {
+    console.error("Password reset error:", error);
+    if (error.code === 'auth/user-not-found') {
+      throw new Error("No account found with this email.");
+    } else if (error.code === 'auth/invalid-email') {
+      throw new Error("The email address is invalid.");
+    } else {
+      throw new Error("Failed to send reset link. Please try again.");
+    }
+  }
+}
+
+/**
+ * Resends the verification email for the user.
+ * Since we need the user object, we briefly sign them in and send the email.
+ * @param {string} email 
+ * @param {string} password 
+ */
+export async function resendVerificationEmail(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    await sendEmailVerification(userCredential.user);
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    throw new Error("Failed to resend verification email. Please check your credentials.");
+  }
+}
+

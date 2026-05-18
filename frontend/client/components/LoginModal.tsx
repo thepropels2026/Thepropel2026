@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { loginWithEmail } from '../lib/authService';
+import { loginWithEmail, sendPasswordResetLink, resendVerificationEmail } from '../lib/authService';
 import { API_BASE_URL } from '../lib/api';
 
 export default function LoginModal() {
@@ -35,7 +35,7 @@ export default function LoginModal() {
     setError(null);
     setSuccess(null);
     if (!inputValue) {
-      setError(`Please enter your ${method}`);
+      setError(`Please enter your email`);
       return;
     }
     
@@ -67,6 +67,35 @@ export default function LoginModal() {
     }
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await sendPasswordResetLink(inputValue);
+      setSuccess("Password reset link sent to your email.");
+      setTimeout(() => setStep(2), 3000);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    setIsSubmitting(true);
+    setError(null);
+    setSuccess(null);
+    try {
+      await resendVerificationEmail(inputValue, password);
+      setSuccess("Verification email resent. Please check your inbox.");
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
 
   if (!isLoginModalOpen) return null;
@@ -171,10 +200,24 @@ export default function LoginModal() {
                       className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-14 text-sm font-semibold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
                     />
                   </div>
+                  <div className="flex justify-end mt-2">
+                    <button type="button" onClick={() => setStep(3)} className="text-[10px] font-bold text-slate-500 hover:text-black uppercase transition-colors">
+                      Forgot Password?
+                    </button>
+                  </div>
                 </div>
 
                 {success && <p className="text-emerald-600 text-[10px] font-bold uppercase text-center">{success}</p>}
-                {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
+                {error && (
+                  <div className="text-center space-y-2">
+                    <p className="text-red-500 text-[10px] font-bold uppercase">{error}</p>
+                    {error.includes("Email not verified") && (
+                      <button type="button" onClick={handleResendVerification} className="text-[10px] font-bold text-cyan-600 uppercase hover:underline">
+                        Resend Verification Email
+                      </button>
+                    )}
+                  </div>
+                )}
 
                 <button 
                   disabled={isSubmitting}
@@ -188,6 +231,47 @@ export default function LoginModal() {
                     </>
                   )}
                 </button>
+              </motion.form>
+            ) : (
+              <motion.form 
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                onSubmit={handleForgotPassword}
+                className="space-y-6"
+              >
+                <div className="text-center mb-4">
+                  <h3 className="text-lg font-bold text-slate-900">Reset Password</h3>
+                  <p className="text-xs text-slate-500 font-medium mt-1">We'll send a recovery link to your email.</p>
+                </div>
+                
+                <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                   <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center">
+                      <Mail className="w-4 h-4 text-slate-400" />
+                   </div>
+                   <div className="flex-1 overflow-hidden">
+                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Target Credential</p>
+                      <p className="text-xs font-bold text-slate-900 truncate">{inputValue}</p>
+                   </div>
+                   <button type="button" onClick={() => setStep(1)} className="text-[10px] font-bold text-cyan-600 uppercase">Change</button>
+                </div>
+
+                {success && <p className="text-emerald-600 text-[10px] font-bold uppercase text-center">{success}</p>}
+                {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
+
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setStep(2)} className="flex-1 h-14 border border-slate-200 rounded-2xl font-bold text-xs uppercase tracking-widest text-slate-600 hover:bg-slate-50 transition-all">
+                    Cancel
+                  </button>
+                  <button 
+                    disabled={isSubmitting}
+                    type="submit"
+                    className="flex-[2] h-14 bg-black text-white rounded-2xl font-bold text-xs uppercase tracking-widest shadow-xl shadow-black/10 hover:bg-slate-800 transition-all flex items-center justify-center gap-2"
+                  >
+                    {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : "Send Reset Link"}
+                  </button>
+                </div>
               </motion.form>
             )}
           </AnimatePresence>
