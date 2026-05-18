@@ -1,6 +1,8 @@
 "use client"; // Required for context and state in Next.js App Router
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { auth } from '../lib/firebaseConfig';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 // Define the shape of the authentication context
 type AuthContextType = {
@@ -30,7 +32,8 @@ const AuthContext = createContext<AuthContextType>({
 
 /**
  * AuthProvider: A wrapper component that provides authentication state to the entire application.
- * Uses local state to track whether the user is registered/logged in.
+ * Redesigned to utilize Firebase Auth as the primary session source of truth,
+ * dynamically fetching full demographic profiles from Supabase.
  */
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isRegistered, setIsRegistered] = useState(() => {
@@ -54,45 +57,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const login = (userData: any) => {
     setIsRegistered(true);
     setUser(userData);
-    localStorage.setItem('isRegistered', 'true');
-    localStorage.setItem('userProfile', JSON.stringify(userData));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isRegistered', 'true');
+      localStorage.setItem('userProfile', JSON.stringify(userData));
+    }
     setRegisterModalOpen(false); // Close modal on success
     setLoginModalOpen(false);
   };
   
   const logout = async () => {
-    await supabase.auth.signOut();
+    try {
+      await signOut(auth);
+    } catch (err) {
+      console.error("Firebase sign out error:", err);
+    }
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error("Supabase sign out error:", err);
+    }
     setIsRegistered(false);
     setUser(null);
-    localStorage.removeItem('isRegistered');
-    localStorage.removeItem('userProfile');
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('isRegistered');
+      localStorage.removeItem('userProfile');
+    }
   };
-
-  // Sync with Supabase Auth State
-  useEffect(() => {
-    // 1. Initial Check
-    const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        await syncUser(session.user);
-      }
-    };
-    checkSession();
-
-    // 2. Listen for Changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      if (session?.user) {
-        await syncUser(session.user);
-      } else {
-        setIsRegistered(false);
-        setUser(null);
-        localStorage.removeItem('isRegistered');
-        localStorage.removeItem('userProfile');
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
 
   const syncUser = async (supabaseUser: any, retryCount = 0): Promise<void> => {
     try {
@@ -120,10 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           email: supabaseUser.email,
           picture: supabaseUser.user_metadata?.avatar_url || supabaseUser.user_metadata?.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${supabaseUser.id}`,
         };
-        setIsRegistered(true);
-        setUser(fallbackData);
-        localStorage.setItem('isRegistered', 'true');
-        localStorage.setItem('userProfile', JSON.stringify(fallbackData));
+        login(fallbackData);
       } else {
         // Successful profile fetch
         const userData = {
@@ -131,21 +118,88 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           firstName: profile.first_name,
           lastName: profile.last_name,
         };
-        setIsRegistered(true);
-        setUser(userData);
-        localStorage.setItem('isRegistered', 'true');
-        localStorage.setItem('userProfile', JSON.stringify(userData));
+        login(userData);
       }
     } catch (err: any) {
       console.error("Auth sync error:", err);
-      if (err.message === 'Failed to fetch') {
-        console.warn("Network error during auth sync. Check Supabase connection.");
-      }
     }
   };
 
+  // Sync with Firebase Auth State (Primary Driver)
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        console.log("[Firebase Auth] Active user detected:", firebaseUser.email || firebaseUser.phoneNumber);
+        
+        try {
+          let profile = null;
+          
+          if (firebaseUser.email) {
+            // Fetch profile by email
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .eq('email', firebaseUser.email)
+              .single();
+            if (!error && data) profile = data;
+          }
+          
+          if (!profile && firebaseUser.phoneNumber) {
+            // Normalize phone formats to match mobile column
+            const phone = firebaseUser.phoneNumber;
+            const variants = [phone, phone.replace("+", ""), phone.replace("+91", "")];
+            
+            // Query with variants
+            const { data, error } = await supabase
+              .from('profiles')
+              .select('*')
+              .in('mobile', variants);
+            if (!error && data && data.length > 0) {
+              profile = data[0];
+            }
+          }
+          
+          if (profile) {
+            const userData = {
+              ...profile,
+              firstName: profile.first_name,
+              lastName: profile.last_name,
+            };
+            login(userData);
+          } else {
+            // Fallback user metadata or create demo profile
+            const fallbackData = {
+              id: firebaseUser.uid,
+              firstName: firebaseUser.displayName?.split(' ')[0] || firebaseUser.email?.split('@')[0] || 'User',
+              lastName: firebaseUser.displayName?.split(' ')[1] || '',
+              email: firebaseUser.email || `${firebaseUser.phoneNumber}@propels.com`,
+              mobile: firebaseUser.phoneNumber || '',
+              picture: firebaseUser.photoURL || `https://api.dicebear.com/7.x/notionists/svg?seed=${firebaseUser.uid}`,
+            };
+            login(fallbackData);
+          }
+        } catch (err) {
+          console.error("Error syncing profile with Firebase user:", err);
+        }
+      } else {
+        console.log("[Firebase Auth] No active user session.");
+        // Double check if there is an active Supabase user to keep logged in
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setIsRegistered(false);
+          setUser(null);
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem('isRegistered');
+            localStorage.removeItem('userProfile');
+          }
+        }
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
   return (
-    // Provide the state and action functions to child components
     <AuthContext.Provider value={{ 
       isRegistered, user, 
       isRegisterModalOpen, setRegisterModalOpen, 
@@ -159,4 +213,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
 // Custom hook for easy access to the AuthContext from any component
 export const useAuth = () => useContext(AuthContext);
-

@@ -2,9 +2,7 @@ import { auth } from './firebaseConfig.js';
 import { 
   createUserWithEmailAndPassword, 
   sendEmailVerification, 
-  signInWithEmailAndPassword, 
-  RecaptchaVerifier, 
-  signInWithPhoneNumber 
+  signInWithEmailAndPassword 
 } from "firebase/auth";
 
 /**
@@ -57,74 +55,6 @@ export async function loginWithEmail(email, password) {
       throw new Error("Invalid email or password. Please verify and try again.");
     } else {
       throw new Error(error.message || "Failed to log in. Please try again.");
-    }
-  }
-}
-
-/**
- * Initializes Firebase RecaptchaVerifier for Phone Authentication.
- * @param {string} buttonId - The ID of the button to trigger recaptcha or container ID.
- * @returns {import("firebase/auth").RecaptchaVerifier}
- */
-export function setupPhoneAuth(buttonId) {
-  if (typeof window === 'undefined') return null;
-  try {
-    const recaptchaVerifier = new RecaptchaVerifier(auth, buttonId, {
-      size: 'invisible',
-      callback: (response) => {
-        // reCAPTCHA solved
-      }
-    });
-    return recaptchaVerifier;
-  } catch (error) {
-    console.error("Recaptcha initialization failed:", error);
-    throw new Error("Failed to initialize security verification. Please reload the page.");
-  }
-}
-
-/**
- * Sends an OTP to the user's phone number.
- * @param {string} phoneNumber 
- * @param {import("firebase/auth").ApplicationVerifier} appVerifier 
- * @returns {Promise<import("firebase/auth").ConfirmationResult>}
- */
-export async function sendOTPToPhone(phoneNumber, appVerifier) {
-  try {
-    const confirmationResult = await signInWithPhoneNumber(auth, phoneNumber, appVerifier);
-    return confirmationResult;
-  } catch (error) {
-    console.error("Failed to send OTP:", error);
-    if (error.code === 'auth/invalid-phone-number') {
-      throw new Error("The phone number provided is invalid. Please use international format (e.g., +919876543210).");
-    } else if (error.code === 'auth/quota-exceeded') {
-      throw new Error("SMS quota exceeded. Please try again later or contact support.");
-    } else {
-      throw new Error(error.message || "Failed to send verification code. Please check your network and try again.");
-    }
-  }
-}
-
-/**
- * Confirms the OTP code sent to the phone.
- * @param {import("firebase/auth").ConfirmationResult} confirmationResult 
- * @param {string} otpCode 
- * @returns {Promise<import("firebase/auth").UserCredential>}
- */
-export async function verifyOTPCode(confirmationResult, otpCode) {
-  try {
-    if (!confirmationResult) {
-      throw new Error("No pending phone verification found. Please request a new verification code.");
-    }
-    const userCredential = await confirmationResult.confirm(otpCode);
-    return userCredential;
-  } catch (error) {
-    console.error("OTP Verification failed:", error);
-    if (error.code === 'auth/invalid-verification-code') {
-      throw new Error("Invalid code entered. The code you entered does not match our records. Please try again.");
-    } else if (error.code === 'auth/code-expired') {
-      throw new Error("The verification code has expired. Please request a new code.");
-    } else {
-      throw new Error(error.message || "Verification failed. Please try again.");
     }
   }
 }

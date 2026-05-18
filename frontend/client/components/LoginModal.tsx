@@ -8,18 +8,16 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { loginWithEmail } from '../lib/authService';
+import { API_BASE_URL } from '../lib/api';
 
 export default function LoginModal() {
   const { isLoginModalOpen, setLoginModalOpen, setRegisterModalOpen, login } = useAuth();
-  const [method, setMethod] = useState<'email' | 'phone'>('email');
-  const [step, setStep] = useState(1); // 1: Input, 2: Password/OTP
+  const [step, setStep] = useState(1); // 1: Input, 2: Password
   const [inputValue, setInputValue] = useState('');
   const [password, setPassword] = useState('');
-  const [otp, setOtp] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [timer, setTimer] = useState(0);
 
   // Reset state when modal closes
   useEffect(() => {
@@ -29,35 +27,18 @@ export default function LoginModal() {
       setSuccess(null);
       setInputValue('');
       setPassword('');
-      setOtp('');
-      setTimer(0);
     }
   }, [isLoginModalOpen]);
 
-  // Countdown timer for resend
-  useEffect(() => {
-    let interval: any;
-    if (timer > 0) {
-      interval = setInterval(() => {
-        setTimer((prev) => prev - 1);
-      }, 1000);
-    }
-    return () => clearInterval(interval);
-  }, [timer]);
-
-  const formatTime = (seconds: number) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleNext = (e: React.FormEvent) => {
+  const handleNext = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(null);
     if (!inputValue) {
       setError(`Please enter your ${method}`);
       return;
     }
+    
     setStep(2);
   };
 
@@ -68,25 +49,14 @@ export default function LoginModal() {
 
     try {
       // 1. Authenticate with Firebase & Enforce Email Verification Check
-      if (method === 'email') {
-        await loginWithEmail(inputValue, password);
+      await loginWithEmail(inputValue, password);
 
-        // 2. Authenticate with Supabase to maintain database sync
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
-          email: inputValue,
-          password: password,
-        });
-        if (authError) throw authError;
-      } else {
-        // Phone/OTP Login
-        const { data: otpData, error: otpError } = await supabase.auth.signInWithOtp({
-          phone: inputValue,
-        });
-        if (otpError) throw otpError;
-        setTimer(120); // 2 minute countdown
-        setSuccess("OTP Protocol Initiated. Check your device.");
-        return;
-      }
+      // 2. Authenticate with Supabase to maintain database sync
+      const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+        email: inputValue,
+        password: password,
+      });
+      if (authError) throw authError;
 
       // Note: AuthContext useEffect will pick up the new session and update the UI
       setLoginModalOpen(false);
@@ -97,23 +67,7 @@ export default function LoginModal() {
     }
   };
 
-  const resendOTP = async () => {
-    if (timer > 0) return;
-    setIsSubmitting(true);
-    setError(null);
-    setSuccess(null);
-    try {
-      const payload = method === 'email' ? { email: inputValue } : { phone: inputValue };
-      const { error: otpError } = await supabase.auth.signInWithOtp(payload);
-      if (otpError) throw otpError;
-      setTimer(120);
-      setSuccess("New credentials dispatched to your terminal.");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
 
   if (!isLoginModalOpen) return null;
 
@@ -135,6 +89,7 @@ export default function LoginModal() {
         {/* Header Decor */}
         <div className="h-1.5 w-full bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600" />
         
+
         <button 
           onClick={() => setLoginModalOpen(false)}
           className="absolute top-6 right-6 p-2 rounded-full hover:bg-slate-50 transition-colors text-slate-400 hover:text-black"
@@ -162,30 +117,12 @@ export default function LoginModal() {
                 onSubmit={handleNext}
                 className="space-y-6"
               >
-                {/* Method Switcher */}
-                <div className="flex bg-slate-100 p-1 rounded-xl">
-                  <button 
-                    type="button"
-                    onClick={() => setMethod('email')}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${method === 'email' ? 'bg-white text-black shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                  >
-                    Email
-                  </button>
-                  <button 
-                    type="button"
-                    onClick={() => setMethod('phone')}
-                    className={`flex-1 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition-all ${method === 'phone' ? 'bg-white text-black shadow-sm' : 'text-slate-400 hover:text-slate-600'}`}
-                  >
-                    Phone
-                  </button>
-                </div>
-
                 <div className="relative group">
-                  {method === 'email' ? <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" /> : <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />}
+                  <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
                   <input 
                     required
-                    type={method === 'email' ? 'email' : 'tel'} 
-                    placeholder={method === 'email' ? 'your@email.com' : '+1 (555) 000-0000'}
+                    type="email" 
+                    placeholder="your@email.com"
                     value={inputValue}
                     onChange={(e) => setInputValue(e.target.value)}
                     className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-14 text-sm font-semibold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
@@ -213,7 +150,7 @@ export default function LoginModal() {
               >
                 <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center">
-                      {method === 'email' ? <Mail className="w-4 h-4 text-slate-400" /> : <Phone className="w-4 h-4 text-slate-400" />}
+                      <Mail className="w-4 h-4 text-slate-400" />
                    </div>
                    <div className="flex-1 overflow-hidden">
                       <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active Credential</p>
@@ -223,56 +160,17 @@ export default function LoginModal() {
                 </div>
 
                 <div className="space-y-4">
-                  {method === 'email' ? (
-                    <div className="relative group">
-                      <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
-                      <input 
-                        required
-                        type="password"
-                        placeholder="Enter Secure Password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-14 text-sm font-semibold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
-                      />
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      <div className="flex justify-between gap-2">
-                        {[1, 2, 3, 4, 5, 6].map((i) => (
-                          <input 
-                            key={i}
-                            type="text"
-                            maxLength={1}
-                            className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl text-center text-xl font-bold focus:outline-none focus:border-black transition-all"
-                            value={otp[i-1] || ''}
-                            onChange={(e) => {
-                              const val = e.target.value;
-                              if (val.length <= 1) {
-                                const newOtp = otp.split('');
-                                newOtp[i-1] = val;
-                                setOtp(newOtp.join(''));
-                              }
-                            }}
-                          />
-                        ))}
-                      </div>
-                      <div className="flex flex-col items-center gap-2 pt-2">
-                        {timer > 0 ? (
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                            Resend Protocol available in {formatTime(timer)}
-                          </p>
-                        ) : (
-                          <button 
-                            type="button"
-                            onClick={resendOTP}
-                            className="text-[10px] font-bold text-cyan-600 uppercase tracking-widest hover:text-black transition-colors"
-                          >
-                            Resend Verification Code
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  )}
+                  <div className="relative group">
+                    <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
+                    <input 
+                      required
+                      type="password"
+                      placeholder="Enter Secure Password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-14 text-sm font-semibold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
+                    />
+                  </div>
                 </div>
 
                 {success && <p className="text-emerald-600 text-[10px] font-bold uppercase text-center">{success}</p>}

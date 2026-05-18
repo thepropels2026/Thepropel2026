@@ -68,6 +68,9 @@ class OTPVerifyRequest(BaseModel):
     mobile: str = None
     otp: str
 
+class PhoneRequest(BaseModel):
+    phone: str
+
 # Define a data model for checkout requests
 class CheckoutRequest(BaseModel):
     tool_ids: list[str]
@@ -129,17 +132,17 @@ async def send_otp(req: OTPRequest):
             return {"status": "success", "message": f"OTP sent to {req.email}"}
         except Exception as e:
             print(f"[WARN] Resend email send failed: {str(e)}. Falling back to mock email OTP.")
+            print(f"[DEVELOPER MOCK ONLY] OTP for email {req.email} is: {otp}")
             otp_storage[req.email] = otp
             return {
                 "status": "success", 
                 "message": f"OTP sent to {req.email} (Mock Fallback)", 
-                "debug_otp": otp,
                 "warning": "Resend API failed. Check server logs/response for code."
             }
     if req.mobile:
-        print(f"MOCK SMS: OTP for {req.mobile} is {otp}")
+        print(f"[DEVELOPER MOCK ONLY] SMS OTP for mobile {req.mobile} is: {otp}")
         otp_storage[req.mobile] = otp
-        return {"status": "success", "message": f"OTP sent to {req.mobile} (Mocked)", "debug_otp": otp}
+        return {"status": "success", "message": f"OTP sent to {req.mobile} (Mocked)"}
     raise HTTPException(status_code=400, detail="Either email or mobile must be provided")
 
 @app.post("/api/auth/verify-otp")
@@ -150,6 +153,49 @@ async def verify_otp(req: OTPVerifyRequest):
     if identifier in otp_storage and otp_storage[identifier] == req.otp:
         return {"status": "success", "message": "OTP verified"}
     raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+
+@app.post("/api/auth/get-profile-by-phone")
+async def get_profile_by_phone(req: PhoneRequest):
+    if not req.phone:
+        raise HTTPException(status_code=400, detail="Phone number is required")
+    
+    phone_clean = req.phone.strip()
+    phone_variants = [phone_clean]
+    if not phone_clean.startsWith("+"):
+        phone_variants.append(f"+{phone_clean}")
+        phone_variants.append(f"+91{phone_clean}")
+    else:
+        phone_variants.append(phone_clean.replace("+", ""))
+        if phone_clean.startswith("+91"):
+            phone_variants.append(phone_clean.replace("+91", "").strip())
+            phone_variants.append(phone_clean.replace("+91", "0").strip())
+
+    try:
+        # Fetch all profiles
+        res = supabase.table("profiles").select("*").execute()
+        matched_profile = None
+        for row in res.data:
+            row_mobile = str(row.get("mobile", "")).strip()
+            # Compare variants
+            if any(v in row_mobile or row_mobile in v for v in phone_variants if v):
+                matched_profile = row
+                break
+        
+        if not matched_profile:
+            # Also check directly matching with filter
+            res_direct = supabase.table("profiles").select("*").in_("mobile", phone_variants).execute()
+            if res_direct.data:
+                matched_profile = res_direct.data[0]
+
+        if not matched_profile:
+            raise HTTPException(status_code=404, detail="No registered account found with this phone number. Please register first.")
+            
+        return {"status": "success", "profile": matched_profile}
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"SUPABASE ERROR (get_profile_by_phone): {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to fetch profile: {str(e)}")
 
 @app.post("/api/auth/check-email")
 async def check_email(req: OTPRequest):

@@ -9,15 +9,14 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { API_BASE_URL } from '../lib/api';
-import { signUpWithEmail, setupPhoneAuth, sendOTPToPhone, verifyOTPCode } from '../lib/authService';
+import { signUpWithEmail } from '../lib/authService';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [debugOtp, setDebugOtp] = useState<{ email?: string; mobile?: string } | null>(null);
-  const [confirmationResult, setConfirmationResult] = useState<any>(null);
+
 
   // Lock scroll while registration modal is active
   useEffect(() => {
@@ -41,8 +40,7 @@ export default function RegisterModal() {
     mobile: '',
     password: '',
     confirmPassword: '',
-    emailOtp: '',
-    mobileOtp: '',
+
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -52,7 +50,7 @@ export default function RegisterModal() {
   const nextStep = () => setStep(step + 1);
   const prevStep = () => setStep(Math.max(1, step - 1));
 
-  const sendOTPs = async (e?: any) => {
+  const registerUser = async (e?: any) => {
     if (e && e.preventDefault) e.preventDefault();
     if (!formData.password || formData.password !== formData.confirmPassword) {
       setError("Passwords do not match.");
@@ -81,48 +79,7 @@ export default function RegisterModal() {
       // 2. Register Firebase Auth & Send Email Verification Link
       await signUpWithEmail(formData.email, formData.password);
 
-      // 3. Initialize Firebase Invisible reCAPTCHA & Send SMS OTP
-      let recaptchaVerifier;
-      try {
-        recaptchaVerifier = setupPhoneAuth('recaptcha-container');
-      } catch (verifierErr: any) {
-        console.error("Verifier initialization failed:", verifierErr);
-        throw new Error("Failed to initialize security verification. Please reload the page.");
-      }
-
-      let formattedPhone = formData.mobile.trim();
-      if (!formattedPhone.startsWith('+')) {
-        formattedPhone = `+91${formattedPhone}`;
-      }
-
-      console.log(`[Firebase Phone Auth] Triggering SMS OTP for: ${formattedPhone}`);
-      const confirmResult = await sendOTPToPhone(formattedPhone, recaptchaVerifier);
-      setConfirmationResult(confirmResult);
-
-      nextStep();
-    } catch (err: any) {
-      console.error("OTP send error:", err);
-      setError(err.message || "Failed to send verification codes. Please check your inputs.");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const verifyOTPs = async (e?: any) => {
-    if (e && e.preventDefault) e.preventDefault();
-    setIsSubmitting(true);
-    setError(null);
-    try {
-      // 1. Verify Phone OTP via Firebase
-      if (!confirmationResult) {
-        throw new Error("No active verification session. Please go back and resend.");
-      }
-      
-      console.log(`[Firebase Phone Auth] Verifying OTP: ${formData.mobileOtp}`);
-      await verifyOTPCode(confirmationResult, formData.mobileOtp);
-
-      // 2. Success! Mobile OTP is verified. Now register on Supabase to sync profiles
-      console.log("[Supabase Sync] Mobile OTP verified, completing registration...");
+      // 3. Register on Supabase to sync profiles
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -142,11 +99,10 @@ export default function RegisterModal() {
         throw authError;
       }
 
-      alert("Registration successful! A verification link has been sent to your email. Please verify it before logging in.");
-      setRegisterModalOpen(false);
+      nextStep(); // Move to step 4 (Success / Verification notice)
     } catch (err: any) {
-      console.error("OTP verify error:", err);
-      setError(err.message || "OTP verification failed. Please try again.");
+      console.error("Registration error:", err);
+      setError(err.message || "Failed to register. Please check your inputs.");
     } finally {
       setIsSubmitting(false);
     }
@@ -332,17 +288,17 @@ export default function RegisterModal() {
                       </div>
                    </div>
 
-                   <div id="recaptcha-container"></div>
+
 
                    {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
 
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
-                        onClick={sendOTPs} disabled={isSubmitting || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword}
+                        onClick={registerUser} disabled={isSubmitting || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword}
                         className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
                       >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Send Dual Verification"}
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Create Account"}
                       </button>
                    </div>
                 </motion.div>
@@ -351,52 +307,31 @@ export default function RegisterModal() {
               {step === 4 && (
                 <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Dual Verification</h3>
+                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Email Verification</h3>
                       <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 4: Identity Verification</p>
                    </div>
 
                    <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3.5">
                      <div className="flex gap-3">
-                       <div className="w-5 h-5 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold text-black mt-0.5">1</div>
+                       <div className="w-5 h-5 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold text-black mt-0.5"><Check className="w-3 h-3"/></div>
                        <div className="flex-1 space-y-0.5">
-                         <h4 className="text-[11px] font-bold text-[rgba(0,0,0,0.8)] uppercase tracking-wider">Email Verification Link</h4>
+                         <h4 className="text-[11px] font-bold text-[rgba(0,0,0,0.8)] uppercase tracking-wider">Verification Link Sent</h4>
                          <p className="text-xs font-medium text-[rgba(0,0,0,0.5)] leading-relaxed">
-                           A real Firebase verification link has been sent to <strong className="text-black font-semibold">{formData.email}</strong>. Open your email inbox and click it to verify.
-                         </p>
-                       </div>
-                     </div>
-
-                     <hr className="border-slate-200/60" />
-
-                     <div className="flex gap-3">
-                       <div className="w-5 h-5 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold text-black mt-0.5">2</div>
-                       <div className="flex-1 space-y-0.5">
-                         <h4 className="text-[11px] font-bold text-[rgba(0,0,0,0.8)] uppercase tracking-wider">Mobile SMS OTP Code</h4>
-                         <p className="text-xs font-medium text-[rgba(0,0,0,0.5)] leading-relaxed">
-                           A real Firebase SMS OTP has been sent to <strong className="text-black font-semibold">{formData.mobile}</strong>. Enter the 6-digit code below:
+                           We've sent a verification link to <strong className="text-black font-semibold">{formData.email}</strong>. Please check your inbox and click the link to verify your account before logging in.
                          </p>
                        </div>
                      </div>
                    </div>
-
-                   <div className="space-y-2">
-                      <label className="text-[10px] font-bold text-[rgba(0,0,0,0.5)] uppercase tracking-wider text-center block">Enter Mobile OTP</label>
-                      <input 
-                         required maxLength={6} name="mobileOtp" placeholder="000000" 
-                         value={formData.mobileOtp} onChange={handleInputChange}
-                         className="w-full max-w-[200px] mx-auto block h-12 bg-slate-50 border border-slate-200 rounded-xl text-center font-mono text-lg font-bold text-[rgba(0,0,0,0.9)] focus:border-black outline-none transition-all tracking-[0.25em]" 
-                      />
-                   </div>
-
-                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
 
                    <div className="flex gap-3 pt-4">
-                      <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
-                        onClick={verifyOTPs} disabled={isSubmitting || formData.mobileOtp.length < 6}
-                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
+                        onClick={() => {
+                          setRegisterModalOpen(false);
+                          setLoginModalOpen(true);
+                        }} 
+                        className="flex-1 h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all"
                       >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Verify & Create Account"}
+                        Proceed to Login
                       </button>
                    </div>
                 </motion.div>
