@@ -112,14 +112,38 @@ export default function PricingSection() {
         if (error) throw error;
         if (data && data.length > 0) {
           // Parse JSON features if they came back as string
-          const parsed = data.map((p: any) => ({
-            ...p,
-            features: typeof p.features === 'string' ? JSON.parse(p.features) : p.features,
-          }));
+          const parsed = data.map((p: any) => {
+            let featuresList: string[] = [];
+            if (Array.isArray(p.features)) {
+              featuresList = p.features;
+            } else if (typeof p.features === 'string') {
+              const str = p.features.trim();
+              if (str.startsWith('[') && str.endsWith(']')) {
+                try {
+                  featuresList = JSON.parse(str);
+                } catch {
+                  featuresList = str.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+                }
+              } else if (str.startsWith('{') && str.endsWith('}')) {
+                // PostgreSQL text[] array format: {"feature 1", "feature 2"}
+                featuresList = str
+                  .slice(1, -1)
+                  .split(',')
+                  .map(s => s.trim().replace(/^["']|["']$/g, ''))
+                  .filter(Boolean);
+              } else {
+                featuresList = str.split('\n').map(s => s.trim()).filter(Boolean);
+              }
+            }
+            return {
+              ...p,
+              features: featuresList,
+            };
+          });
           setPlans(parsed);
         }
-      } catch {
-        // Silently fall back to static data
+      } catch (err: any) {
+        console.error("Error fetching pricing plans from Supabase:", err);
       } finally {
         setLoading(false);
       }
@@ -192,10 +216,16 @@ function PricingCard({ plan, onCTA }: { plan: PricingPlan; onCTA: (p: PricingPla
       {/* Badge */}
       {plan.badge && (
         <div
-          className={`absolute top-5 right-5 px-3 py-1 rounded text-[9px] font-black uppercase tracking-[0.15em] ${
-            highlighted
-              ? 'bg-black/20 text-white/80'
-              : 'bg-white/8 border border-white/15 text-white/50'
+          className={`absolute top-5 right-5 px-3 py-1 rounded text-[9px] font-black uppercase tracking-[0.15em] border ${
+            plan.badge_color === 'orange'
+              ? 'bg-[#FF5F00] text-white border-[#FF5F00]/20'
+              : plan.badge_color === 'indigo'
+              ? 'bg-indigo-600 text-white border-indigo-600/20 shadow-[0_0_15px_rgba(79,70,229,0.4)]'
+              : plan.badge_color === 'emerald'
+              ? 'bg-emerald-600 text-white border-emerald-600/20'
+              : highlighted
+              ? 'bg-black/20 text-white/80 border-white/10'
+              : 'bg-white/8 border-white/15 text-white/50'
           }`}
         >
           {plan.badge}
