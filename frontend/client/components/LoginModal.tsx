@@ -177,7 +177,7 @@ export default function LoginModal() {
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                 </button>
               </motion.form>
-            ) : (
+            ) : step === 2 ? (
               <motion.form 
                 key="step2"
                 initial={{ opacity: 0, x: 20 }}
