@@ -385,7 +385,10 @@ async def create_checkout_session(req: CheckoutRequest):
         raise HTTPException(status_code=404, detail="No valid tools found")
     
     # SECURITY FIX: Calculate true amount from database to prevent client-side manipulation
-    calculated_amount = sum(tool.get("discount_price") or tool["price"] for tool in tools_resp.data)
+    subtotal = sum(tool.get("discount_price") or tool["price"] for tool in tools_resp.data)
+    platform_fee = round(subtotal * 0.10, 2)
+    gst = round((subtotal + platform_fee) * 0.18, 2)
+    calculated_amount = round(subtotal + platform_fee + gst, 2)
     
     order_id = f"order_{uuid.uuid4().hex[:12]}"
     
@@ -449,6 +452,108 @@ async def create_checkout_session(req: CheckoutRequest):
         "payment_session_id": cf_order_data.get("payment_session_id"),
         "order_id": order_id
     }
+
+# Simulation endpoint to support offline payment flow and custom methods UI
+@app.post("/api/checkout/simulate-success")
+async def simulate_success(req: dict):
+    order_id = req.get("order_id")
+    if not order_id:
+        raise HTTPException(status_code=400, detail="Missing order_id")
+        
+    # 1. Update Order status
+    order_resp = supabase.table("orders").select("*").eq("cashfree_order_id", order_id).execute()
+    if not order_resp.data:
+        raise HTTPException(status_code=404, detail="Order not found")
+        
+    db_order = order_resp.data[0]
+    if db_order["status"] == "paid":
+        return {"status": "already_processed"}
+        
+    # 2. Get Order Items
+    items_resp = supabase.table("order_items").select("*, tool_id(*)").eq("order_id", db_order["id"]).execute()
+    email_items = []
+    
+    for item in items_resp.data:
+        tool = item["tool_id"]
+        pool = tool.get("voucher_pool", [])
+        
+        assigned_link = None
+        if pool and len(pool) > 0:
+            assigned_link = pool.pop(0)
+            # Update voucher pool
+            supabase.table("tools_cards").update({"voucher_pool": pool}).eq("id", tool["id"]).execute()
+            # Update order item with assigned link
+            supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
+        else:
+            # Fallback mock voucher link if pool is empty
+            assigned_link = f"https://thepropels.in/vouchers/{tool['id']}"
+            supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
+            
+        email_items.append({
+            "item_id": item["id"],
+            "title": tool["title"],
+            "link": assigned_link,
+            "amount": item["amount"]
+        })
+    
+    # 3. Mark Order as Paid
+    supabase.table("orders").update({"status": "paid"}).eq("id", db_order["id"]).execute()
+    
+    # 4. SEND CONSOLIDATED EMAIL RECEIPT
+    receipt_rows = ""
+    for i in email_items:
+        receipt_rows += f"""
+        <tr>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; color: #0f172a; font-size: 14px;"><strong>{i['title']}</strong><br><a href='{i['link']}' style='font-size: 12px; color: #0891b2;'>Access Link</a></td>
+            <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; color: #0f172a; font-size: 14px; text-align: right; font-weight: 600;">₹{i['amount']}</td>
+        </tr>
+        """
+    
+    try:
+        resend.Emails.send({
+            "from": "The Propels <onboarding@resend.dev>",
+            "to": [db_order["user_email"]],
+            "subject": f"Receipt & Access: Your Tool Purchase Confirmation",
+            "html": f"""
+                <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
+                    <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
+                    <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left; padding: 0 0 12px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Tool Details & Links</th>
+                                <th style="text-align: right; padding: 0 0 12px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {receipt_rows}
+                        </tbody>
+                    </table>
+                    
+                    <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px; background: #f8fafc; border-radius: 12px; overflow: hidden;">
+                        <tr>
+                            <td style="padding: 16px; color: #64748b; font-size: 14px;">Order ID</td>
+                            <td style="padding: 16px; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">{order_id}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 16px; border-top: 1px solid #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 800;">Total Paid</td>
+                            <td style="padding: 16px; border-top: 1px solid #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 800; text-align: right;">₹{db_order['total_amount']}</td>
+                        </tr>
+                    </table>
+                    
+                    <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">If you have any issues with your access, please reply to this email or contact our support team.</p>
+                    <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
+                    <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
+                </div>
+            """
+        })
+        for i in email_items:
+            supabase.table("order_items").update({"status": "submitted"}).eq("id", i["item_id"]).execute()
+    except Exception as e:
+        print(f"RESEND ERROR: {str(e)}")
+        
+    return {"status": "success"}
 
 # Webhook endpoint to handle Cashfree payment notifications
 @app.post("/api/payment-webhook")

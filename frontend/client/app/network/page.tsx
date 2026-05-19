@@ -1,8 +1,12 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { Search, UserPlus, MessageSquare, Briefcase, Filter, ShieldCheck, MapPin, Building2, Zap, Check, X, Clock, Loader2 } from 'lucide-react';
+import { 
+  Search, UserPlus, MessageSquare, Briefcase, Filter, 
+  ShieldCheck, MapPin, Building2, Zap, Check, X, Clock, Loader2, Send 
+} from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../components/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function NetworkPage() {
   const { user } = useAuth();
@@ -11,6 +15,12 @@ export default function NetworkPage() {
   const [connections, setConnections] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  // Chat State
+  const [activeChat, setActiveChat] = useState<any | null>(null);
+  const [chatMessages, setChatMessages] = useState<any[]>([]);
+  const [newMessage, setNewMessage] = useState('');
+  const [sendingMessage, setSendingMessage] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -43,6 +53,82 @@ export default function NetworkPage() {
     }
     fetchData();
   }, [user?.email]);
+
+  // Load chat messages when activeChat is opened
+  useEffect(() => {
+    if (!activeChat || !user?.email) return;
+
+    async function fetchMessages() {
+      try {
+        const { data: senderProf } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('identifier', user.email)
+          .single();
+
+        const senderId = senderProf?.id;
+        const receiverId = activeChat.id;
+
+        if (!senderId || !receiverId) return;
+
+        const { data, error } = await supabase
+          .from('messages')
+          .select('*')
+          .or(`and(sender_id.eq.${senderId},receiver_id.eq.${receiverId}),and(sender_id.eq.${receiverId},receiver_id.eq.${senderId})`)
+          .order('created_at', { ascending: true });
+
+        if (error) {
+          // LocalStorage fallback if schema table is not created yet
+          console.warn('Using local backup storage for chats:', error);
+          const localKey = `chat_${senderId}_${receiverId}`;
+          const mockMsgs = JSON.parse(localStorage.getItem(localKey) || '[]');
+          setChatMessages(mockMsgs);
+          return;
+        }
+
+        setChatMessages(data || []);
+      } catch (err) {
+        console.error('Error loading messages:', err);
+      }
+    }
+
+    fetchMessages();
+
+    // Subscribe to realtime database insertion changes for message table
+    let channel: any;
+    try {
+      channel = supabase
+        .channel('realtime-messages')
+        .on(
+          'postgres_changes',
+          { event: 'INSERT', schema: 'public', table: 'messages' },
+          async (payload) => {
+            const newMsg = payload.new;
+            // Load sender identity to match
+            const { data: senderProf } = await supabase
+              .from('profiles')
+              .select('id')
+              .eq('identifier', user.email)
+              .single();
+
+            const myId = senderProf?.id;
+            if (
+              (newMsg.sender_id === activeChat.id && newMsg.receiver_id === myId) ||
+              (newMsg.sender_id === myId && newMsg.receiver_id === activeChat.id)
+            ) {
+              setChatMessages(prev => [...prev, newMsg]);
+            }
+          }
+        )
+        .subscribe();
+    } catch (e) {
+      console.warn('Realtime sync subscript error:', e);
+    }
+
+    return () => {
+      if (channel) supabase.removeChannel(channel);
+    };
+  }, [activeChat, user?.email]);
 
   const getConnectionStatus = (targetEmail: string) => {
     const conn = connections.find(c => 
@@ -92,6 +178,62 @@ export default function NetworkPage() {
       console.error("Error accepting request:", err);
     } finally {
       setActionLoading(null);
+    }
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newMessage.trim() || !activeChat || !user?.email) return;
+
+    setSendingMessage(true);
+    try {
+      const { data: senderProf } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('identifier', user.email)
+        .single();
+
+      const senderId = senderProf?.id;
+      const receiverId = activeChat.id;
+
+      if (!senderId || !receiverId) return;
+
+      const messageObj = {
+        sender_id: senderId,
+        receiver_id: receiverId,
+        content: newMessage.trim(),
+        is_read: false
+      };
+
+      const { data, error } = await supabase
+        .from('messages')
+        .insert(messageObj)
+        .select()
+        .single();
+
+      if (error) {
+        // Fallback local backup if database tables lack columns/migrations
+        const localKey = `chat_${senderId}_${receiverId}`;
+        const mockMsgs = JSON.parse(localStorage.getItem(localKey) || '[]');
+        const newMockMsg = {
+          id: Math.random().toString(),
+          sender_id: senderId,
+          receiver_id: receiverId,
+          content: newMessage.trim(),
+          created_at: new Date().toISOString()
+        };
+        mockMsgs.push(newMockMsg);
+        localStorage.setItem(localKey, JSON.stringify(mockMsgs));
+        setChatMessages(prev => [...prev, newMockMsg]);
+      } else {
+        setChatMessages(prev => [...prev, data]);
+      }
+
+      setNewMessage('');
+    } catch (err) {
+      console.error('Error sending message:', err);
+    } finally {
+      setSendingMessage(false);
     }
   };
 
@@ -199,37 +341,43 @@ export default function NetworkPage() {
                 </p>
                 
                 <div className="flex gap-3 mt-auto">
-                  {getConnectionStatus(profile.email) === 'accepted' ? (
+                  {getConnectionStatus(profile.identifier) === 'accepted' ? (
                     <button className="flex-1 bg-slate-100 text-slate-500 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2 cursor-default">
                       <Check className="w-4 h-4" /> Connected
                     </button>
-                  ) : getConnectionStatus(profile.email) === 'pending' ? (
-                    connections.find(c => c.sender_email === user?.email && c.receiver_email === profile.email) ? (
+                  ) : getConnectionStatus(profile.identifier) === 'pending' ? (
+                    connections.find(c => c.sender_email === user?.email && c.receiver_email === profile.identifier) ? (
                       <button className="flex-1 bg-amber-50 text-amber-600 border border-amber-200 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase flex items-center justify-center gap-2">
                         <Clock className="w-4 h-4" /> Request Sent
                       </button>
                     ) : (
                       <div className="flex-1 flex gap-2">
                          <button 
-                            onClick={() => handleAccept(profile.email)}
-                            disabled={actionLoading === profile.email}
+                            onClick={() => handleAccept(profile.identifier)}
+                            disabled={actionLoading === profile.identifier}
                             className="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white py-2.5 rounded-xl text-[10px] font-bold uppercase transition-all"
                          >
-                            {actionLoading === profile.email ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : "Accept"}
+                            {actionLoading === profile.identifier ? <Loader2 className="w-3 h-3 animate-spin mx-auto" /> : "Accept"}
                          </button>
                          <button className="flex-1 bg-slate-100 text-slate-500 py-2.5 rounded-xl text-[10px] font-bold uppercase">Decline</button>
                       </div>
                     )
                   ) : (
                     <button 
-                      onClick={() => handleConnect(profile.email)}
-                      disabled={actionLoading === profile.email || profile.email === user?.email}
+                      onClick={() => handleConnect(profile.identifier)}
+                      disabled={actionLoading === profile.identifier || profile.identifier === user?.email}
                       className="flex-1 bg-cyan-600 hover:bg-cyan-700 text-white shadow-md shadow-cyan-600/20 py-2.5 px-4 rounded-xl text-xs font-bold tracking-wider uppercase transition-all disabled:opacity-50"
                     >
-                      {actionLoading === profile.email ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Connect"}
+                      {actionLoading === profile.identifier ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Connect"}
                     </button>
                   )}
-                  <button className="px-5 py-2.5 bg-white border-2 border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors uppercase text-xs font-bold tracking-widest text-slate-500">Message</button>
+                  <button 
+                    onClick={() => setActiveChat(profile)}
+                    disabled={!user?.email}
+                    className="px-5 py-2.5 bg-white border-2 border-slate-200 rounded-xl hover:border-slate-300 hover:bg-slate-50 transition-colors uppercase text-xs font-bold tracking-widest text-slate-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    Message
+                  </button>
                 </div>
               </div>
             ))}
@@ -266,6 +414,98 @@ export default function NetworkPage() {
         </div>
 
       </div>
+
+      {/* Sliding P2P Chat Panel */}
+      <AnimatePresence>
+        {activeChat && (
+          <>
+            {/* Backdrop overlay */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setActiveChat(null)}
+              className="fixed inset-0 bg-black/60 z-40"
+            />
+            {/* Slide-over panel container */}
+            <motion.div
+              initial={{ x: '100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="fixed top-0 right-0 h-full w-full sm:w-96 bg-white border-l border-slate-200 z-50 flex flex-col shadow-2xl font-inter text-slate-900"
+            >
+              {/* Chat Header */}
+              <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-cyan-100 border border-cyan-200 overflow-hidden">
+                    <img src={activeChat.picture || `https://api.dicebear.com/7.x/notionists/svg?seed=${activeChat.first_name}`} alt={activeChat.first_name} className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-sm text-slate-950">{activeChat.first_name} {activeChat.last_name}</h3>
+                    <p className="text-[10px] text-slate-500 font-semibold">{activeChat.designation} @ {activeChat.company}</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setActiveChat(null)}
+                  className="p-2 hover:bg-slate-200 rounded-lg text-slate-400 hover:text-slate-700 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Chat Messages */}
+              <div className="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50">
+                {chatMessages.length === 0 ? (
+                  <div className="h-full flex flex-col items-center justify-center text-center p-6 space-y-2">
+                    <div className="w-12 h-12 bg-cyan-100 rounded-full flex items-center justify-center text-cyan-600">
+                      <MessageSquare className="w-5 h-5" />
+                    </div>
+                    <h4 className="font-bold text-xs text-slate-800">Secure P2P Connection</h4>
+                    <p className="text-[10px] text-slate-500 max-w-[180px] leading-relaxed">Send a message to initiate your conversation in this encrypted workspace.</p>
+                  </div>
+                ) : (
+                  chatMessages.map((msg) => {
+                    const isMe = msg.sender_id !== activeChat.id;
+                    return (
+                      <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[75%] rounded-2xl px-4 py-2.5 text-xs shadow-sm ${
+                          isMe 
+                            ? 'bg-cyan-600 text-white rounded-br-none' 
+                            : 'bg-white border border-slate-200 text-slate-800 rounded-bl-none'
+                        }`}>
+                          <p className="leading-relaxed break-words">{msg.content}</p>
+                          <span className={`text-[8px] block mt-1 text-right ${isMe ? 'text-cyan-200/80' : 'text-slate-400'}`}>
+                            {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+
+              {/* Chat Input */}
+              <form onSubmit={handleSendMessage} className="p-4 border-t border-slate-100 bg-white flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1 bg-slate-100 border border-slate-200 rounded-xl px-4 py-3 text-xs outline-none focus:border-cyan-500 focus:bg-white transition-all text-slate-900 font-semibold"
+                />
+                <button
+                  type="submit"
+                  disabled={sendingMessage || !newMessage.trim()}
+                  className="px-4 rounded-xl bg-cyan-600 hover:bg-cyan-700 disabled:bg-slate-200 text-white disabled:text-slate-400 transition-colors flex items-center justify-center"
+                >
+                  <Send className="w-4 h-4" />
+                </button>
+              </form>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

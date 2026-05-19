@@ -21,45 +21,6 @@ type Story = {
   media_type: 'image' | 'video';
 };
 
-export const MOCK_STORIES: Story[] = [
-  {
-    id: 'story-1',
-    founder_name: 'Aravind K.',
-    startup_name: 'PropelFlow AI',
-    niche: 'AI',
-    metric: '₹4.5 Lakhs/mo',
-    metric_label: 'Recurring Revenue (MRR)',
-    summary: 'Automated founders database intelligence & pipeline generation. Aravind scaled from an idea to 12 active enterprise clients within his first 45 days.',
-    avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=300&h=300',
-    media_url: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=1200&h=800',
-    media_type: 'image'
-  },
-  {
-    id: 'story-2',
-    founder_name: 'Sneha Patel',
-    startup_name: 'GlowSphere',
-    niche: 'E-commerce',
-    metric: '₹2.8 Lakhs',
-    metric_label: 'First Month Gross Sales',
-    summary: 'Next-gen organic beauty brand targeted at Tier-1 college students. Sneha built an active micro-influencer referral program that exploded her sales.',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=300&h=300',
-    media_url: 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?auto=format&fit=crop&q=80&w=1200&h=800',
-    media_type: 'image'
-  },
-  {
-    id: 'story-3',
-    founder_name: 'Rohan Mehta',
-    startup_name: 'DevSync',
-    niche: 'SaaS',
-    metric: '1,200+ Active Users',
-    metric_label: 'Organic Signups',
-    summary: 'Developer productivity tool syncing environment secrets dynamically. Rohan built a cult following on Dev.to and launched to the top of Product Hunt.',
-    avatar_url: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=300&h=300',
-    media_url: 'https://images.unsplash.com/photo-1531482615713-2afd69097998?auto=format&fit=crop&q=80&w=1200&h=800',
-    media_type: 'image'
-  }
-];
-
 const FILTERS: Niche[] = ['All', 'AI', 'E-commerce', 'SaaS'];
 
 export default function SuccessStories() {
@@ -76,14 +37,10 @@ export default function SuccessStories() {
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        if (data && data.length > 0) {
-          setStories(data);
-        } else {
-          setStories(MOCK_STORIES);
-        }
+        setStories(data || []);
       } catch (error) {
         console.error('Error fetching stories:', error);
-        setStories(MOCK_STORIES);
+        setStories([]);
       } finally {
         setLoading(false);
       }

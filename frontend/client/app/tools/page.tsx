@@ -272,8 +272,8 @@ export default function Tools() {
                             </div>
                             {tool.price > tool.discount_price && (
                               <div className="flex flex-col">
-                                <span className="text-[9px] text-red-400 font-bold uppercase tracking-widest mb-0.5">Retail</span>
-                                <span className="text-sm text-red-500/40 font-bold line-through">₹{tool.price}</span>
+                                <span className="text-[9px] text-red-500 font-black uppercase tracking-widest mb-0.5">Retail</span>
+                                <span className="text-lg text-red-500/60 font-black line-through decoration-red-600 decoration-[2.5px]">₹{tool.price}</span>
                               </div>
                             )}
                           </>

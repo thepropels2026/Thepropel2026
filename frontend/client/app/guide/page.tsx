@@ -803,77 +803,39 @@ function KnowledgeBaseTab({ resources, loading }: any) {
 // ------------------------------------------------------------------
 // 5. BLUEPRINT TAB
 // ------------------------------------------------------------------
-function BlueprintTab({ userProgress, allModules, setActiveTab }: any) {
-  const steps = allModules.length > 0 ? allModules.map((m: any, i: number) => {
-    const isCompleted = userProgress.some((p: any) => p.module_id === m.id);
-    const isActive = !isCompleted && (i === 0 || userProgress.some((p: any) => p.module_id === allModules[i-1]?.id));
-    return {
-      title: m.title,
-      desc: m.description || 'Module content description pending.',
-      status: isCompleted ? 'completed' : (isActive ? 'active' : 'locked')
-    };
-  }) : [
-    { title: 'The Genesis', desc: 'Identify core problem, analyze market gaps, and synthesize a bare-bones thesis.', status: 'active' },
-    { title: 'Market Validation', desc: 'Customer interviews, landing page smoke tests, and intent gathering without code.', status: 'locked' },
-    { title: 'MVP Assembly', desc: 'Building the fundamental feature set that solves the strict pain point efficiently.', status: 'locked' },
-    { title: 'Early Traction Engine', desc: 'Acquiring the first 100 paying customers through unscalable efforts and targeted outreach.', status: 'locked' },
-    { title: 'Seed Funding & Scale', desc: 'Real-world revenue demonstration, pitch deck creation, and investor networking.', status: 'locked' },
-  ];
-
+function BlueprintTab() {
   return (
-    <div className="max-w-3xl mx-auto pb-12">
-      <div className="mb-10 w-full text-center sm:text-left">
-         <h2 className="text-3xl font-inter font-bold text-slate-800 mb-2">The Propels Growth Blueprint</h2>
-         <p className="text-slate-500">Your tailored curriculum roadmap from scratch to scalable revenue.</p>
+    <div className="max-w-2xl mx-auto py-16 text-center space-y-6">
+      <div className="w-20 h-20 bg-cyan-500/10 border border-cyan-500/20 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner">
+        <Map className="w-10 h-10 text-cyan-600 animate-pulse" />
       </div>
-
-      <div className="relative border-l-4 border-slate-200 ml-4 md:ml-10 space-y-12 pb-10">
-         {steps.map((step: any, idx: number) => (
-            <div key={idx} className="relative pl-8 md:pl-12 group">
-               {/* Node Line Marker */}
-               <div className={`absolute -left-[14px] top-1 w-6 h-6 rounded-full border-4 shadow-sm z-10 transition-colors duration-500 ${
-                 step.status === 'completed' ? 'bg-cyan-500 border-cyan-100 shadow-cyan-500/30' :
-                 step.status === 'active' ? 'bg-orange-500 border-orange-100 shadow-orange-500/50 scale-125' :
-                 'bg-white border-slate-300'
-               }`}>
-                 {step.status === 'completed' && <CheckSquare className="w-3 h-3 text-white absolute inset-0 m-auto mt-[0.5px] ml-[2.5px]" />}
-               </div>
-               
-               {/* Content Block */}
-               <div className={`p-6 rounded-2xl border transition-all duration-300 ${
-                  step.status === 'active' ? 'bg-white border-orange-200 shadow-lg -translate-y-1' :
-                  step.status === 'completed' ? 'bg-cyan-50/30 border-cyan-100 hover:border-cyan-300' :
-                  'bg-white/50 border-slate-200 opacity-70 grayscale'
-               }`}>
-                  <div className="flex items-center justify-between mb-2">
-                     <h3 className={`text-xl font-bold font-inter ${
-                       step.status === 'active' ? 'text-orange-600' :
-                       step.status === 'completed' ? 'text-cyan-800' :
-                       'text-slate-600'
-                     }`}>
-                        Step 0{idx + 1}: {step.title}
-                     </h3>
-                     <span className={`text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full ${
-                        step.status === 'completed' ? 'bg-cyan-100 text-cyan-700' :
-                        step.status === 'active' ? 'bg-orange-100 text-orange-700' :
-                        'bg-slate-100 text-slate-500'
-                     }`}>
-                       {step.status}
-                     </span>
-                  </div>
-                  <p className="text-slate-500 leading-relaxed">{step.desc}</p>
-                  
-                  {step.status === 'active' && (
-                     <button 
-                       onClick={() => setActiveTab('Learning')}
-                       className="mt-6 bg-orange-500 hover:bg-orange-600 text-white font-bold px-6 py-2 rounded shadow-md shadow-orange-500/20 transition-all text-sm flex items-center gap-2"
-                     >
-                        Enter Curriculum <ChevronRight className="w-4 h-4" />
-                     </button>
-                  )}
-               </div>
-            </div>
-         ))}
+      <h2 className="text-3xl font-black italic uppercase tracking-tight text-slate-900">
+        GROWTH BLUEPRINT <span className="text-cyan-600">COMING SOON</span>
+      </h2>
+      <p className="text-slate-500 text-sm leading-relaxed max-w-md mx-auto font-medium">
+        Our startup scaling architects are curating the definitive step-by-step roadmap from conceptualization to seed funding. This interactive roadmap will unlock in your next portal update.
+      </p>
+      
+      <div className="bg-white border border-slate-200 rounded-2xl p-6 max-w-sm mx-auto shadow-sm flex flex-col gap-4 text-left">
+        <div className="flex justify-between items-center text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-100 pb-2">
+          <span>Target Architecture</span>
+          <span className="text-cyan-600">92% Complete</span>
+        </div>
+        <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+          <div className="bg-cyan-500 h-full w-[92%] rounded-full animate-pulse" />
+        </div>
+        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider space-y-2 mt-1">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-4 h-4 text-emerald-500" /> Genesis & Synthesis Checkpoint
+          </div>
+          <div className="flex items-center gap-2">
+            <CheckSquare className="w-4 h-4 text-emerald-500" /> Smoke Tests & Intention Mapping
+          </div>
+          <div className="flex items-center gap-2 text-slate-500">
+            <div className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center shrink-0"><div className="w-1.5 h-1.5 bg-cyan-500 rounded-full" /></div>
+            Interactive Flow Integration
+          </div>
+        </div>
       </div>
     </div>
   );
