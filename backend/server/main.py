@@ -8,9 +8,17 @@ from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr, constr
 from supabase import create_client, Client
 from dotenv import load_dotenv
+
+# Security Imports
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+from starlette.middleware.base import BaseHTTPMiddleware
+from collections import defaultdict
+import time
 
 # Load environment variables from .env file
 # Try local then parent directories to find the project root .env
@@ -24,16 +32,16 @@ else:
 # Initialize the FastAPI application with a custom title
 app = FastAPI(title="The Propels API")
 
-# Supabase Configuration
+# Supabase Configuration (Upgraded to Service Role for secure backend-only DB operations)
 SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_KEY = os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")) # Fallback if service key not set yet
 
-if not SUPABASE_URL or not SUPABASE_KEY:
+if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
     print("WARNING: Supabase credentials missing. Client initialization skipped.")
     supabase = None
 else:
-    # Create Supabase client instance
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
+    # Create Supabase client instance with SERVICE_ROLE key to securely bypass RLS
+    supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 # Cashfree Configuration
 CASHFREE_APP_ID = os.getenv("CASHFREE_APP_ID", "TEST104193478b056158097b69335f6374391401")
@@ -57,14 +65,82 @@ TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 
-# Configure CORS middleware settings
+# Configure CORS middleware settings securely
+ALLOWED_ORIGINS = [
+    "http://localhost:3000",
+    "https://thepropels.com",
+    "https://www.thepropels.com",
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
+
+# --- Security: Rate Limiting Setup ---
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# --- Security: Active Attack Alerting Middleware ---
+ADMIN_ALERT_EMAIL = os.getenv("ADMIN_ALERT_EMAIL", "admin@thepropels.com")
+
+class SecurityAlertMiddleware(BaseHTTPMiddleware):
+    def __init__(self, app):
+        super().__init__(app)
+        self.ip_failures = defaultdict(lambda: {"count": 0, "last_alert": 0})
+        self.FAILURE_THRESHOLD = 15 # 15 bad requests
+        self.ALERT_COOLDOWN = 600 # 10 minutes
+
+    async def dispatch(self, request: Request, call_next):
+        client_ip = get_remote_address(request)
+        response = await call_next(request)
+        
+        # Track 429 Too Many Requests, 401 Unauthorized, 403 Forbidden, 404 Not Found (Scanning)
+        if response.status_code in [401, 403, 404, 429]:
+            self.ip_failures[client_ip]["count"] += 1
+            
+            if self.ip_failures[client_ip]["count"] >= self.FAILURE_THRESHOLD:
+                current_time = time.time()
+                # Check cooldown to prevent spamming admin email
+                if current_time - self.ip_failures[client_ip]["last_alert"] > self.ALERT_COOLDOWN:
+                    self.ip_failures[client_ip]["last_alert"] = current_time
+                    self.send_admin_alert(client_ip, request.url.path, response.status_code)
+        else:
+            # Reset on successful request if you only want to track consecutive failures, 
+            # but for scanning, tracking total failures is better. We'll decrement slowly or just leave as is for strictness.
+            pass
+            
+        return response
+
+    def send_admin_alert(self, ip, path, status_code):
+        try:
+            resend.Emails.send({
+                "from": "Security <onboarding@resend.dev>",
+                "to": [ADMIN_ALERT_EMAIL],
+                "subject": "CRITICAL: Suspicious Activity Detected on The Propels API",
+                "html": f"""
+                    <div style="background: #fff1f2; padding: 20px; border: 1px solid #fda4af; border-radius: 8px; font-family: sans-serif;">
+                        <h2 style="color: #e11d48;">🚨 Security Alert Triggered</h2>
+                        <p>Multiple suspicious requests or rate-limit violations were detected.</p>
+                        <ul>
+                            <li><strong>Attacker IP:</strong> {ip}</li>
+                            <li><strong>Target Path:</strong> {path}</li>
+                            <li><strong>Last Status Code:</strong> {status_code}</li>
+                            <li><strong>Violations Triggered:</strong> {self.FAILURE_THRESHOLD}</li>
+                        </ul>
+                        <p><em>Please review server logs immediately.</em></p>
+                    </div>
+                """
+            })
+            print(f"SECURITY ALERT SENT TO ADMIN FOR IP: {ip}")
+        except Exception as e:
+            print(f"FAILED TO SEND SECURITY ALERT: {e}")
+
+app.add_middleware(SecurityAlertMiddleware)
 
 from services.otp_service import OTPService
 from core.security import hash_otp
@@ -72,15 +148,15 @@ from core.security import hash_otp
 # Initialize OTP Service
 otp_service = OTPService(supabase)
 
-# Models for OTP and Auth
+# Models for OTP and Auth with strict Pydantic validation
 class OTPRequest(BaseModel):
-    email: str = None
-    mobile: str = None
+    email: EmailStr = None
+    mobile: str = None # Can be enhanced with regex constr(pattern=r'^\+?[1-9]\d{1,14}$')
 
 class OTPVerifyRequest(BaseModel):
-    email: str = None
+    email: EmailStr = None
     mobile: str = None
-    otp: str
+    otp: constr(min_length=6, max_length=6)
 
 class PhoneRequest(BaseModel):
     phone: str
@@ -131,7 +207,8 @@ def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
 
 
 @app.post("/api/auth/send-otp")
-async def send_otp(req: OTPRequest):
+@limiter.limit("3/minute")
+async def send_otp(request: Request, req: OTPRequest):
     otp = otp_service.generate_otp()
     
     if req.email:
@@ -167,7 +244,8 @@ async def send_otp(req: OTPRequest):
     raise HTTPException(status_code=400, detail="Either email or mobile must be provided")
 
 @app.post("/api/auth/verify-otp")
-async def verify_otp(req: OTPVerifyRequest):
+@limiter.limit("5/minute")
+async def verify_otp(request: Request, req: OTPVerifyRequest):
     identifier = req.email or req.mobile
     if not identifier:
         raise HTTPException(status_code=400, detail="Identifier missing")

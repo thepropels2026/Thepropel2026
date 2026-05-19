@@ -5,3 +5,5 @@ requests
 supabase
 python-dotenv
 resend
+slowapi
+email-validator
