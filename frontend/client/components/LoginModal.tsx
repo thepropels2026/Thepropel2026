@@ -7,7 +7,6 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { loginWithEmail, sendPasswordResetLink, resendVerificationEmail } from '../lib/authService';
 import { API_BASE_URL } from '../lib/api';
 
 export default function LoginModal() {
@@ -48,15 +47,18 @@ export default function LoginModal() {
     setError(null);
 
     try {
-      // 1. Authenticate with Firebase & Enforce Email Verification Check
-      await loginWithEmail(inputValue, password);
-
-      // 2. Authenticate with Supabase to maintain database sync
+      // 1. Authenticate with Supabase to maintain database sync and session
       const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
         email: inputValue,
         password: password,
       });
       if (authError) throw authError;
+
+      // Ensure profile is verified (assuming triggers didn't block it)
+      const { data: profile } = await supabase.from('profiles').select('is_email_verified').eq('id', authData.user?.id).single();
+      if (profile && profile.is_email_verified === false) {
+          throw new Error("Email not verified. Please verify your email.");
+      }
 
       // Note: AuthContext useEffect will pick up the new session and update the UI
       setLoginModalOpen(false);
@@ -73,11 +75,12 @@ export default function LoginModal() {
     setError(null);
     setSuccess(null);
     try {
-      await sendPasswordResetLink(inputValue);
+      const { error: resetError } = await supabase.auth.resetPasswordForEmail(inputValue);
+      if (resetError) throw resetError;
       setSuccess("Password reset link sent to your email.");
-      setTimeout(() => setStep(2), 3000);
+      setTimeout(() => setStep(1), 3000);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "Failed to send reset link.");
     } finally {
       setIsSubmitting(false);
     }
@@ -88,7 +91,13 @@ export default function LoginModal() {
     setError(null);
     setSuccess(null);
     try {
-      await resendVerificationEmail(inputValue, password);
+      // You can add logic to call the /send-otp endpoint again
+      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inputValue }),
+      });
+      if (!res.ok) throw new Error("Failed to resend verification.");
       setSuccess("Verification email resent. Please check your inbox.");
     } catch (err: any) {
       setError(err.message);

@@ -46,6 +46,17 @@ CASHFREE_BASE_URL = "https://sandbox.cashfree.com/pg" if CASHFREE_MODE == "sandb
 RESEND_API_KEY = os.getenv("RESEND_API_KEY")
 resend.api_key = RESEND_API_KEY
 
+# SMTP Configuration
+SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_EMAIL = os.getenv("SMTP_EMAIL")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+
+# Twilio Configuration
+TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
 # Configure CORS middleware settings
 app.add_middleware(
     CORSMiddleware,
@@ -55,8 +66,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory OTP storage
-otp_storage = {}
+from services.otp_service import OTPService
+from core.security import hash_otp
+
+# Initialize OTP Service
+otp_service = OTPService(supabase)
 
 # Models for OTP and Auth
 class OTPRequest(BaseModel):
@@ -118,31 +132,38 @@ def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
 
 @app.post("/api/auth/send-otp")
 async def send_otp(req: OTPRequest):
-    import random
-    otp = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    otp = otp_service.generate_otp()
+    
     if req.email:
-        try:
-            resend.Emails.send({
-                "from": "The Propels <auth@resend.dev>",
-                "to": [req.email],
-                "subject": "Your Verification Code",
-                "html": f"Your verification code is: <strong>{otp}</strong>"
-            })
-            otp_storage[req.email] = otp
+        success, msg = otp_service.send_email_otp(req.email, otp)
+        otp_service.store_otp(req.email, otp)
+        
+        if success:
             return {"status": "success", "message": f"OTP sent to {req.email}"}
-        except Exception as e:
-            print(f"[WARN] Resend email send failed: {str(e)}. Falling back to mock email OTP.")
+        else:
             print(f"[DEVELOPER MOCK ONLY] OTP for email {req.email} is: {otp}")
-            otp_storage[req.email] = otp
             return {
                 "status": "success", 
-                "message": f"OTP sent to {req.email} (Mock Fallback)", 
-                "warning": "Resend API failed. Check server logs/response for code."
+                "message": f"OTP mocked for {req.email} (No email provider configured)", 
+                "warning": msg,
+                "dev_otp": otp
             }
+
     if req.mobile:
-        print(f"[DEVELOPER MOCK ONLY] SMS OTP for mobile {req.mobile} is: {otp}")
-        otp_storage[req.mobile] = otp
-        return {"status": "success", "message": f"OTP sent to {req.mobile} (Mocked)"}
+        success, msg = otp_service.send_sms_otp(req.mobile, otp)
+        otp_service.store_otp(req.mobile, otp)
+        
+        if success:
+            return {"status": "success", "message": f"OTP sent to {req.mobile}"}
+        else:
+            print(f"[DEVELOPER MOCK ONLY] SMS OTP for mobile {req.mobile} is: {otp}")
+            return {
+                "status": "success", 
+                "message": f"OTP mocked for {req.mobile} (No SMS provider configured)",
+                "warning": msg,
+                "dev_otp": otp
+            }
+            
     raise HTTPException(status_code=400, detail="Either email or mobile must be provided")
 
 @app.post("/api/auth/verify-otp")
@@ -150,9 +171,53 @@ async def verify_otp(req: OTPVerifyRequest):
     identifier = req.email or req.mobile
     if not identifier:
         raise HTTPException(status_code=400, detail="Identifier missing")
-    if identifier in otp_storage and otp_storage[identifier] == req.otp:
-        return {"status": "success", "message": "OTP verified"}
-    raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+    
+    # Query Supabase for the OTP record
+    try:
+        resp = supabase.table("otps").select("*").eq("identifier", identifier).order("created_at", desc=True).limit(1).execute()
+        if not resp.data:
+            raise HTTPException(status_code=400, detail="No OTP requested for this identifier")
+            
+        record = resp.data[0]
+        
+        # Check expiry
+        expiry_str = record["otp_expiry"]
+        # Handle ISO format from Postgres
+        if expiry_str.endswith("Z"):
+            expiry_str = expiry_str[:-1] + "+00:00"
+        
+        expiry_time = datetime.fromisoformat(expiry_str)
+        if datetime.now(expiry_time.tzinfo) > expiry_time:
+            raise HTTPException(status_code=400, detail="OTP has expired")
+            
+        # Check hash
+        if record["otp_hash"] == hash_otp(req.otp):
+            # Mark verified in otps table
+            supabase.table("otps").update({"is_verified": True}).eq("id", record["id"]).execute()
+            
+            # Update profile if it exists
+            column_to_update = "is_email_verified" if req.email else "is_phone_verified"
+            profile_field = "email" if req.email else "mobile"
+            
+            profile_resp = supabase.table("profiles").select("*").eq(profile_field, identifier).execute()
+            if profile_resp.data:
+                supabase.table("profiles").update({column_to_update: True}).eq("id", profile_resp.data[0]["id"]).execute()
+                profile = profile_resp.data[0]
+            else:
+                profile = None
+                
+            return {
+                "status": "success", 
+                "message": "OTP verified successfully",
+                "profile": profile
+            }
+            
+        raise HTTPException(status_code=400, detail="Invalid OTP")
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        print(f"OTP verification error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error during verification")
 
 @app.post("/api/auth/get-profile-by-phone")
 async def get_profile_by_phone(req: PhoneRequest):
@@ -241,13 +306,16 @@ async def create_checkout_session(req: CheckoutRequest):
     if not tools_resp.data:
         raise HTTPException(status_code=404, detail="No valid tools found")
     
+    # SECURITY FIX: Calculate true amount from database to prevent client-side manipulation
+    calculated_amount = sum(tool.get("discount_price") or tool["price"] for tool in tools_resp.data)
+    
     order_id = f"order_{uuid.uuid4().hex[:12]}"
     
     # Create order in database
     order_data_insert = {
         "cashfree_order_id": order_id,
         "user_email": req.user_email,
-        "total_amount": req.amount,
+        "total_amount": calculated_amount,
         "status": "pending"
     }
     
@@ -261,7 +329,8 @@ async def create_checkout_session(req: CheckoutRequest):
             order_items.append({
                 "order_id": db_order_id,
                 "tool_id": tool["id"],
-                "amount": tool.get("discount_price") or tool["price"]
+                "amount": tool.get("discount_price") or tool["price"],
+                "status": "pending"
             })
         
         supabase.table("order_items").insert(order_items).execute()
@@ -281,7 +350,7 @@ async def create_checkout_session(req: CheckoutRequest):
     
     payload = {
         "order_id": order_id,
-        "order_amount": req.amount,
+        "order_amount": calculated_amount,
         "order_currency": "INR",
         "customer_details": {
             "customer_id": req.user_email.replace("@", "_").replace(".", "_"),
@@ -340,48 +409,72 @@ async def payment_webhook(request: Request):
                 supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
                 
                 email_items.append({
+                    "item_id": item["id"],
                     "title": tool["title"],
-                    "link": assigned_link
+                    "link": assigned_link,
+                    "amount": item["amount"]
                 })
         
         # 3. Mark Order as Paid
         supabase.table("orders").update({"status": "paid"}).eq("id", db_order["id"]).execute()
         
-        # 4. SEND CONSOLIDATED EMAIL
+        # 4. SEND CONSOLIDATED EMAIL RECEIPT
         tool_names = ", ".join([i["title"] for i in email_items])
-        html_list = "".join([f"<li><strong>{i['title']}</strong>: <a href='{i['link']}'>{i['link']}</a></li>" for i in email_items])
+        
+        # Build Receipt Table Rows
+        receipt_rows = ""
+        for i in email_items:
+            receipt_rows += f"""
+            <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; color: #0f172a; font-size: 14px;"><strong>{i['title']}</strong><br><a href='{i['link']}' style='font-size: 12px; color: #0891b2;'>Access Link</a></td>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9; color: #0f172a; font-size: 14px; text-align: right; font-weight: 600;">₹{i['amount']}</td>
+            </tr>
+            """
         
         try:
             resend.Emails.send({
                 "from": "The Propels <onboarding@resend.dev>",
                 "to": [db_order["user_email"]],
-                "subject": f"Access Granted: Your {len(email_items)} Tools are Ready!",
+                "subject": f"Receipt & Access: Your Tool Purchase Confirmation",
                 "html": f"""
                     <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
-                        <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Order Confirmed!</h2>
-                        <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase. Your premium access for the following tools is now active:</p>
-                        
-                        <ul style="color: #0f172a; font-size: 14px; line-height: 1.8; margin-bottom: 32px;">
-                            {html_list}
-                        </ul>
+                        <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
+                        <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>
                         
                         <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px;">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: left; padding: 0 0 12px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Tool Details & Links</th>
+                                    <th style="text-align: right; padding: 0 0 12px 0; color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid #e2e8f0;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {receipt_rows}
+                            </tbody>
+                        </table>
+                        
+                        <table style="width: 100%; border-collapse: collapse; margin-bottom: 32px; background: #f8fafc; border-radius: 12px; overflow: hidden;">
                             <tr>
-                                <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Order ID</td>
-                                <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">{order_id}</td>
+                                <td style="padding: 16px; color: #64748b; font-size: 14px;">Order ID</td>
+                                <td style="padding: 16px; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">{order_id}</td>
                             </tr>
                             <tr>
-                                <td style="padding: 12px 0; color: #94a3b8; font-size: 14px;">Total Paid</td>
-                                <td style="padding: 12px 0; color: #0f172a; font-size: 14px; font-weight: 600; text-align: right;">₹{db_order['total_amount']}</td>
+                                <td style="padding: 16px; border-top: 1px solid #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 800;">Total Paid</td>
+                                <td style="padding: 16px; border-top: 1px solid #e2e8f0; color: #0f172a; font-size: 16px; font-weight: 800; text-align: right;">₹{db_order['total_amount']}</td>
                             </tr>
                         </table>
                         
-                        <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">If you have any issues, please contact support.</p>
+                        <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">If you have any issues with your access, please reply to this email or contact our support team.</p>
                         <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
                         <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
                     </div>
                 """
             })
+            
+            # 5. On successful email send, update the order_items status to 'submitted'
+            for i in email_items:
+                supabase.table("order_items").update({"status": "submitted"}).eq("id", i["item_id"]).execute()
+                
         except Exception as e:
             print(f"RESEND ERROR: {str(e)}")
             

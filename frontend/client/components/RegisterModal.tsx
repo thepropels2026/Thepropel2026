@@ -8,8 +8,8 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
+import { sendOtp, verifyOtp } from '../lib/authService';
 import { API_BASE_URL } from '../lib/api';
-import { signUpWithEmail } from '../lib/authService';
 
 export default function RegisterModal() {
   const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
@@ -61,30 +61,26 @@ export default function RegisterModal() {
     setIsSendingOtp(true);
     setError(null);
     try {
-      // 1. Identity Check via Backend
-      const checkResp = await fetch(`${API_BASE_URL}/api/auth/check-email`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email })
-      });
+      // 1. Identity Check
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', formData.email)
+        .single();
 
-      if (checkResp.ok) {
-        const { exists } = await checkResp.json();
-        if (exists) {
-          alert("This identity is already registered. Redirecting to login...");
-          setRegisterModalOpen(false);
-          setLoginModalOpen(true);
-          return;
-        }
+      if (existingProfile) {
+        alert("This identity is already registered. Redirecting to login...");
+        setRegisterModalOpen(false);
+        setLoginModalOpen(true);
+        return;
       }
 
-      // 2. Send OTP
-      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email }),
-      });
-      if (!res.ok) throw new Error('Failed to send verification code');
+      // 2. Send OTP via backend
+      const data = await sendOtp(formData.email);
+      
+      if (data.dev_otp) {
+        alert(`[DEVELOPER MODE] Your OTP is: ${data.dev_otp}\n\n(Configure SMTP or Twilio API keys in backend to receive this via real email/SMS)`);
+      }
       
       nextStep(); // Move to Step 4 (OTP input)
     } catch (err: any) {
@@ -98,18 +94,10 @@ export default function RegisterModal() {
     setIsSubmitting(true);
     setError(null);
     try {
-      // 1. Verify OTP First
-      const otpResp = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: formData.email, otp }),
-      });
-      if (!otpResp.ok) throw new Error('Invalid verification code. Please try again.');
+      // 1. Verify OTP using Backend
+      await verifyOtp(formData.email, otp);
 
-      // 2. Register Firebase Auth & Send Email Verification Link
-      await signUpWithEmail(formData.email, formData.password);
-
-      // 3. Register on Supabase to sync profiles
+      // 2. Create User in Supabase Auth
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
@@ -125,11 +113,27 @@ export default function RegisterModal() {
       });
 
       if (authError) {
-        console.error("Supabase Profile Sync Error:", authError);
+        console.error("Supabase Auth Error:", authError);
         throw authError;
       }
+      
+      // If we need to manually insert to profiles due to missing triggers:
+      if (authData.user) {
+        const { error: profileError } = await supabase.from('profiles').insert({
+          id: authData.user.id,
+          first_name: formData.firstName,
+          last_name: formData.lastName,
+          email: formData.email,
+          mobile: formData.mobile,
+          dob: formData.dob,
+          is_email_verified: true
+        });
+        if (profileError && profileError.code !== '23505') {
+            console.warn("Profile insertion warning:", profileError);
+        }
+      }
 
-      nextStep(); // Move to step 5 (Success / Verification notice)
+      nextStep(); // Move to step 5 (Success)
     } catch (err: any) {
       console.error("Registration error:", err);
       setError(err.message || "Failed to register. Please check your inputs.");

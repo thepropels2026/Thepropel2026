@@ -20,6 +20,7 @@ export default function CartDrawer() {
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [isVerified, setIsVerified] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
 
   // Sync user email when logged in
   useEffect(() => {
@@ -46,7 +47,11 @@ export default function CartDrawer() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email }),
       });
-      if (!res.ok) throw new Error('Failed to send verification code');
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.detail || 'Failed to send verification code');
+      if (data.dev_otp) {
+        alert(`[DEVELOPER MODE] Your OTP is: ${data.dev_otp}\n\n(Configure SMTP or Twilio API keys in backend to receive this via real email/SMS)`);
+      }
       setIsOtpSent(true);
     } catch (err: any) {
       setError(err.message);
@@ -259,11 +264,24 @@ export default function CartDrawer() {
 
                 {error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
 
+                <div className="flex items-start gap-3 py-2">
+                  <input
+                    type="checkbox"
+                    id="terms-checkbox"
+                    checked={termsAccepted}
+                    onChange={(e) => setTermsAccepted(e.target.checked)}
+                    className="mt-1 w-4 h-4 rounded border-slate-300 text-black focus:ring-black"
+                  />
+                  <label htmlFor="terms-checkbox" className="text-xs text-slate-500 leading-relaxed font-medium">
+                    I agree to the <a href="/terms" className="text-cyan-600 font-bold hover:underline">Terms & Conditions</a> and <a href="/privacy" className="text-cyan-600 font-bold hover:underline">Privacy Policy</a>. I understand that the tool credentials will be sent to the verified email address above.
+                  </label>
+                </div>
+
                 {isRegistered && (
                   <button 
                     onClick={handleCheckout}
-                    disabled={loading}
-                    className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl"
+                    disabled={loading || !termsAccepted || (!isVerified && items.length > 0)}
+                    className="w-full bg-black hover:bg-slate-800 disabled:bg-slate-200 disabled:text-slate-400 disabled:cursor-not-allowed text-white font-bold py-5 rounded-2xl flex items-center justify-center gap-3 transition-all transform hover:scale-[1.02] active:scale-95 shadow-xl"
                   >
                     {loading ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
