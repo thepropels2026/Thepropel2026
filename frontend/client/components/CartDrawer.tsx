@@ -45,6 +45,10 @@ export default function CartDrawer() {
 
   const handleSendOtp = async () => {
     if (!email) return;
+    if (!termsAccepted) {
+      setError('Please accept the Terms & Conditions first.');
+      return;
+    }
     setLoading(true);
     setError('');
     try {
@@ -68,6 +72,10 @@ export default function CartDrawer() {
 
   const handleVerifyOtp = async () => {
     if (!otp) return;
+    if (!termsAccepted) {
+      setError('Please accept the Terms & Conditions first.');
+      return;
+    }
     setIsVerifying(true);
     setError('');
     try {
@@ -78,10 +86,30 @@ export default function CartDrawer() {
       });
       if (!res.ok) throw new Error('Invalid verification code');
       setIsVerified(true);
+
+      // Auto-trigger checkout redirect since OTP is verified
+      setLoading(true);
+      const response = await fetch(`${API_BASE_URL}/api/checkout`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tool_ids: items.map(i => i.id),
+          user_email: email,
+          amount: totalAmount
+        }),
+      });
+
+      if (!response.ok) throw new Error('Verification succeeded but failed to initiate checkout');
+      
+      const { payment_session_id, order_id } = await response.json();
+      
+      // Redirect to checkout/payment page
+      window.location.href = `/checkout/${order_id}?session=${payment_session_id}`;
     } catch (err: any) {
       setError(err.message);
     } finally {
       setIsVerifying(false);
+      setLoading(false);
     }
   };
 
@@ -297,6 +325,23 @@ export default function CartDrawer() {
                         </div>
                       </div>
 
+                      {/* Terms & Conditions Checkbox (Required before OTP verification) */}
+                      {!isVerified && (
+                        <div className="flex items-start gap-2.5 py-1 bg-slate-100/50 border border-slate-200/60 rounded-xl p-3 shadow-sm">
+                          <input
+                            type="checkbox"
+                            id="drawer-terms-checkbox"
+                            checked={termsAccepted}
+                            disabled={isVerified}
+                            onChange={(e) => setTermsAccepted(e.target.checked)}
+                            className="mt-0.5 w-4 h-4 rounded border-slate-300 text-cyan-600 focus:ring-cyan-500 cursor-pointer disabled:opacity-50"
+                          />
+                          <label htmlFor="drawer-terms-checkbox" className="text-[10px] text-slate-500 leading-normal font-medium cursor-pointer">
+                            I agree to the <a href="/terms" target="_blank" className="text-cyan-600 font-bold hover:underline">Terms & Conditions</a> and <a href="/privacy" target="_blank" className="text-cyan-600 font-bold hover:underline">Privacy Policy</a>. I understand credentials will be sent to this email.
+                          </label>
+                        </div>
+                      )}
+
                       {/* OTP Fields */}
                       {!isVerified && isOtpSent && (
                         <motion.div 
@@ -334,19 +379,6 @@ export default function CartDrawer() {
                 </div>
 
                 {error && <p className="text-red-500 text-[10px] font-bold uppercase tracking-widest">{error}</p>}
-
-                <div className="flex items-start gap-3 py-2">
-                  <input
-                    type="checkbox"
-                    id="terms-checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => setTermsAccepted(e.target.checked)}
-                    className="mt-1 w-4 h-4 rounded border-slate-300 text-black focus:ring-black"
-                  />
-                  <label htmlFor="terms-checkbox" className="text-xs text-slate-500 leading-relaxed font-medium">
-                    I agree to the <a href="/terms" className="text-cyan-600 font-bold hover:underline">Terms & Conditions</a> and <a href="/privacy" className="text-cyan-600 font-bold hover:underline">Privacy Policy</a>. I understand that the tool credentials will be sent to the verified email address above.
-                  </label>
-                </div>
 
                 {isRegistered && (
                   <button 

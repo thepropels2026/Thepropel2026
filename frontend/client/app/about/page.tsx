@@ -28,9 +28,9 @@ export default function About() {
           <div className="inline-block px-4 py-1.5 border border-white/20 rounded text-[10px] font-bold tracking-[2px] text-white/50 uppercase mb-8">
             MISSION CONTROL // ARCHITECTING GROWTH
           </div>
-          <h1 className="text-4xl md:text-7xl font-black mb-6 leading-[1.1] tracking-tighter uppercase font-sans">
-            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-600">Propulsion</span> <br/>
-            <span className="text-slate-300 font-medium tracking-[0.05em] text-3xl md:text-5xl block mt-2">Ecosystem</span>
+          <h1 className="text-5xl md:text-8xl font-extrabold mb-6 leading-[0.95] tracking-tight uppercase font-sans">
+            The <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600">Propulsion</span> <br/>
+            <span className="text-white font-light tracking-[0.15em] text-2xl md:text-4xl block mt-3 opacity-90">Ecosystem</span>
           </h1>
           <p className="text-[#8B9BB4] text-lg md:text-xl max-w-2xl mb-12 font-medium leading-relaxed">
             We are not just a platform; we are a high-velocity engine designed to turn raw entrepreneurial intent into market-dominating reality.
