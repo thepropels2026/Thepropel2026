@@ -161,16 +161,16 @@ export default function JobDetailsPage() {
   };
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center bg-[#020203]">
-      <Loader2 className="w-12 h-12 text-cyan-500 animate-spin" />
+    <div className="min-h-screen flex items-center justify-center bg-slate-50 font-montserrat">
+      <Loader2 className="w-12 h-12 text-cyan-600 animate-spin" />
     </div>
   );
 
   if (!job) return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[#020203] p-6 text-white">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 p-6 text-slate-900 font-montserrat">
       <ShieldAlert className="w-16 h-16 text-red-500 mb-6" />
-      <h2 className="text-3xl font-black mb-6 uppercase tracking-tighter">Sector Not Found</h2>
-      <button onClick={() => router.push('/careers')} className="text-cyan-500 font-black uppercase tracking-widest text-[10px] hover:underline">Return to Orbit</button>
+      <h2 className="text-3xl font-montserrat font-extrabold mb-6 uppercase tracking-tight">Sector Not Found</h2>
+      <button onClick={() => router.push('/careers')} className="text-cyan-600 font-montserrat font-bold uppercase tracking-widest text-xs hover:underline">Return to Orbit</button>
     </div>
   );
 
@@ -271,7 +271,7 @@ export default function JobDetailsPage() {
           </div>
 
           {/* Sidebar Stats */}
-          <div className="lg:col-span-4 space-y-8">
+          <div className="lg:col-span-4 space-y-8 font-montserrat">
              <motion.div 
                initial={{ opacity: 0, x: 20 }}
                animate={{ opacity: 1, x: 0 }}
@@ -279,27 +279,27 @@ export default function JobDetailsPage() {
              >
                 <div className="space-y-10">
                    <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2">Target Compensation</p>
-                      <p className="text-3xl font-extrabold text-cyan-600 tracking-tight">{displayStipend}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-montserrat">Target Compensation</p>
+                      <p className="text-3xl font-extrabold text-cyan-600 tracking-tight font-montserrat">{displayStipend}</p>
                    </div>
                    <div>
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2">Temporal Duration</p>
-                      <p className="text-lg font-bold text-slate-800">{job.work_duration}</p>
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-2 font-montserrat">Temporal Duration</p>
+                      <p className="text-lg font-bold text-slate-800 font-montserrat">{job.work_duration}</p>
                    </div>
                    <div className="pt-8 border-t border-slate-100">
-                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-3">Ecosystem Density</p>
-                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600">
+                      <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.3em] mb-3 font-montserrat">Ecosystem Density</p>
+                      <div className="flex items-center gap-3 text-xs font-bold text-slate-600 font-montserrat">
                          <Users className="w-4 h-4 text-orange-500" /> {applicantCount + 42} Active Aspirants
                       </div>
                    </div>
                 </div>
              </motion.div>
 
-             <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-100 rounded-[2.5rem] p-8 shadow-sm">
+             <div className="bg-gradient-to-br from-cyan-50 to-blue-50 border border-cyan-100 rounded-[2.5rem] p-8 shadow-sm font-montserrat">
                 <Sparkles className="w-8 h-8 text-cyan-600 mb-6" />
-                <h4 className="text-xl font-bold mb-3 text-slate-900 uppercase">Elite Support</h4>
-                <p className="text-slate-500 text-xs font-medium leading-relaxed mb-8">Direct channel for architectural queries regarding this role.</p>
-                <a href="mailto:careers@thepropels.in" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-700 hover:text-cyan-800 transition-colors underline decoration-cyan-700/30">
+                <h4 className="text-xl font-montserrat font-extrabold mb-3 text-slate-900 uppercase">Elite Support</h4>
+                <p className="text-slate-500 text-xs font-medium leading-relaxed mb-8 font-montserrat">Direct channel for architectural queries regarding this role.</p>
+                <a href="mailto:careers@thepropels.in" className="inline-flex items-center gap-3 text-[10px] font-bold uppercase tracking-[0.2em] text-cyan-700 hover:text-cyan-800 transition-colors underline decoration-cyan-700/30 font-montserrat">
                   Contact Talent <ArrowRight className="w-4 h-4" />
                 </a>
              </div>
@@ -324,21 +324,21 @@ export default function JobDetailsPage() {
               {/* Inner Glow */}
               <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" />
 
-              <div className="p-10 border-b border-slate-100 flex justify-between items-start sticky top-0 z-10 bg-white/80 backdrop-blur-md">
+              <div className="p-10 border-b border-slate-100 flex justify-between items-start sticky top-0 z-10 bg-white/80 backdrop-blur-md font-montserrat">
                 <div>
                   <h2 className="text-2xl font-montserrat font-extrabold text-slate-950 uppercase">Initiate Bio-Sync</h2>
-                  <p className="text-cyan-600 font-bold uppercase tracking-[0.2em] text-[9px]">Targeting: {job.title}</p>
+                  <p className="text-cyan-600 font-bold uppercase tracking-[0.2em] text-[9px] font-montserrat">Targeting: {job.title}</p>
                 </div>
-                <button onClick={() => { setError(null); setIsApplyModalOpen(false); }} className="p-3 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all text-slate-400 hover:text-slate-600">
+                <button onClick={() => { setError(null); setIsApplyModalOpen(false); }} className="p-3 bg-slate-100 hover:bg-slate-200 rounded-2xl transition-all text-slate-400 hover:text-slate-600 font-montserrat">
                   <X className="w-6 h-6" />
                 </button>
               </div>
 
-              <div className="p-10 overflow-y-auto custom-scrollbar">
+              <div className="p-10 overflow-y-auto custom-scrollbar font-montserrat">
                 {error && (
-                  <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-xl flex items-center gap-2">
+                  <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-xl flex items-center gap-2 font-montserrat">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
-                    <span>
+                    <span className="font-montserrat">
                       {typeof error === 'object' && error !== null 
                         ? (error.message || JSON.stringify(error)) 
                         : String(error)}
@@ -346,61 +346,61 @@ export default function JobDetailsPage() {
                   </div>
                 )}
                 {applySuccess ? (
-                  <div className="text-center py-16">
+                  <div className="text-center py-16 font-montserrat">
                     <div className="w-20 h-20 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-8 shadow-sm">
                       <CheckCircle2 className="w-12 h-12" />
                     </div>
                     <h3 className="text-2xl font-bold text-slate-900 mb-2 font-montserrat">Identity Logged</h3>
-                    <p className="text-slate-600 mb-8 font-medium leading-relaxed max-w-sm mx-auto">
+                    <p className="text-slate-600 mb-8 font-medium leading-relaxed max-w-sm mx-auto font-montserrat">
                       Your credentials have been successfully integrated. Expect a handshake from our talent protocol within 48 hours.
                     </p>
                     <button 
                       onClick={() => { setIsApplyModalOpen(false); setApplySuccess(false); router.push('/careers'); }} 
-                      className="h-16 px-12 rounded-2xl bg-black text-white font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-md"
+                      className="h-16 px-12 rounded-2xl bg-black text-white font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-md font-montserrat"
                     >
                       Return to Orbit
                     </button>
                   </div>
                 ) : !isOtpSent ? (
-                  <form onSubmit={handleSendOtp} className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-4">
+                  <form onSubmit={handleSendOtp} className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-4 font-montserrat">
                     <div className="space-y-2 md:col-span-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">Full Name</label>
-                      <input required placeholder="Sushant Sharma" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">Full Name</label>
+                      <input required placeholder="Sushant Sharma" value={formData.fullName} onChange={e => setFormData({...formData, fullName: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     <div className="space-y-2 md:col-span-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">Email Terminal</label>
-                      <input required type="email" placeholder="name@propels.in" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">Email Terminal</label>
+                      <input required type="email" placeholder="name@propels.in" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     <div className="space-y-2 md:col-span-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">Global Mobile (+91)</label>
-                      <input required placeholder="+91 00000 00000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">Global Mobile (+91)</label>
+                      <input required placeholder="+91 00000 00000" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     <div className="space-y-2 md:col-span-1">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">LinkedIn Link</label>
-                      <input required placeholder="linkedin.com/in/..." value={formData.linkedinProfile} onChange={e => setFormData({...formData, linkedinProfile: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">LinkedIn Link</label>
+                      <input required placeholder="linkedin.com/in/..." value={formData.linkedinProfile} onChange={e => setFormData({...formData, linkedinProfile: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">Current Sector (Address)</label>
-                      <input required placeholder="City, State, Country" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">Current Sector (Address)</label>
+                      <input required placeholder="City, State, Country" value={formData.address} onChange={e => setFormData({...formData, address: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     <div className="space-y-2 md:col-span-2">
-                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1">Skills & Direct Experience</label>
-                      <textarea required placeholder="React, Python, Project Synthesis..." rows={3} value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold resize-none placeholder:text-slate-400 focus:bg-white" />
+                      <label className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] pl-1 font-montserrat">Skills & Direct Experience</label>
+                      <textarea required placeholder="React, Python, Project Synthesis..." rows={3} value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-4 outline-none focus:border-cyan-500 transition-all text-slate-800 font-semibold resize-none placeholder:text-slate-400 focus:bg-white font-montserrat" />
                     </div>
                     
-                    <button type="submit" disabled={isSubmitting} className="md:col-span-2 h-16 rounded-2xl bg-black text-white font-bold uppercase tracking-[0.2em] hover:bg-slate-900 transition-all shadow-md disabled:opacity-50 mt-4 flex items-center justify-center gap-3 text-xs">
+                    <button type="submit" disabled={isSubmitting} className="md:col-span-2 h-16 rounded-2xl bg-black text-white font-bold uppercase tracking-[0.2em] hover:bg-slate-900 transition-all shadow-md disabled:opacity-50 mt-4 flex items-center justify-center gap-3 text-xs font-montserrat">
                       {isSubmitting ? (
                         <Loader2 className="w-5 h-5 animate-spin" />
                       ) : <><Fingerprint className="w-5 h-5" /> Initiate Secure Verification</>}
                     </button>
                   </form>
                 ) : (
-                  <form onSubmit={handleVerifyOtp} className="space-y-10 py-12 text-center">
+                  <form onSubmit={handleVerifyOtp} className="space-y-10 py-12 text-center font-montserrat">
                     <div className="space-y-6">
                       <div className="w-16 h-16 bg-cyan-50 border border-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                          <ShieldCheck className="w-8 h-8 text-cyan-600" />
                       </div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] block">Verification Code Sent to: {formData.email}</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] block font-montserrat">Verification Code Sent to: {formData.email}</label>
                       <input 
                         required 
                         maxLength={6}
@@ -410,12 +410,12 @@ export default function JobDetailsPage() {
                         className="w-56 mx-auto bg-transparent border-b-2 border-slate-200 px-6 py-4 text-center text-4xl font-semibold tracking-[0.15em] outline-none focus:border-cyan-500 transition-all text-slate-800 font-mono" 
                       />
                     </div>
-                    <button type="submit" disabled={isVerifying} className="w-full max-w-sm mx-auto h-16 rounded-2xl bg-black text-white font-bold uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-3 text-xs">
+                    <button type="submit" disabled={isVerifying} className="w-full max-w-sm mx-auto h-16 rounded-2xl bg-black text-white font-bold uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-3 text-xs font-montserrat">
                       {isVerifying ? (
                         <Loader2 className="w-6 h-6 animate-spin" />
                       ) : <><Send className="w-5 h-5" /> Complete Integration</>}
                     </button>
-                    <button type="button" onClick={() => setIsOtpSent(false)} className="text-[9px] font-bold text-slate-400 uppercase tracking-widest hover:text-cyan-600 transition-all underline decoration-slate-200">
+                    <button type="button" onClick={() => setIsOtpSent(false)} className="text-[9px] font-bold text-slate-400 uppercase tracking-widest hover:text-cyan-600 transition-all underline decoration-slate-200 font-montserrat">
                       Reconfigure Bio-Link
                     </button>
                   </form>
