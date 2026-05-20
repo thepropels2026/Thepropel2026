@@ -133,18 +133,22 @@ export default function JobDetailsPage() {
   const finalizeApplication = async () => {
     if (!job) return;
     try {
+      const formattedCoverLetter = [
+        formData.coverLetter ? `Cover Letter: ${formData.coverLetter}` : '',
+        formData.address ? `Address: ${formData.address}` : '',
+        formData.skills ? `Skills: ${formData.skills}` : '',
+        formData.portfolio ? `Portfolio: ${formData.portfolio}` : '',
+        formData.availability ? `Availability: ${formData.availability}` : ''
+      ].filter(Boolean).join('\n\n');
+
       const { error } = await supabase.from('applications').insert({
         job_id: job.id,
         full_name: formData.fullName,
         email: formData.email,
         phone: formData.phone,
-        experience: formData.experience,
+        experience: formData.experience || 'Not specified',
         linkedin_url: formData.linkedinProfile,
-        cover_letter: formData.coverLetter,
-        address: formData.address,
-        portfolio_url: formData.portfolio,
-        availability: formData.availability,
-        skills: formData.skills,
+        cover_letter: formattedCoverLetter,
         status: 'pending'
       });
 
@@ -334,7 +338,11 @@ export default function JobDetailsPage() {
                 {error && (
                   <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-600 text-xs font-bold rounded-xl flex items-center gap-2">
                     <ShieldAlert className="w-4 h-4 shrink-0" />
-                    <span>{error}</span>
+                    <span>
+                      {typeof error === 'object' && error !== null 
+                        ? (error.message || JSON.stringify(error)) 
+                        : String(error)}
+                    </span>
                   </div>
                 )}
                 {applySuccess ? (
@@ -392,14 +400,14 @@ export default function JobDetailsPage() {
                       <div className="w-16 h-16 bg-cyan-50 border border-cyan-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
                          <ShieldCheck className="w-8 h-8 text-cyan-600" />
                       </div>
-                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.3em] block">Authentication Code: {formData.phone}</label>
+                      <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] block">Verification Code Sent to: {formData.email}</label>
                       <input 
                         required 
                         maxLength={6}
                         placeholder="000000" 
                         value={otp} 
                         onChange={e => setOtp(e.target.value)} 
-                        className="w-56 mx-auto bg-transparent border-b-2 border-slate-200 px-6 py-4 text-center text-4xl font-black tracking-[0.8em] outline-none focus:border-cyan-500 transition-all text-slate-800 font-mono" 
+                        className="w-56 mx-auto bg-transparent border-b-2 border-slate-200 px-6 py-4 text-center text-4xl font-semibold tracking-[0.15em] outline-none focus:border-cyan-500 transition-all text-slate-800 font-mono" 
                       />
                     </div>
                     <button type="submit" disabled={isVerifying} className="w-full max-w-sm mx-auto h-16 rounded-2xl bg-black text-white font-bold uppercase tracking-[0.2em] hover:scale-105 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-3 text-xs">
