@@ -43,6 +43,10 @@ export default function CheckoutPage() {
   // Wallet Form State
   const [selectedWallet, setSelectedWallet] = useState('');
 
+  // Terms & Conditions Acceptance state
+  const [termsAccepted, setTermsAccepted] = useState(false);
+
+
   // 3D Secure Verification Modal State
   const [showOtpModal, setShowOtpModal] = useState(false);
   const [otpCode, setOtpCode] = useState('');
@@ -280,6 +284,21 @@ export default function CheckoutPage() {
                 ))}
               </div>
 
+              {/* Universal Terms & Conditions Consent */}
+              <div className="flex items-start gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                <input
+                  type="checkbox"
+                  id="checkout-terms-checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-white/10 text-cyan-500 focus:ring-cyan-500 cursor-pointer accent-cyan-500"
+                />
+                <label htmlFor="checkout-terms-checkbox" className="text-[10px] text-slate-400 leading-normal font-bold uppercase tracking-wide cursor-pointer select-none">
+                  I agree to the <a href="/terms" target="_blank" rel="noreferrer" className="text-cyan-400 font-extrabold hover:underline">Terms & Conditions</a> and <a href="/privacy" target="_blank" rel="noreferrer" className="text-cyan-400 font-extrabold hover:underline">Privacy Policy</a>. Credentials will be sent to {order.user_email}.
+                </label>
+              </div>
+
+
               {/* CARD PAYMENT FORM */}
               {activeTab === 'card' && (
                 <form onSubmit={handleCardPayClick} className="space-y-4 animate-fade-in">
@@ -335,12 +354,14 @@ export default function CheckoutPage() {
 
                   <button 
                     type="submit"
-                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+                    disabled={!termsAccepted}
+                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] disabled:shadow-none flex items-center justify-center gap-2"
                   >
                     <span>Proceed to Pay ₹{grandTotal.toLocaleString('en-IN')}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
+
               )}
 
               {/* UPI PAYMENT FORM */}
@@ -360,8 +381,8 @@ export default function CheckoutPage() {
                       </div>
                       <button 
                         onClick={() => handleDirectPaymentSimulation(`UPI ID (${upiId})`)}
-                        disabled={!upiId.includes('@')}
-                        className="w-full py-4 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+                        disabled={!upiId.includes('@') || !termsAccepted}
+                        className="w-full py-4 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] disabled:shadow-none flex items-center justify-center gap-2"
                       >
                         <span>Verify & Pay ₹{grandTotal.toLocaleString('en-IN')}</span>
                         <ArrowRight className="w-4 h-4" />
@@ -375,11 +396,13 @@ export default function CheckoutPage() {
 
                       <button 
                         onClick={() => { setShowQr(true); setQrCountdown(15); }}
-                        className="w-full py-4 bg-white/5 hover:bg-white/10 border border-white/10 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
+                        disabled={!termsAccepted}
+                        className="w-full py-4 bg-white/5 hover:bg-white/10 disabled:bg-slate-800 disabled:text-slate-500 disabled:border-slate-800/20 border border-white/10 text-white font-black text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2"
                       >
                         <QrCode className="w-4 h-4 text-cyan-400" />
                         <span>Show QR Code Scanner</span>
                       </button>
+
                     </div>
                   ) : (
                     <div className="flex flex-col items-center p-6 bg-[#0a0a0c] border border-white/5 rounded-3xl space-y-4 text-center">
@@ -440,12 +463,13 @@ export default function CheckoutPage() {
                   </div>
                   <button 
                     onClick={() => handleDirectPaymentSimulation(`Netbanking (${selectedBank})`)}
-                    disabled={!selectedBank}
-                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+                    disabled={!selectedBank || !termsAccepted}
+                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] disabled:shadow-none flex items-center justify-center gap-2"
                   >
                     <span>Authorize Netbanking Pay</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
+
                 </div>
               )}
 
@@ -477,12 +501,13 @@ export default function CheckoutPage() {
                   </div>
                   <button 
                     onClick={() => handleDirectPaymentSimulation(`Wallet (${selectedWallet})`)}
-                    disabled={!selectedWallet}
-                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] flex items-center justify-center gap-2"
+                    disabled={!selectedWallet || !termsAccepted}
+                    className="w-full py-4 mt-2 bg-cyan-500 hover:bg-cyan-600 disabled:bg-slate-800 disabled:text-slate-500 text-black font-black text-xs uppercase tracking-widest rounded-xl transition-all shadow-[0_4px_20px_rgba(6,182,212,0.25)] disabled:shadow-none flex items-center justify-center gap-2"
                   >
                     <span>Proceed to Wallet Pay</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
+
                 </div>
               )}
 

@@ -64,20 +64,24 @@ export default function ProfileDashboard() {
           });
         }
 
-        // Fetch tools
+        // Fetch tools from order_items and orders
         const { data: toolsData } = await supabase
-          .from('user_tools')
-          .select('*, tools_cards(*)')
-          .eq('user_email', user.email);
+          .from('order_items')
+          .select('*, tool_id(*), orders!inner(*)')
+          .eq('orders.user_email', user.email)
+          .eq('orders.status', 'paid');
         
         if (toolsData && toolsData.length > 0) {
-          setPurchasedTools(toolsData);
+          // Normalize the data so it matches the rendering format expectations
+          const formatted = toolsData.map((item: any) => ({
+            ...item,
+            tools_cards: item.tool_id
+          }));
+          setPurchasedTools(formatted);
         } else {
-          // Demo fallback
-          setPurchasedTools([
-            { tools_cards: { title: 'Founder OS v1.0', category: 'Productivity', image_url: null } }
-          ]);
+          setPurchasedTools([]);
         }
+
 
         // Fetch profile
         const { data: profData } = await supabase
@@ -424,8 +428,123 @@ export default function ProfileDashboard() {
               </motion.div>
             )}
 
+            {/* My Tools tab */}
+            {activeTab === 'tools' && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+                <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                  <div>
+                    <h1 className="text-3xl font-bold text-[rgba(0,0,0,0.9)] leading-tight mb-2">
+                      My Acquired Startup Tools
+                    </h1>
+                    <p className="text-[rgba(0,0,0,0.6)] text-sm font-medium">Access your keys, credentials, and operational links.</p>
+                  </div>
+                  <span className="bg-slate-100 border border-slate-200 text-[10px] font-black text-slate-600 uppercase tracking-widest px-4 py-2 rounded-xl">
+                    {purchasedTools.length} Assets Unlocked
+                  </span>
+                </header>
+
+                {purchasedTools.length === 0 ? (
+                  <div className="bg-white border border-slate-200 rounded-[2.5rem] p-12 text-center shadow-sm space-y-6">
+                    <div className="w-16 h-16 bg-slate-100 border border-slate-200 rounded-2xl flex items-center justify-center mx-auto text-slate-400">
+                      <Wrench className="w-8 h-8" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-lg font-bold text-slate-800">Your Marketplace Library is Empty</h3>
+                      <p className="text-xs text-slate-500 max-w-sm mx-auto leading-relaxed">
+                        Acquire premium startup tools, datasets, templates and frameworks from our marketplace to unlock them here.
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => router.push('/tools')}
+                      className="px-6 py-3 bg-black hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all shadow-md"
+                    >
+                      Browse Startup Tools
+                    </button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {purchasedTools.map((item, idx) => {
+                      const tool = item.tools_cards;
+                      const hasCredentials = item.status === 'submitted' && item.assigned_link;
+                      return (
+                        <div key={item.id || idx} className="bg-white border border-slate-200 rounded-[2rem] p-6 shadow-sm hover:border-slate-300 transition-all flex flex-col justify-between h-full relative overflow-hidden group">
+                          {/* Inner decor */}
+                          <div className="absolute top-0 right-0 p-6 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity text-slate-900 pointer-events-none">
+                            <Wrench className="w-20 h-20" />
+                          </div>
+
+                          <div className="space-y-4">
+                            {/* Card Header */}
+                            <div className="flex gap-4 items-center">
+                              <div className="w-14 h-14 bg-slate-50 rounded-2xl overflow-hidden border border-slate-200 flex-shrink-0 flex items-center justify-center">
+                                {tool?.image_url ? (
+                                  <img src={tool.image_url} alt="" className="w-full h-full object-cover" />
+                                ) : (
+                                  <Wrench className="w-6 h-6 text-slate-300" />
+                                )}
+                              </div>
+                              <div>
+                                <h3 className="text-base font-bold text-slate-950 leading-tight">{tool?.title || 'Unknown Tool'}</h3>
+                                <div className="flex gap-2 items-center mt-1">
+                                  <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 px-2 py-0.5 rounded">
+                                    {tool?.category || 'Utility'}
+                                  </span>
+                                  {item.status === 'submitted' ? (
+                                    <span className="text-[9px] font-black text-emerald-600 uppercase tracking-widest bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                      <CheckCircle2 className="w-3 h-3" /> Submitted
+                                    </span>
+                                  ) : (
+                                    <span className="text-[9px] font-black text-amber-600 uppercase tracking-widest bg-amber-50 border border-amber-100 px-2 py-0.5 rounded flex items-center gap-1">
+                                      <Clock className="w-3 h-3" /> Pending
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Details / Credentials info */}
+                            <div className="border-t border-slate-100 pt-4 space-y-2 text-xs">
+                              <div className="flex justify-between">
+                                <span className="text-slate-400 font-semibold">Acquired Date:</span>
+                                <span className="text-slate-800 font-bold">
+                                  {item.orders?.created_at ? new Date(item.orders.created_at).toLocaleDateString(undefined, { dateStyle: 'medium' }) : new Date(item.created_at || Date.now()).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+                                </span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-slate-400 font-semibold">Cost:</span>
+                                <span className="text-slate-800 font-black text-cyan-600">₹{Number(item.amount).toLocaleString('en-IN')}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="pt-6 mt-4 border-t border-slate-100">
+                            {hasCredentials ? (
+                              <a
+                                href={item.assigned_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="w-full py-3 bg-black hover:bg-slate-800 text-white font-bold text-xs uppercase tracking-widest rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm"
+                              >
+                                <Zap className="w-3.5 h-3.5 text-cyan-400" />
+                                <span>Launch Access Link</span>
+                              </a>
+                            ) : (
+                              <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3.5 text-center text-[10px] text-slate-500 font-bold uppercase tracking-wider flex items-center justify-center gap-2">
+                                <Clock className="w-4 h-4 text-amber-500 animate-spin" />
+                                <span>Credentials Processing (Pending)</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
             {/* Other tabs fallback */}
-            {activeTab !== 'overview' && activeTab !== 'personal' && (
+            {activeTab !== 'overview' && activeTab !== 'personal' && activeTab !== 'tools' && (
                <div className="flex flex-col items-center justify-center h-full py-32">
                   <Clock className="w-10 h-10 text-slate-200 mb-5" />
                   <h3 className="text-sm font-bold uppercase tracking-wider text-[rgba(0,0,0,0.3)]">Protocol Under Expansion</h3>

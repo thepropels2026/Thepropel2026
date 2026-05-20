@@ -588,19 +588,24 @@ async def payment_webhook(request: Request):
             tool = item["tool_id"]
             pool = tool.get("voucher_pool", [])
             
-            if pool:
+            assigned_link = None
+            if pool and len(pool) > 0:
                 assigned_link = pool.pop(0)
                 # Update voucher pool
                 supabase.table("tools_cards").update({"voucher_pool": pool}).eq("id", tool["id"]).execute()
                 # Update order item with assigned link
                 supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
+            else:
+                # Fallback mock voucher link if pool is empty
+                assigned_link = f"https://thepropels.in/vouchers/{tool['id']}"
+                supabase.table("order_items").update({"assigned_link": assigned_link}).eq("id", item["id"]).execute()
                 
-                email_items.append({
-                    "item_id": item["id"],
-                    "title": tool["title"],
-                    "link": assigned_link,
-                    "amount": item["amount"]
-                })
+            email_items.append({
+                "item_id": item["id"],
+                "title": tool["title"],
+                "link": assigned_link,
+                "amount": item["amount"]
+            })
         
         # 3. Mark Order as Paid
         supabase.table("orders").update({"status": "paid"}).eq("id", db_order["id"]).execute()
