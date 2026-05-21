@@ -295,10 +295,11 @@ async def verify_otp(request: Request, req: OTPVerifyRequest):
             }
             
         raise HTTPException(status_code=400, detail="Invalid OTP")
-    except HTTPException as he:
-        raise he
     except Exception as e:
-        print(f"OTP verification error: {e}")
+        error_msg = str(e)
+        print(f"OTP verification error: {error_msg}")
+        if "Could not find the table" in error_msg or "PGRST205" in error_msg:
+            raise HTTPException(status_code=500, detail="Database schema missing. Please run sql/otp_schema.sql in your Supabase SQL Editor.")
         raise HTTPException(status_code=500, detail="Internal server error during verification")
 
 @app.post("/api/auth/get-profile-by-phone")
