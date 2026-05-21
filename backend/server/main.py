@@ -295,6 +295,8 @@ async def verify_otp(request: Request, req: OTPVerifyRequest):
             }
             
         raise HTTPException(status_code=400, detail="Invalid OTP")
+    except HTTPException as he:
+        raise he
     except Exception as e:
         error_msg = str(e)
         print(f"OTP verification error: {error_msg}")
