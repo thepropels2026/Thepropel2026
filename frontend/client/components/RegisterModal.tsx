@@ -123,7 +123,7 @@ export default function RegisterModal() {
           id: authData.user.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
-          email: formData.email,
+          identifier: formData.email,
           mobile: formData.mobile,
           dob: formData.dob,
           is_email_verified: true
