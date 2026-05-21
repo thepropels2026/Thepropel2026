@@ -32,15 +32,18 @@ else:
 # Initialize the FastAPI application with a custom title
 app = FastAPI(title="The Propels API")
 
-# Supabase Configuration (Upgraded to Service Role for secure backend-only DB operations)
-SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL")
-SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")) # Fallback if service key not set yet
+# Supabase Configuration
+# Falling back to hardcoded NEXT_PUBLIC values if environment variables are missing (useful for unconfigured cloud deployments)
+SUPABASE_URL = os.getenv("NEXT_PUBLIC_SUPABASE_URL", "https://mjwadwxwnwkbcfndvnfy.supabase.co")
+_anon_key = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1qd2Fkd3h3bndrYmNmbmR2bmZ5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzczMDg3MzYsImV4cCI6MjA5Mjg4NDczNn0.p4gTvhvl2KEhN6fcUXL64VCa1oCcJ6eV-e0s2n8HLt0"
+SUPABASE_SERVICE_ROLE_KEY = os.getenv("SUPABASE_SERVICE_ROLE_KEY", os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY", _anon_key))
 
 if not SUPABASE_URL or not SUPABASE_SERVICE_ROLE_KEY:
     print("WARNING: Supabase credentials missing. Client initialization skipped.")
     supabase = None
 else:
-    # Create Supabase client instance with SERVICE_ROLE key to securely bypass RLS
+    # Create Supabase client instance
+
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
 
 # Cashfree Configuration
