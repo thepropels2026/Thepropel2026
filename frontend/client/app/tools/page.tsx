@@ -79,7 +79,7 @@ export default function Tools() {
         // Strategy 1: Try centralized backend API
         const apiBase = process.env.NEXT_PUBLIC_API_URL || 'https://thepropels-production.up.railway.app';
         try {
-          const response = await fetch(`${apiBase}/api/tools`);
+          const response = await fetch(`${apiBase}/api/tools`, { cache: 'no-store' });
           if (response.ok) {
             const data = await response.json();
             if (data && data.length > 0) {

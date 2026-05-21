@@ -10,7 +10,7 @@ import { supabase } from '../lib/supabase';
 import { API_BASE_URL } from '../lib/api';
 
 export default function LoginModal() {
-  const { isLoginModalOpen, setLoginModalOpen, setRegisterModalOpen, login } = useAuth();
+  const { isLoginModalOpen, setLoginModalOpen, setRegisterModalOpen, syncUser } = useAuth();
   const [step, setStep] = useState(1); // 1: Input, 2: Password
   const [inputValue, setInputValue] = useState('');
   const [password, setPassword] = useState('');
@@ -60,7 +60,11 @@ export default function LoginModal() {
           throw new Error("Email not verified. Please verify your email.");
       }
 
-      // Note: AuthContext useEffect will pick up the new session and update the UI
+      // Actively sync the user profile into the app context immediately
+      if (authData.user) {
+        await syncUser(authData.user);
+      }
+      
       setLoginModalOpen(false);
     } catch (err: any) {
       setError(err.message || "Authentication failed. Please check your credentials.");
