@@ -253,6 +253,9 @@ async def verify_otp(request: Request, req: OTPVerifyRequest):
     identifier = req.email or req.mobile
     if not identifier:
         raise HTTPException(status_code=400, detail="Identifier missing")
+        
+    if supabase is None:
+        raise HTTPException(status_code=500, detail="Backend configuration error: SUPABASE_SERVICE_ROLE_KEY is missing in environment variables.")
     
     # Query Supabase for the OTP record
     try:
