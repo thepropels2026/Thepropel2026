@@ -284,12 +284,14 @@ async def verify_otp(request: Request, req: OTPVerifyRequest):
             column_to_update = "is_email_verified" if req.email else "is_phone_verified"
             profile_field = "email" if req.email else "mobile"
             
-            profile_resp = supabase.table("profiles").select("*").eq(profile_field, identifier).execute()
-            if profile_resp.data:
-                supabase.table("profiles").update({column_to_update: True}).eq("id", profile_resp.data[0]["id"]).execute()
-                profile = profile_resp.data[0]
-            else:
-                profile = None
+            profile = None
+            try:
+                profile_resp = supabase.table("profiles").select("*").eq(profile_field, identifier).execute()
+                if profile_resp.data:
+                    supabase.table("profiles").update({column_to_update: True}).eq("id", profile_resp.data[0]["id"]).execute()
+                    profile = profile_resp.data[0]
+            except Exception as pe:
+                print(f"Non-fatal error updating profile: {pe}")
                 
             return {
                 "status": "success", 
