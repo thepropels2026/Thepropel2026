@@ -136,7 +136,21 @@ export default function RegisterModal() {
       nextStep(); // Move to step 5 (Success)
     } catch (err: any) {
       console.error("Registration error:", err);
-      setError(err.message || "Failed to register. Please check your inputs.");
+      
+      // Special handling for the broken Supabase Trigger error
+      if (err.message && err.message.includes("Database error saving new user")) {
+        setError(
+          "DEVELOPER ACTION REQUIRED: Your Supabase database has a broken trigger because the 'email' column was removed from the 'profiles' table. " +
+          "To fix this permanently, you MUST go to your Supabase Dashboard -> SQL Editor and run this exact command: \n\n" +
+          "CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$ BEGIN " +
+          "INSERT INTO public.profiles (id, identifier, first_name, last_name, dob, gender, mobile) VALUES ( " +
+          "new.id, new.email, COALESCE(new.raw_user_meta_data->>'first_name', ''), COALESCE(new.raw_user_meta_data->>'last_name', ''), " +
+          "(new.raw_user_meta_data->>'dob')::DATE, new.raw_user_meta_data->>'gender', new.raw_user_meta_data->>'mobile'); " +
+          "RETURN new; END; $$ LANGUAGE plpgsql SECURITY DEFINER;"
+        );
+      } else {
+        setError(err.message || "Failed to register. Please check your inputs.");
+      }
     } finally {
       setIsSubmitting(false);
     }

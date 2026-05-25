@@ -374,6 +374,50 @@ async def check_email(req: OTPRequest):
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
+class CreateOrderRequest(BaseModel):
+    order_amount: float
+    customer_id: str
+    customer_email: str
+    customer_phone: str
+
+@app.post("/api/create-order")
+async def create_order(req: CreateOrderRequest):
+    order_id = f"order_{int(datetime.now().timestamp())}_{uuid.uuid4().hex[:6]}"
+    
+    url = f"{CASHFREE_BASE_URL}/orders"
+    headers = {
+        "x-api-version": "2023-08-01",
+        "x-client-id": CASHFREE_APP_ID,
+        "x-client-secret": CASHFREE_SECRET_KEY,
+        "Content-Type": "application/json"
+    }
+    
+    payload = {
+        "order_id": order_id,
+        "order_amount": req.order_amount,
+        "order_currency": "INR",
+        "customer_details": {
+            "customer_id": req.customer_id,
+            "customer_email": req.customer_email,
+            "customer_phone": req.customer_phone
+        },
+        "order_meta": {
+            # Usually the frontend handles redirect when redirectTarget is _self, 
+            # but Cashfree API accepts return_url for redirect mode.
+            "return_url": "http://localhost:3000/checkout/success?order_id={order_id}"
+        }
+    }
+    
+    try:
+        response = requests.post(url, headers=headers, json=payload)
+        response.raise_for_status()
+        return response.json()
+    except Exception as e:
+        print(f"ERROR: Cashfree Order Creation failed: {str(e)}")
+        if hasattr(e, 'response') and e.response is not None:
+            print(f"Cashfree details: {e.response.text}")
+        raise HTTPException(status_code=500, detail="Failed to create payment order")
+
 @app.get("/api/tools")
 async def get_tools():
     if not supabase:
@@ -570,10 +614,35 @@ async def simulate_success(req: dict):
         
     return {"status": "success"}
 
+import hmac
+import hashlib
+import base64
+
 # Webhook endpoint to handle Cashfree payment notifications
 @app.post("/api/payment-webhook")
 async def payment_webhook(request: Request):
     payload = await request.body()
+    
+    # Cryptographic signature verification against x-webhook-signature
+    # using the secret key before processing the webhook
+    signature = request.headers.get("x-webhook-signature")
+    timestamp = request.headers.get("x-webhook-timestamp")
+    
+    if signature and timestamp:
+        # Cashfree v3 signature verification format:
+        # signatureData = timestamp + payload
+        signature_data = timestamp.encode('utf-8') + payload
+        expected_signature = base64.b64encode(
+            hmac.new(CASHFREE_SECRET_KEY.encode('utf-8'), signature_data, hashlib.sha256).digest()
+        ).decode('utf-8')
+        
+        if signature != expected_signature:
+            print("SECURITY ALERT: Invalid Cashfree webhook signature detected!")
+            raise HTTPException(status_code=400, detail="Invalid signature")
+    else:
+        print("SECURITY ALERT: Missing Cashfree webhook signature or timestamp!")
+        raise HTTPException(status_code=400, detail="Missing signature headers")
+
     data = json.loads(payload)
     
     event_type = data.get("type")
