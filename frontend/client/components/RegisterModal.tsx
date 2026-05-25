@@ -106,8 +106,8 @@ export default function RegisterModal() {
             first_name: formData.firstName,
             last_name: formData.lastName,
             mobile: formData.mobile,
-            dob: formData.dob,
-            gender: formData.gender
+            dob: formData.dob ? formData.dob : null,
+            gender: formData.gender ? formData.gender : null
           }
         }
       });
