@@ -11,6 +11,24 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
 
+// Helper function to bypass RLS for admin mutations securely via the backend
+const adminDbProxy = async (action: 'insert' | 'update' | 'delete', table: string, data?: any, match?: any) => {
+  const adminSession = localStorage.getItem('adminSession');
+  const res = await fetch('/api/admin/db', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-admin-session': adminSession || ''
+    },
+    body: JSON.stringify({ action, table, data, match })
+  });
+  const result = await res.json();
+  if (!res.ok || result.error) {
+    throw new Error(result.error || `Failed to ${action} ${table}`);
+  }
+  return result;
+};
+
 export default function AdminPortal() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [emailInput, setEmailInput] = useState('');
@@ -111,8 +129,8 @@ export default function AdminPortal() {
   const handleDelete = async (table: string, id: string) => {
     if (!confirm("Are you sure you want to remove this item?")) return;
     try {
-      const { error } = await supabase.from(table).delete().eq('id', id);
-      if (error) throw error;
+      await adminDbProxy('delete', table, undefined, { id });
+      alert("Deleted successfully!");
       
       // Update local state immediately for better UX
       if (table === 'tools_cards') setTools(prev => prev.filter(t => t.id !== id));
@@ -121,7 +139,6 @@ export default function AdminPortal() {
       else if (table === 'success_stories') setStories(prev => prev.filter(s => s.id !== id));
       else if (table === 'knowledge_base') setKb(prev => prev.filter(k => k.id !== id));
       
-      alert("Item removed successfully from the website.");
     } catch (err: any) {
       alert("Error: " + err.message);
     }
@@ -167,7 +184,7 @@ export default function AdminPortal() {
         imageUrl = await handleFileUpload(file, 'tools');
       }
 
-      const { error } = await supabase.from('tools_cards').insert({
+      await adminDbProxy('insert', 'tools_cards', {
         title: data.title,
         description: data.description,
         image_url: imageUrl || (data.image_url as string),
@@ -176,7 +193,6 @@ export default function AdminPortal() {
         price: parseFloat(data.price as string) || 0,
         discount_price: data.discount_price ? parseFloat(data.discount_price as string) : null,
       });
-      if (error) throw error;
       alert("Tool added!");
       (e.target as HTMLFormElement).reset();
       fetchContent();
@@ -197,7 +213,7 @@ export default function AdminPortal() {
         imageUrl = await handleFileUpload(file, 'courses');
       }
 
-      const { error } = await supabase.from('courses').insert({
+      await adminDbProxy('insert', 'courses', {
         title: data.title,
         image_url: imageUrl || (data.image_url as string),
         mentor: data.mentor,
@@ -206,7 +222,6 @@ export default function AdminPortal() {
         discounted_price: parseFloat(data.discounted_price as string) || 0,
         enroll_link: data.enroll_link,
       });
-      if (error) throw error;
       alert("Course added!");
       (e.target as HTMLFormElement).reset();
       fetchContent();
@@ -220,7 +235,7 @@ export default function AdminPortal() {
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     try {
-      const { error } = await supabase.from('job_postings').insert({
+      await adminDbProxy('insert', 'job_postings', {
         title: data.title,
         description: data.description,
         role: data.role,
@@ -232,7 +247,6 @@ export default function AdminPortal() {
         mode: data.mode,
         is_active: true
       });
-      if (error) throw error;
       alert("Job posted!");
       (e.target as HTMLFormElement).reset();
       fetchContent();
@@ -249,25 +263,22 @@ export default function AdminPortal() {
     const mediaFile = (data.media_file as File);
 
     try {
-      let avatarUrl = data.avatar_url as string;
-      let mediaUrl = data.media_url as string;
+      let avatarUrl = '';
+      let mediaUrl = '';
 
       if (avatarFile && avatarFile.size > 0) avatarUrl = await handleFileUpload(avatarFile, 'stories');
       if (mediaFile && mediaFile.size > 0) mediaUrl = await handleFileUpload(mediaFile, 'stories');
 
-      const { error } = await supabase.from('success_stories').insert({
-        founder_name: data.founder_name,
-        startup_name: data.startup_name,
-        niche: data.niche,
-        metric: data.metric,
-        metric_label: data.metric_label,
-        summary: data.summary,
-        avatar_url: avatarUrl,
-        media_url: mediaUrl,
-        media_type: data.media_type || 'image',
+      await adminDbProxy('insert', 'success_stories', {
+        name: data.name,
+        role: data.role,
+        avatar_url: avatarUrl || (data.avatar_url as string),
+        media_url: mediaUrl || (data.media_url as string),
+        media_type: data.media_type,
+        quote: data.quote,
+        full_story: data.full_story,
       });
-      if (error) throw error;
-      alert("Story added!");
+      alert("Success story added!");
       (e.target as HTMLFormElement).reset();
       fetchContent();
     } catch (err: any) {
@@ -287,13 +298,15 @@ export default function AdminPortal() {
         fileUrl = await handleFileUpload(file, 'kb');
       }
 
-      const { error } = await supabase.from('knowledge_base').insert({
+      await adminDbProxy('insert', 'knowledge_base', {
         title: data.title,
         description: data.description,
-        download_link: fileUrl || (data.download_link as string),
+        category: data.category,
+        author: data.author,
+        read_time: data.read_time,
+        pdf_url: fileUrl || (data.download_link as string),
       });
-      if (error) throw error;
-      alert("Resource added to Knowledge Base!");
+      alert("Knowledge Base entry added!");
       (e.target as HTMLFormElement).reset();
       fetchContent();
     } catch (err: any) {
@@ -303,9 +316,7 @@ export default function AdminPortal() {
 
   const handleUpdatePlan = async (planId: string, updatedFields: any) => {
     try {
-      const { error } = await supabase
-        .from('pricing_plans')
-        .update({
+      await adminDbProxy('update', 'pricing_plans', {
           title: updatedFields.title,
           subtitle: updatedFields.subtitle,
           price: updatedFields.price,
@@ -319,10 +330,8 @@ export default function AdminPortal() {
           cta_label: updatedFields.cta_label,
           cta_link: updatedFields.cta_link,
           updated_at: new Date().toISOString()
-        })
-        .eq('id', planId);
+        }, { id: planId });
 
-      if (error) throw error;
       alert("Pricing plan updated successfully!");
       fetchContent();
     } catch (err: any) {
@@ -330,9 +339,13 @@ export default function AdminPortal() {
     }
   };
 
-  const updateAppStatus = async (id: string, status: string) => {
-    await supabase.from('applications').update({ status }).eq('id', id);
-    setApplications(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+  const updateApplicationStatus = async (id: string, status: string) => {
+    try {
+      await adminDbProxy('update', 'applications', { status }, { id });
+      fetchContent();
+    } catch (err: any) {
+      alert("Error updating status: " + err.message);
+    }
   };
 
   const downloadPDF = async (app: any) => {
@@ -896,7 +909,7 @@ export default function AdminPortal() {
                           <div><p className="text-sm font-bold text-white">{app.full_name}</p><p className="text-xs text-slate-500">{app.job_postings?.title || 'Unknown Role'} · {app.experience}</p></div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <select value={app.status || 'pending'} onChange={e => updateAppStatus(app.id, e.target.value)} className="bg-black/40 text-xs border border-white/10 rounded-lg px-2 py-1 outline-none text-white">
+                          <select value={app.status || 'pending'} onChange={e => updateApplicationStatus(app.id, e.target.value)} className="bg-black/40 text-xs border border-white/10 rounded-lg px-2 py-1 outline-none text-white">
                             <option value="pending">Pending</option>
                             <option value="reviewed">Reviewed</option>
                             <option value="accepted">Accepted</option>
