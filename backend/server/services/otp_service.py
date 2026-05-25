@@ -59,6 +59,28 @@ class OTPService:
         email_sent = False
         message = f"Your verification code is: {otp}"
 
+        html_content = f"""
+        <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="color: #ea580c; font-size: 28px; font-weight: 900; letter-spacing: -0.02em; margin: 0;">The Propels</h1>
+                <p style="color: #64748b; font-size: 14px; font-weight: 500; margin-top: 8px;">System Authentication</p>
+            </div>
+            
+            <h2 style="color: #0f172a; font-size: 20px; font-weight: 700; margin-bottom: 16px;">Verify Your Identity</h2>
+            <p style="color: #475569; font-size: 16px; line-height: 1.6; margin-bottom: 32px;">You are attempting to access The Propels Node. Please use the following 6-digit authorization code to verify your email address and complete the handshake protocol.</p>
+            
+            <div style="background: #f8fafc; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; text-align: center; margin-bottom: 32px;">
+                <p style="color: #94a3b8; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 16px; margin-top: 0;">Your OTP Code</p>
+                <div style="font-family: monospace; color: #0f172a; font-size: 36px; font-weight: 800; letter-spacing: 0.2em;">{otp}</div>
+            </div>
+            
+            <p style="color: #94a3b8; font-size: 13px; line-height: 1.6;">This code will expire in 5 minutes. If you did not request this verification, please ignore this email to maintain sovereign identity protection.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
+            <p style="color: #0f172a; font-size: 12px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em;">The Propels Engineering</p>
+        </div>
+        """
+
         if SMTP_EMAIL and SMTP_PASSWORD:
             try:
                 import smtplib
@@ -68,8 +90,8 @@ class OTPService:
                 msg = MIMEMultipart()
                 msg['From'] = f"The Propels <{SMTP_EMAIL}>"
                 msg['To'] = email
-                msg['Subject'] = "Your Verification Code"
-                msg.attach(MIMEText(f"Your verification code is: <strong>{otp}</strong>", 'html'))
+                msg['Subject'] = "The Propels Verification Code"
+                msg.attach(MIMEText(html_content, 'html'))
                 
                 with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
                     server.starttls()
@@ -77,7 +99,7 @@ class OTPService:
                     server.send_message(msg)
                 
                 email_sent = True
-                return True, "SMTP OTP email sent"
+                return True, "SMTP OTP email sent via Brevo"
             except Exception as e:
                 print(f"[WARN] SMTP email send failed: {str(e)}")
 
@@ -86,8 +108,8 @@ class OTPService:
                 resend.Emails.send({
                     "from": "The Propels <onboarding@resend.dev>",
                     "to": [email],
-                    "subject": "Your Verification Code",
-                    "html": f"Your verification code is: <strong>{otp}</strong>"
+                    "subject": "The Propels Verification Code",
+                    "html": html_content
                 })
                 email_sent = True
                 return True, "Resend OTP email sent"
