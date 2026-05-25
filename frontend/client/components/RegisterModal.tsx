@@ -123,9 +123,9 @@ export default function RegisterModal() {
           id: authData.user.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
-          identifier: formData.email,
+          email: formData.email,
           mobile: formData.mobile,
-          dob: formData.dob,
+          dob: formData.dob ? formData.dob : null,
           is_email_verified: true
         });
         if (profileError && profileError.code !== '23505') {
