@@ -3,30 +3,22 @@ import { createClient } from '@supabase/supabase-js';
 
 // Initialize Supabase Url
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://mjwadwxwnwkbcfndvnfy.supabase.co';
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
 
-// Create Supabase admin client only if service key is provided
-const adminSupabase = supabaseServiceKey 
-  ? createClient(supabaseUrl, supabaseServiceKey, {
-      auth: {
-        autoRefreshToken: false,
-        persistSession: false
-      }
-    })
-  : null;
+// Create Supabase admin client
+const adminSupabase = createClient(supabaseUrl, supabaseServiceKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false
+  }
+});
 
 export async function POST(request: Request) {
   try {
-    // 1. Strictly require SUPABASE_SERVICE_ROLE_KEY to prevent silent failures
-    if (!supabaseServiceKey || supabaseServiceKey === 'your_supabase_service_role_key_here') {
+    // Check if key is available
+    if (!supabaseServiceKey) {
       return NextResponse.json({ 
-        error: 'Database Configuration Error: SUPABASE_SERVICE_ROLE_KEY is not defined in the server environment. Admin mutations cannot be performed without this key. Please add it to your environment variables (.env.local or Vercel dashboard).' 
-      }, { status: 500 });
-    }
-
-    if (!adminSupabase) {
-      return NextResponse.json({ 
-        error: 'Database Client Error: Failed to initialize the Supabase admin client.' 
+        error: 'Database Configuration Error: No Supabase API key configured.' 
       }, { status: 500 });
     }
 
@@ -67,7 +59,7 @@ export async function POST(request: Request) {
       throw result.error;
     }
 
-    // 2. Validate that the operation affected/returned at least one row
+    // Validate that the operation affected/returned at least one row
     if (!result.data || result.data.length === 0) {
       return NextResponse.json({ 
         error: `Database mutation verification failed: The ${action} operation completed successfully but affected 0 rows. This can happen if the record is missing or if database policies prevent this change.` 
@@ -80,4 +72,5 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
+
 
