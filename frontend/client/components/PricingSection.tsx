@@ -89,7 +89,7 @@ const FALLBACK_PLANS: PricingPlan[] = [
       'White-label Portal',
     ],
     cta_label: 'Contact Us',
-    cta_link: 'mailto:partnerships@thepropels.in',
+    cta_link: 'mailto:support@thepropels.com',
     is_highlighted: false,
     sort_order: 3,
   },
@@ -152,7 +152,9 @@ export default function PricingSection() {
   }, []);
 
   const handleCTA = (plan: PricingPlan) => {
-    if (plan.cta_link.startsWith('mailto:')) {
+    if (plan.cta_label.toLowerCase() === 'contact us') {
+      window.location.href = 'mailto:support@thepropels.com';
+    } else if (plan.cta_link.startsWith('mailto:')) {
       window.location.href = plan.cta_link;
     } else {
       setRegisterModalOpen(true);

@@ -1,6 +1,6 @@
 import Link from 'next/link'; // Next.js link for client-side navigation
 // Import icons from lucide-react for social media and contact information
-import { Mail, Phone, MapPin, Linkedin, Twitter, Instagram, ArrowUpRight, ShieldCheck, Globe, Zap, Facebook, Youtube } from 'lucide-react';
+import { Mail, MapPin, Linkedin, Twitter, Instagram, ArrowUpRight, ShieldCheck, Globe, Zap, Facebook, Youtube } from 'lucide-react';
 
 /**
  * Footer component: The bottom section of the application.
@@ -51,13 +51,11 @@ export default function Footer() {
             {/* Email Contact */}
             <div className="flex items-center gap-3">
               <Mail className="w-4 h-4 text-cyan-500" />
-              <span>hello@thepropels.com</span>
+              <a href="mailto:support@thepropels.com" className="hover:text-cyan-400 transition-colors">
+                support@thepropels.com
+              </a>
             </div>
-            {/* Phone Contact */}
-            <div className="flex items-center gap-3">
-              <Phone className="w-4 h-4 text-cyan-500" />
-              <span>+91 99999 99999</span>
-            </div>
+
             {/* Physical Address */}
             <div className="flex items-start gap-3 mt-2">
               <MapPin className="w-5 h-5 text-cyan-500 shrink-0" />

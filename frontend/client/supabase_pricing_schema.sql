@@ -74,7 +74,7 @@ VALUES
     'slate',
     '["Everything in Teams", "Unlimited Student Licenses", "Campus Entrepreneurship Cell Setup", "Curriculum Integration Support", "Annual Hackathon Sponsorship", "Guest Lecture Series", "Placement & Funding Pipeline", "White-label Portal"]'::jsonb,
     'Contact Us',
-    'mailto:partnerships@thepropels.in',
+    'mailto:support@thepropels.com',
     FALSE,
     3
   );
