@@ -3,7 +3,9 @@ import os
 import requests
 import json
 import uuid
-import resend
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
@@ -53,9 +55,7 @@ CASHFREE_MODE = os.getenv("CASHFREE_MODE", "sandbox")
 # Determine Cashfree base URL based on mode
 CASHFREE_BASE_URL = "https://sandbox.cashfree.com/pg" if CASHFREE_MODE == "sandbox" else "https://api.cashfree.com/pg"
 
-# Resend Configuration
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-resend.api_key = RESEND_API_KEY
+
 
 # SMTP Configuration
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -67,6 +67,35 @@ SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+
+def send_email_via_smtp(to_email, subject, html_content, from_name="The Propels"):
+    if not SMTP_EMAIL or not SMTP_PASSWORD:
+        print(f"[WARN] SMTP credentials not configured. Cannot send email to {to_email}")
+        return False
+        
+    try:
+        msg = MIMEMultipart()
+        msg['From'] = f"{from_name} <{SMTP_EMAIL}>"
+        if isinstance(to_email, list):
+            msg['To'] = ", ".join(to_email)
+        else:
+            msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(html_content, 'html'))
+        
+        if SMTP_PORT == 465:
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+        else:
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                server.starttls()
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+        return True
+    except Exception as e:
+        print(f"[WARN] SMTP email send failed: {str(e)}")
+        return False
 
 # Configure CORS middleware settings securely
 ALLOWED_ORIGINS = [
@@ -125,11 +154,7 @@ class SecurityAlertMiddleware(BaseHTTPMiddleware):
 
     def send_admin_alert(self, ip, path, status_code):
         try:
-            resend.Emails.send({
-                "from": "Security <onboarding@resend.dev>",
-                "to": [ADMIN_ALERT_EMAIL],
-                "subject": "CRITICAL: Suspicious Activity Detected on The Propels API",
-                "html": f"""
+            success = send_email_via_smtp(to_email=[ADMIN_ALERT_EMAIL], subject="CRITICAL: Suspicious Activity Detected on The Propels API", html_content=f"""
                     <div style="background: #fff1f2; padding: 20px; border: 1px solid #fda4af; border-radius: 8px; font-family: sans-serif;">
                         <h2 style="color: #e11d48;">🚨 Security Alert Triggered</h2>
                         <p>Multiple suspicious requests or rate-limit violations were detected.</p>
@@ -141,8 +166,8 @@ class SecurityAlertMiddleware(BaseHTTPMiddleware):
                         </ul>
                         <p><em>Please review server logs immediately.</em></p>
                     </div>
-                """
-            })
+                """, from_name="Security")
+            if success:  # dummy check to maintain indent block
             print(f"SECURITY ALERT SENT TO ADMIN FOR IP: {ip}")
         except Exception as e:
             print(f"FAILED TO SEND SECURITY ALERT: {e}")
@@ -177,11 +202,7 @@ class CheckoutRequest(BaseModel):
 # Utility function to send credentials email
 def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
     try:
-        resend.Emails.send({
-            "from": "The Propels <onboarding@resend.dev>",
-            "to": [email],
-            "subject": f"Access Granted: {tool_name} Credentials Inside!",
-            "html": f"""
+        success = send_email_via_smtp(to_email=[email], subject=f"Access Granted: {tool_name} Credentials Inside!", html_content=f"""
                 <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
                     <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Order Confirmed!</h2>
                     <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase. Your premium access for <strong>{tool_name}</strong> is now active.</p>
@@ -206,11 +227,10 @@ def send_credentials_email(email, tool_name, assigned_link, amount, order_id):
                     <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
                     <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
                 </div>
-            """
-        })
+            """, from_name="The Propels")
         print(f"SUCCESS: Credentials email sent to {email}")
     except Exception as e:
-        print(f"RESEND ERROR: {str(e)}")
+        print(f"SMTP ERROR: {str(e)}")
 
 
 @app.post("/api/auth/send-otp")
@@ -555,11 +575,7 @@ async def simulate_success(req: dict):
         """
     
     try:
-        resend.Emails.send({
-            "from": "The Propels <onboarding@resend.dev>",
-            "to": [db_order["user_email"]],
-            "subject": f"Receipt & Access: Your Tool Purchase Confirmation",
-            "html": f"""
+        success = send_email_via_smtp(to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
                 <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
                     <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
                     <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>
@@ -591,12 +607,11 @@ async def simulate_success(req: dict):
                     <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
                     <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
                 </div>
-            """
-        })
+            """, from_name="The Propels")
         for i in email_items:
             supabase.table("order_items").update({"status": "submitted"}).eq("id", i["item_id"]).execute()
     except Exception as e:
-        print(f"RESEND ERROR: {str(e)}")
+        print(f"SMTP ERROR: {str(e)}")
         
     return {"status": "success"}
 
@@ -690,11 +705,7 @@ async def payment_webhook(request: Request):
             """
         
         try:
-            resend.Emails.send({
-                "from": "The Propels <onboarding@resend.dev>",
-                "to": [db_order["user_email"]],
-                "subject": f"Receipt & Access: Your Tool Purchase Confirmation",
-                "html": f"""
+            success = send_email_via_smtp(to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
                     <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
                         <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
                         <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>
@@ -726,15 +737,14 @@ async def payment_webhook(request: Request):
                         <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
                         <p style="color: #0f172a; font-size: 14px; font-weight: 700;">The Propels Team</p>
                     </div>
-                """
-            })
+                """, from_name="The Propels")
             
             # 5. On successful email send, update the order_items status to 'submitted'
             for i in email_items:
                 supabase.table("order_items").update({"status": "submitted"}).eq("id", i["item_id"]).execute()
                 
         except Exception as e:
-            print(f"RESEND ERROR: {str(e)}")
+            print(f"SMTP ERROR: {str(e)}")
             
         return {"status": "success"}
     

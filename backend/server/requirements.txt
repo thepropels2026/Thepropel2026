@@ -4,6 +4,5 @@ pydantic<2.0.0
 requests
 supabase
 python-dotenv
-resend
 slowapi
 email-validator

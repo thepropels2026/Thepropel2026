@@ -1,14 +1,9 @@
 import random
 import os
 import requests
-import resend
 from datetime import datetime, timedelta
 from supabase import Client
 from core.security import hash_otp
-
-# Resend Configuration
-RESEND_API_KEY = os.getenv("RESEND_API_KEY")
-resend.api_key = RESEND_API_KEY
 
 # SMTP Configuration
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
@@ -81,7 +76,6 @@ class OTPService:
         </div>
         """
 
-        errors = []
         if SMTP_EMAIL and SMTP_PASSWORD:
             try:
                 import smtplib
@@ -94,36 +88,23 @@ class OTPService:
                 msg['Subject'] = "The Propels Verification Code"
                 msg.attach(MIMEText(html_content, 'html'))
                 
-                with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                    server.starttls()
-                    server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                    server.send_message(msg)
+                if SMTP_PORT == 465:
+                    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+                        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                        server.send_message(msg)
+                else:
+                    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+                        server.starttls()
+                        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                        server.send_message(msg)
                 
                 return True, "SMTP OTP email sent via Brevo"
             except Exception as e:
                 error_msg = f"SMTP error: {str(e)}"
                 print(f"[WARN] SMTP email send failed: {error_msg}")
-                errors.append(error_msg)
+                return False, error_msg
         else:
-            errors.append("SMTP credentials not configured (SMTP_EMAIL or SMTP_PASSWORD is empty)")
-
-        if RESEND_API_KEY:
-            try:
-                resend.Emails.send({
-                    "from": "The Propels <onboarding@resend.dev>",
-                    "to": [email],
-                    "subject": "The Propels Verification Code",
-                    "html": html_content
-                })
-                return True, "Resend OTP email sent"
-            except Exception as e:
-                error_msg = f"Resend error: {str(e)}"
-                print(f"[WARN] Resend email send failed: {error_msg}")
-                errors.append(error_msg)
-        else:
-            errors.append("Resend API key not configured (RESEND_API_KEY is empty)")
-        
-        return False, " | ".join(errors)
+            return False, "SMTP credentials not configured (SMTP_EMAIL or SMTP_PASSWORD is empty)"
 
     def send_sms_otp(self, mobile: str, otp: str) -> tuple[bool, str]:
         """Sends the OTP via SMS."""
