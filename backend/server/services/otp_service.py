@@ -81,6 +81,7 @@ class OTPService:
         </div>
         """
 
+        errors = []
         if SMTP_EMAIL and SMTP_PASSWORD:
             try:
                 import smtplib
@@ -98,12 +99,15 @@ class OTPService:
                     server.login(SMTP_EMAIL, SMTP_PASSWORD)
                     server.send_message(msg)
                 
-                email_sent = True
                 return True, "SMTP OTP email sent via Brevo"
             except Exception as e:
-                print(f"[WARN] SMTP email send failed: {str(e)}")
+                error_msg = f"SMTP error: {str(e)}"
+                print(f"[WARN] SMTP email send failed: {error_msg}")
+                errors.append(error_msg)
+        else:
+            errors.append("SMTP credentials not configured (SMTP_EMAIL or SMTP_PASSWORD is empty)")
 
-        if not email_sent and RESEND_API_KEY:
+        if RESEND_API_KEY:
             try:
                 resend.Emails.send({
                     "from": "The Propels <onboarding@resend.dev>",
@@ -111,12 +115,15 @@ class OTPService:
                     "subject": "The Propels Verification Code",
                     "html": html_content
                 })
-                email_sent = True
                 return True, "Resend OTP email sent"
             except Exception as e:
-                print(f"[WARN] Resend email send failed: {str(e)}")
+                error_msg = f"Resend error: {str(e)}"
+                print(f"[WARN] Resend email send failed: {error_msg}")
+                errors.append(error_msg)
+        else:
+            errors.append("Resend API key not configured (RESEND_API_KEY is empty)")
         
-        return False, "Failed to send email OTP"
+        return False, " | ".join(errors)
 
     def send_sms_otp(self, mobile: str, otp: str) -> tuple[bool, str]:
         """Sends the OTP via SMS."""
