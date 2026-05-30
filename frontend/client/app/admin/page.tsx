@@ -5,8 +5,8 @@ import {
   Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
   Download, Eye, Mail, Phone, Linkedin, User, FileText, 
   RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, Library,
-  Zap, TrendingUp, Users, ShoppingBag, DollarSign, Activity, Settings
-} from 'lucide-react';
+  Zap, TrendingUp, Users, ShoppingBag, DollarSign, Activity, Settings, Edit3, X
+} from "lucide-react";
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
 import { supabase } from '../../lib/supabase';
@@ -29,8 +29,65 @@ const adminDbProxy = async (action: 'insert' | 'update' | 'delete', table: strin
   return result;
 };
 
+
+const EditModal = ({ item, type, onClose, onSave }: any) => {
+  const [formData, setFormData] = useState(item);
+
+  const handleChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+    await onSave(type, formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+      <div className="bg-[#0a0a0a] border border-white/10 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto relative">
+        <button onClick={onClose} className="absolute top-6 right-6 text-slate-500 hover:text-white"><X className="w-6 h-6" /></button>
+        <h2 className="text-xl font-bold text-white mb-6 capitalize">Edit {type.replace('_', ' ')}</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {Object.entries(formData).map(([key, value]: [string, any]) => {
+            if (key === 'id' || key === 'created_at' || key === 'updated_at') return null;
+            return (
+              <div key={key}>
+                <label className="block text-xs font-bold text-slate-400 mb-1 capitalize">{key.replace('_', ' ')}</label>
+                {typeof value === 'string' && value.length > 80 ? (
+                  <textarea name={key} value={value || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 rounded-xl p-3 text-sm text-white" rows={3} />
+                ) : (
+                  <input name={key} type={typeof value === 'number' ? 'number' : 'text'} value={value || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 rounded-xl p-3 text-sm text-white" />
+                )}
+              </div>
+            );
+          })}
+          <div className="pt-4 flex justify-end">
+            <button type="submit" className="bg-cyan-500 text-white px-6 py-2 rounded-xl font-bold text-sm">Save Changes</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+};
+
 export default function AdminPortal() {
+
+
   const [isAdmin, setIsAdmin] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingType, setEditingType] = useState<string>('');
+
+  const handleEditSave = async (type: string, updatedData: any) => {
+    try {
+      await adminDbProxy('update', type, updatedData, { id: updatedData.id });
+      alert("Updated successfully!");
+      setEditingItem(null);
+      fetchContent();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
+  };
+
   const [emailInput, setEmailInput] = useState('');
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'analytics' | 'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'kb' | 'plans'>('analytics');
@@ -698,7 +755,7 @@ export default function AdminPortal() {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Direct Link</label>
-                      <input name="redirect_link" type="url" required placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
+                      <input name="redirect_link" type="url" placeholder="https://..." className="w-full bg-[#111] border border-white/10 rounded-2xl px-5 py-3.5 text-sm text-white outline-none focus:border-cyan-500 transition-all" />
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Actual Price (₹)</label>
@@ -737,7 +794,7 @@ export default function AdminPortal() {
                             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{tool.category}</p>
                           </div>
                         </div>
-                        <button onClick={() => handleDelete('tools_cards', tool.id)} className="p-3 bg-red-500/5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditingItem(tool); setEditingType('tools_cards'); }} className="p-2 bg-cyan-500/5 text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-xl transition-all shadow-sm mr-2"><Edit3 className="w-4 h-4" /></button><button onClick={() => handleDelete('tools_cards', tool.id)} className="p-3 bg-red-500/5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all shadow-sm"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -775,7 +832,7 @@ export default function AdminPortal() {
                           <img src={course.image_url} className="w-10 h-10 rounded-lg object-cover" />
                           <div><p className="text-sm font-bold text-white">{course.title}</p><p className="text-xs text-slate-500">{course.mentor}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditingItem(course); setEditingType('courses'); }} className="p-2 bg-cyan-500/5 text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-xl transition-all shadow-sm mr-2"><Edit3 className="w-4 h-4" /></button><button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -809,7 +866,7 @@ export default function AdminPortal() {
                           <Briefcase className="w-6 h-6 text-yellow-500" />
                           <div><p className="text-sm font-bold text-white">{job.title}</p><p className="text-xs text-slate-500">{job.location} · {job.role}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('job_postings', job.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditingItem(job); setEditingType('job_postings'); }} className="p-2 bg-cyan-500/5 text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-xl transition-all shadow-sm mr-2"><Edit3 className="w-4 h-4" /></button><button onClick={() => handleDelete('job_postings', job.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -850,7 +907,7 @@ export default function AdminPortal() {
                           <img src={story.avatar_url} className="w-10 h-10 rounded-full object-cover" />
                           <div><p className="text-sm font-bold text-white">{story.founder_name}</p><p className="text-xs text-slate-500">{story.startup_name}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('success_stories', story.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditingItem(story); setEditingType('success_stories'); }} className="p-2 bg-cyan-500/5 text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-xl transition-all shadow-sm mr-2"><Edit3 className="w-4 h-4" /></button><button onClick={() => handleDelete('success_stories', story.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -883,7 +940,7 @@ export default function AdminPortal() {
                           <BookOpen className="w-6 h-6 text-blue-500" />
                           <div><p className="text-sm font-bold text-white">{item.title}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('knowledge_base', item.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => { setEditingItem(item); setEditingType('knowledge_base'); }} className="p-2 bg-cyan-500/5 text-slate-500 hover:text-cyan-500 hover:bg-cyan-500/10 rounded-xl transition-all shadow-sm mr-2"><Edit3 className="w-4 h-4" /></button><button onClick={() => handleDelete('knowledge_base', item.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     ))}
                   </div>
@@ -926,6 +983,7 @@ export default function AdminPortal() {
           </AnimatePresence>
         </div>
       </main>
+      <AnimatePresence>{editingItem && <EditModal item={editingItem} type={editingType} onClose={() => setEditingItem(null)} onSave={handleEditSave} />}</AnimatePresence>
     </div>
   );
 }
