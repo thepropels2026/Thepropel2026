@@ -76,11 +76,7 @@ export default function RegisterModal() {
       }
 
       // 2. Send OTP via backend
-      const data = await sendOtp(formData.email);
-      
-      if (data.dev_otp) {
-        alert(`[DEVELOPER MODE] Your OTP is: ${data.dev_otp}\n\n(Configure SMTP or Twilio API keys in backend to receive this via real email/SMS)`);
-      }
+      await sendOtp(formData.email);
       
       nextStep(); // Move to Step 4 (OTP input)
     } catch (err: any) {

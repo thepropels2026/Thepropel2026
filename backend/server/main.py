@@ -220,33 +220,19 @@ async def send_otp(request: Request, req: OTPRequest):
     
     if req.email:
         success, msg = otp_service.send_email_otp(req.email, otp)
-        otp_service.store_otp(req.email, otp)
-        
         if success:
+            otp_service.store_otp(req.email, otp)
             return {"status": "success", "message": f"OTP sent to {req.email}"}
         else:
-            print(f"[DEVELOPER MOCK ONLY] OTP for email {req.email} is: {otp}")
-            return {
-                "status": "success", 
-                "message": f"OTP mocked for {req.email} (No email provider configured)", 
-                "warning": msg,
-                "dev_otp": otp
-            }
+            raise HTTPException(status_code=500, detail=f"Failed to send email OTP: {msg}. Please check the server logs or ensure SMTP_EMAIL and SMTP_PASSWORD are correct in your environment variables.")
 
     if req.mobile:
         success, msg = otp_service.send_sms_otp(req.mobile, otp)
-        otp_service.store_otp(req.mobile, otp)
-        
         if success:
+            otp_service.store_otp(req.mobile, otp)
             return {"status": "success", "message": f"OTP sent to {req.mobile}"}
         else:
-            print(f"[DEVELOPER MOCK ONLY] SMS OTP for mobile {req.mobile} is: {otp}")
-            return {
-                "status": "success", 
-                "message": f"OTP mocked for {req.mobile} (No SMS provider configured)",
-                "warning": msg,
-                "dev_otp": otp
-            }
+            raise HTTPException(status_code=500, detail=f"Failed to send SMS OTP: {msg}. Please ensure your Twilio credentials are correct.")
             
     raise HTTPException(status_code=400, detail="Either email or mobile must be provided")
 

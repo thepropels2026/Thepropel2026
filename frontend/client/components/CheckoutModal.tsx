@@ -73,9 +73,6 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, tool }) 
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Failed to send verification code');
       
-      if (data.dev_otp) {
-        alert(`[DEVELOPER MODE] Your OTP is: ${data.dev_otp}\n\n(Configure SMTP or Twilio API keys in backend to receive this via real email/SMS)`);
-      }
       setIsOtpSent(true);
     } catch (err: any) {
       setError(err.message);
