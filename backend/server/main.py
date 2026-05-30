@@ -74,27 +74,31 @@ def send_email_via_smtp(to_email, subject, html_content, from_name="The Propels"
         return False
         
     try:
-        msg = MIMEMultipart()
-        msg['From'] = f"{from_name} <{SMTP_EMAIL}>"
-        if isinstance(to_email, list):
-            msg['To'] = ", ".join(to_email)
-        else:
-            msg['To'] = to_email
-        msg['Subject'] = subject
-        msg.attach(MIMEText(html_content, 'html'))
+        import requests
+        url = "https://api.brevo.com/v3/smtp/email"
+        headers = {
+            "api-key": SMTP_PASSWORD,
+            "content-type": "application/json",
+            "accept": "application/json"
+        }
         
-        if SMTP_PORT == 465:
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.send_message(msg)
+        to_list = [{"email": email} for email in to_email] if isinstance(to_email, list) else [{"email": to_email}]
+        
+        payload = {
+            "sender": {"email": SMTP_EMAIL, "name": from_name},
+            "to": to_list,
+            "subject": subject,
+            "htmlContent": html_content
+        }
+        
+        response = requests.post(url, json=payload, headers=headers)
+        if response.status_code in [200, 201, 202]:
+            return True
         else:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                server.starttls()
-                server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                server.send_message(msg)
-        return True
+            print(f"[WARN] Brevo API email send failed: {response.text}")
+            return False
     except Exception as e:
-        print(f"[WARN] SMTP email send failed: {str(e)}")
+        print(f"[WARN] Brevo API request failed: {str(e)}")
         return False
 
 # Configure CORS middleware settings securely

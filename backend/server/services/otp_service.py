@@ -78,30 +78,30 @@ class OTPService:
 
         if SMTP_EMAIL and SMTP_PASSWORD:
             try:
-                import smtplib
-                from email.mime.text import MIMEText
-                from email.mime.multipart import MIMEMultipart
+                import requests
+                url = "https://api.brevo.com/v3/smtp/email"
+                headers = {
+                    "api-key": SMTP_PASSWORD,
+                    "content-type": "application/json",
+                    "accept": "application/json"
+                }
+                payload = {
+                    "sender": {"email": SMTP_EMAIL, "name": "The Propels"},
+                    "to": [{"email": email}],
+                    "subject": "The Propels Verification Code",
+                    "htmlContent": html_content
+                }
+                response = requests.post(url, json=payload, headers=headers)
                 
-                msg = MIMEMultipart()
-                msg['From'] = f"The Propels <{SMTP_EMAIL}>"
-                msg['To'] = email
-                msg['Subject'] = "The Propels Verification Code"
-                msg.attach(MIMEText(html_content, 'html'))
-                
-                if SMTP_PORT == 465:
-                    with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
-                        server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                        server.send_message(msg)
+                if response.status_code in [200, 201, 202]:
+                    return True, "OTP email sent via Brevo REST API"
                 else:
-                    with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-                        server.starttls()
-                        server.login(SMTP_EMAIL, SMTP_PASSWORD)
-                        server.send_message(msg)
-                
-                return True, "SMTP OTP email sent via Brevo"
+                    error_msg = f"Brevo API error: {response.text}"
+                    print(f"[WARN] Brevo API email send failed: {error_msg}")
+                    return False, error_msg
             except Exception as e:
-                error_msg = f"SMTP error: {str(e)}"
-                print(f"[WARN] SMTP email send failed: {error_msg}")
+                error_msg = f"API request error: {str(e)}"
+                print(f"[WARN] Brevo API request failed: {error_msg}")
                 return False, error_msg
         else:
             return False, "SMTP credentials not configured (SMTP_EMAIL or SMTP_PASSWORD is empty)"
