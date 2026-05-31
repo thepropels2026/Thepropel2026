@@ -16,8 +16,38 @@ export default function RegisterModal() {
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  
   const [otp, setOtp] = useState('');
   const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [countdown, setCountdown] = useState(30);
+  const [canResend, setCanResend] = useState(false);
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (step === 4 && countdown > 0) {
+      timer = setInterval(() => setCountdown(c => c - 1), 1000);
+    } else if (countdown === 0) {
+      setCanResend(true);
+    }
+    return () => clearInterval(timer);
+  }, [step, countdown]);
+
+  const handleResendOtp = async (e: any) => {
+    e.preventDefault();
+    if (!canResend) return;
+    setIsSendingOtp(true);
+    setError(null);
+    try {
+      await sendOtp(formData.email);
+      setCountdown(30);
+      setCanResend(false);
+    } catch (err: any) {
+      setError(err.message || "Failed to resend OTP.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
+
 
 
   // Lock scroll while registration modal is active
