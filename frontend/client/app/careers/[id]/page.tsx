@@ -340,7 +340,7 @@ export default function JobDetailsPage() {
                     <ShieldAlert className="w-4 h-4 shrink-0" />
                     <span className="font-montserrat">
                       {typeof error === 'object' && error !== null 
-                        ? (error.message || JSON.stringify(error)) 
+                        ? ((error as any).message || JSON.stringify(error)) 
                         : String(error)}
                     </span>
                   </div>

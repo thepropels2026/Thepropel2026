@@ -803,7 +803,7 @@ function KnowledgeBaseTab({ resources, loading }: any) {
 // ------------------------------------------------------------------
 // 5. BLUEPRINT TAB
 // ------------------------------------------------------------------
-function BlueprintTab() {
+function BlueprintTab({ userProgress, allModules, setActiveTab }: any) {
   return (
     <div className="max-w-2xl mx-auto py-16 text-center space-y-6">
       <div className="w-20 h-20 bg-cyan-500/10 border border-cyan-500/20 rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 shadow-inner">

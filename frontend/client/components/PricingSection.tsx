@@ -122,17 +122,17 @@ export default function PricingSection() {
                 try {
                   featuresList = JSON.parse(str);
                 } catch {
-                  featuresList = str.split(',').map(s => s.trim().replace(/^["']|["']$/g, ''));
+                  featuresList = str.split(',').map((s: string) => s.trim().replace(/^["']|["']$/g, ''));
                 }
               } else if (str.startsWith('{') && str.endsWith('}')) {
                 // PostgreSQL text[] array format: {"feature 1", "feature 2"}
                 featuresList = str
                   .slice(1, -1)
                   .split(',')
-                  .map(s => s.trim().replace(/^["']|["']$/g, ''))
+                  .map((s: string) => s.trim().replace(/^["']|["']$/g, ''))
                   .filter(Boolean);
               } else {
-                featuresList = str.split('\n').map(s => s.trim()).filter(Boolean);
+                featuresList = str.split('\n').map((s: string) => s.trim()).filter(Boolean);
               }
             }
             return {
