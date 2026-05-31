@@ -20,25 +20,16 @@ export const getApiBaseUrl = () => {
       return 'http://localhost:8000';
     }
     
-    // 2. Render subdomains (e.g., frontend: thepropels.onrender.com -> backend: thepropels-backend.onrender.com)
-    if (hostname.endsWith('.onrender.com')) {
-      const prefix = hostname.replace('.onrender.com', '');
-      if (prefix === 'thepropels') {
-        return 'https://thepropels-backend.onrender.com';
-      }
-      // If it ends with -frontend, -web, or -client, strip and append -backend
-      const cleanPrefix = prefix.replace(/-frontend|-web|-client$/, '');
-      return `https://${cleanPrefix}-backend.onrender.com`;
-    }
-    
-    // 3. Custom domain configuration
+    // 2. Custom domain configuration (Optional)
     if (hostname === 'thepropels.com' || hostname === 'www.thepropels.com') {
-      return 'https://thepropels-backend.onrender.com';
+      return 'https://thepropel2026.onrender.com';
     }
+    // Default production fallback
+    return 'https://thepropel2026.onrender.com';
   }
   
   // Default production fallback
-  return 'https://thepropels-backend.onrender.com';
+  return 'https://thepropel2026.onrender.com';
 };
 
 export const API_BASE_URL = getApiBaseUrl();
