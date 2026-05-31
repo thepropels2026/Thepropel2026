@@ -392,6 +392,15 @@ export default function RegisterModal() {
                        value={otp} onChange={(e) => setOtp(e.target.value)} 
                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-12 text-center text-xl tracking-[0.5em] font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all" 
                      />
+                     <div className="flex items-center justify-center mt-2">
+                       {canResend ? (
+                         <button onClick={handleResendOtp} disabled={isSendingOtp} className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors">
+                           {isSendingOtp ? "Resending..." : "Resend OTP"}
+                         </button>
+                       ) : (
+                         <p className="text-xs font-medium text-slate-400">Resend OTP in {countdown}s</p>
+                       )}
+                     </div>
                    </div>
 
                    {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
