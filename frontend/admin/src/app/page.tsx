@@ -18,7 +18,7 @@ export default function AdminPortal() {
   const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'pricing' | 'kb'>('tools');
   const [loading, setLoading] = useState(false);
   const [editingItem, setEditingItem] = useState<any>(null);
-  const [editingType, setEditingType] = useState<string>(\'\');
+  const [editingType, setEditingType] = useState<string>('');
 
   // Data states
   const [tools, setTools] = useState<any[]>([]);
@@ -449,7 +449,7 @@ export default function AdminPortal() {
                           <img src={tool.image_url} className="w-10 h-10 rounded-lg object-cover" />
                           <div><p className="text-sm font-bold text-white">{tool.title}</p><p className="text-xs text-slate-500">{tool.category}</p></div>
                         </div>
-                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(tool); setEditingType(\'tools_cards\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'tools_cards\', tool.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(tool); setEditingType('tools_cards'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete('tools_cards', tool.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -488,7 +488,7 @@ export default function AdminPortal() {
                           <div className="bg-white/5 p-2 rounded-lg"><Library className="w-5 h-5 text-indigo-400" /></div>
                           <div><p className="text-sm font-bold text-white">{kb.title}</p><p className="text-xs text-slate-500">{kb.category} • {kb.file_type}</p></div>
                         </div>
-                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(kb); setEditingType(\'knowledge_base\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'knowledge_base\', kb.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(kb); setEditingType('knowledge_base'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete('knowledge_base', kb.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -562,7 +562,7 @@ export default function AdminPortal() {
                             </div>
                             <div className="flex items-center gap-2">
                                <button onClick={() => fetchModules(course.id)} className="px-3 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-lg border border-orange-500/20 hover:bg-orange-500/20">Manage Modules</button>
-                               <button onClick={() => { setEditingItem(course); setEditingType(\'courses\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'courses\', course.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button>
+                               <button onClick={() => { setEditingItem(course); setEditingType('courses'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete('courses', course.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button>
                             </div>
                           </div>
                         ))}
@@ -599,7 +599,7 @@ export default function AdminPortal() {
                           <Briefcase className="w-6 h-6 text-yellow-500" />
                           <div><p className="text-sm font-bold text-white">{job.title}</p><p className="text-xs text-slate-500">{job.location} · {job.role}</p></div>
                         </div>
-                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(job); setEditingType(\'job_postings\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'job_postings\', job.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(job); setEditingType('job_postings'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete('job_postings', job.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -632,7 +632,7 @@ export default function AdminPortal() {
                           <img src={story.avatar_url} className="w-10 h-10 rounded-full object-cover" />
                           <div><p className="text-sm font-bold text-white">{story.founder_name}</p><p className="text-xs text-slate-500">{story.startup_name}</p></div>
                         </div>
-                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(story); setEditingType(\'success_stories\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'success_stories\', story.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(story); setEditingType('success_stories'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete('success_stories', story.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
