@@ -12,6 +12,7 @@ from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, constr
+from typing import List, Optional
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
