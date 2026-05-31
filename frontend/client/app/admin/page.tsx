@@ -50,6 +50,7 @@ const EditModal = ({ item, type, onClose, onSave }: any) => {
         <form onSubmit={handleSubmit} className="space-y-4">
           {Object.entries(formData).map(([key, value]: [string, any]) => {
             if (key === 'id' || key === 'created_at' || key === 'updated_at') return null;
+            if (typeof value === 'object' && value !== null) return null; // Skip relational joins and objects
             return (
               <div key={key}>
                 <label className="block text-xs font-bold text-slate-400 mb-1 capitalize">{key.replace('_', ' ')}</label>
@@ -79,7 +80,18 @@ export default function AdminPortal() {
 
   const handleEditSave = async (type: string, updatedData: any) => {
     try {
-      await adminDbProxy('update', type, updatedData, { id: updatedData.id });
+      const payload = { ...updatedData };
+      delete payload.id;
+      delete payload.created_at;
+      delete payload.updated_at;
+      // Strip any nested objects (like foreign joins) that shouldn't be written to columns
+      Object.keys(payload).forEach(key => {
+        if (typeof payload[key] === 'object' && payload[key] !== null) {
+          delete payload[key];
+        }
+      });
+      
+      await adminDbProxy('update', type, payload, { id: updatedData.id });
       alert("Updated successfully!");
       setEditingItem(null);
       fetchContent();

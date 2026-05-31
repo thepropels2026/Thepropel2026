@@ -1,5 +1,6 @@
 # Import the FastAPI framework for building APIs
 import os
+import asyncio
 import requests
 import json
 import uuid
@@ -91,7 +92,7 @@ def send_email_via_smtp(to_email, subject, html_content, from_name="The Propels"
             "htmlContent": html_content
         }
         
-        response = requests.post(url, json=payload, headers=headers)
+        response = requests.post(url, json=payload, headers=headers, timeout=10)
         if response.status_code in [200, 201, 202]:
             return True
         else:
@@ -243,7 +244,7 @@ async def send_otp(request: Request, req: OTPRequest):
     otp = otp_service.generate_otp()
     
     if req.email:
-        success, msg = otp_service.send_email_otp(req.email, otp)
+        success, msg = await asyncio.to_thread(otp_service.send_email_otp, req.email, otp)
         if success:
             otp_service.store_otp(req.email, otp)
             return {"status": "success", "message": f"OTP sent to {req.email}"}
@@ -251,7 +252,7 @@ async def send_otp(request: Request, req: OTPRequest):
             raise HTTPException(status_code=500, detail=f"Failed to send email OTP: {msg}. Please check the server logs or ensure SMTP_EMAIL and SMTP_PASSWORD are correct in your environment variables.")
 
     if req.mobile:
-        success, msg = otp_service.send_sms_otp(req.mobile, otp)
+        success, msg = await asyncio.to_thread(otp_service.send_sms_otp, req.mobile, otp)
         if success:
             otp_service.store_otp(req.mobile, otp)
             return {"status": "success", "message": f"OTP sent to {req.mobile}"}
@@ -579,7 +580,7 @@ async def simulate_success(req: dict):
         """
     
     try:
-        success = send_email_via_smtp(to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
+        success = await asyncio.to_thread(send_email_via_smtp, to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
                 <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
                     <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
                     <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>
@@ -709,7 +710,7 @@ async def payment_webhook(request: Request):
             """
         
         try:
-            success = send_email_via_smtp(to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
+            success = await asyncio.to_thread(send_email_via_smtp, to_email=[db_order["user_email"]], subject=f"Receipt & Access: Your Tool Purchase Confirmation", html_content=f"""
                     <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
                         <h2 style="color: #0f172a; font-size: 24px; font-weight: 800; margin-bottom: 8px;">Payment Receipt</h2>
                         <p style="color: #64748b; font-size: 16px; margin-bottom: 32px;">Thank you for your purchase! Your payment is confirmed and your premium access credentials are below.</p>

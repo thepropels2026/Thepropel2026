@@ -91,7 +91,7 @@ class OTPService:
                     "subject": "The Propels Verification Code",
                     "htmlContent": html_content
                 }
-                response = requests.post(url, json=payload, headers=headers)
+                response = requests.post(url, json=payload, headers=headers, timeout=10)
                 
                 if response.status_code in [200, 201, 202]:
                     return True, "OTP email sent via Brevo REST API"
@@ -117,7 +117,7 @@ class OTPService:
                     "To": mobile,
                     "Body": f"Your The Propels verification code is: {otp}"
                 }
-                response = requests.post(url, auth=auth, data=data)
+                response = requests.post(url, auth=auth, data=data, timeout=10)
                 response.raise_for_status()
                 return True, "Twilio SMS sent"
             except Exception as e:
