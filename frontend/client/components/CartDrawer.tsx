@@ -8,6 +8,7 @@ import {
 import { useCart } from '../context/CartContext';
 import { API_BASE_URL } from '../lib/api';
 import { useAuth } from './AuthContext';
+import { supabase } from '../lib/supabase';
 
 export default function CartDrawer() {
   const { items, removeFromCart, totalAmount, itemCount, isCartOpen, setIsCartOpen } = useCart();
@@ -52,16 +53,13 @@ export default function CartDrawer() {
     setLoading(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: email,
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Failed to send verification code');
+      if (otpError) throw otpError;
       setIsOtpSent(true);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to send verification code');
     } finally {
       setLoading(false);
     }
@@ -76,12 +74,12 @@ export default function CartDrawer() {
     setIsVerifying(true);
     setError('');
     try {
-      const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, otp }),
+      const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+        email: email,
+        token: otp,
+        type: 'email'
       });
-      if (!res.ok) throw new Error('Invalid verification code');
+      if (authError) throw authError;
       setIsVerified(true);
 
       // Auto-trigger checkout redirect since OTP is verified
@@ -103,7 +101,7 @@ export default function CartDrawer() {
       // Redirect to checkout/payment page
       window.location.href = `/checkout/${order_id}?session=${payment_session_id}`;
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Invalid verification code');
     } finally {
       setIsVerifying(false);
       setLoading(false);
@@ -353,17 +351,17 @@ export default function CartDrawer() {
                             <input 
                               id="drawer-otp-input"
                               type="text"
-                              maxLength={6}
-                              placeholder="6-digit OTP"
+                              maxLength={8}
+                              placeholder="Enter Code"
                               value={otp}
-                              onChange={(e) => setOtp(e.target.value)}
+                              onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                               style={{ color: 'black' }}
-                              className="w-full bg-slate-100 border border-slate-200 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-black font-semibold text-center tracking-widest"
+                              className="w-full bg-slate-100 border border-slate-200 rounded-xl py-4 px-4 text-sm focus:outline-none focus:border-black font-semibold text-center tracking-[0.5em] placeholder:tracking-normal placeholder:font-medium"
                             />
                             <button
                               type="button"
                               onClick={handleVerifyOtp}
-                              disabled={isVerifying || otp.length !== 6}
+                              disabled={isVerifying || otp.length < 6}
                               className="px-6 rounded-xl bg-black hover:bg-slate-800 disabled:bg-slate-200 text-white disabled:text-slate-400 text-[9px] font-black uppercase tracking-widest flex items-center justify-center shadow-sm whitespace-nowrap transition-all"
                             >
                               {isVerifying ? 'Verifying...' : 'Verify'}
