@@ -173,7 +173,7 @@ class SecurityAlertMiddleware(BaseHTTPMiddleware):
                     </div>
                 """, from_name="Security")
             if success:  # dummy check to maintain indent block
-            print(f"SECURITY ALERT SENT TO ADMIN FOR IP: {ip}")
+                print(f"SECURITY ALERT SENT TO ADMIN FOR IP: {ip}")
         except Exception as e:
             print(f"FAILED TO SEND SECURITY ALERT: {e}")
 
