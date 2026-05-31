@@ -488,8 +488,7 @@ async def create_checkout_session(req: CheckoutRequest):
             order_items.append({
                 "order_id": db_order_id,
                 "tool_id": tool["id"],
-                "amount": tool.get("discount_price") or tool["price"],
-                "status": "pending"
+                "amount": tool.get("discount_price") or tool["price"]
             })
         
         supabase.table("order_items").insert(order_items).execute()
