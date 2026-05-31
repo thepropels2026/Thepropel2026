@@ -90,7 +90,8 @@ export default function CartDrawer() {
         body: JSON.stringify({
           tool_ids: items.map(i => i.id),
           user_email: email,
-          amount: totalAmount
+          amount: totalAmount,
+          return_base_url: typeof window !== 'undefined' ? window.location.origin : undefined
         }),
       });
 
@@ -105,8 +106,20 @@ export default function CartDrawer() {
       
       const { payment_session_id, order_id } = await response.json();
       
-      // Redirect to checkout/payment page
-      window.location.href = `/checkout/${order_id}?session=${payment_session_id}`;
+      // Check if Cashfree SDK is loaded
+      if (typeof (window as any).Cashfree === 'undefined') {
+        throw new Error('Cashfree SDK is not loaded. Please refresh the page.');
+      }
+
+      // Initialize Cashfree
+      const cashfree = (window as any).Cashfree({
+        mode: "sandbox", // Placeholder: Change to "production" for live
+      });
+
+      // Trigger the Hosted Checkout
+      cashfree.checkout({
+        paymentSessionId: payment_session_id
+      });
     } catch (err: any) {
       setError(err.message || 'Invalid verification code');
     } finally {
@@ -114,6 +127,17 @@ export default function CartDrawer() {
       setLoading(false);
     }
   };
+
+  // Load Cashfree SDK
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !document.getElementById('cashfree-sdk')) {
+      const script = document.createElement('script');
+      script.id = 'cashfree-sdk';
+      script.src = 'https://sdk.cashfree.com/js/v3/cashfree.js';
+      script.async = true;
+      document.body.appendChild(script);
+    }
+  }, []);
 
   const handleCheckout = async () => {
     if (!email) {
@@ -132,7 +156,8 @@ export default function CartDrawer() {
         body: JSON.stringify({
           tool_ids: items.map(i => i.id),
           user_email: email,
-          amount: totalAmount
+          amount: totalAmount,
+          return_base_url: typeof window !== 'undefined' ? window.location.origin : undefined
         }),
       });
 
@@ -147,8 +172,20 @@ export default function CartDrawer() {
       
       const { payment_session_id, order_id } = await response.json();
       
-      // Redirect to checkout page
-      window.location.href = `/checkout/${order_id}?session=${payment_session_id}`;
+      // Check if Cashfree SDK is loaded
+      if (typeof (window as any).Cashfree === 'undefined') {
+        throw new Error('Cashfree SDK is not loaded. Please refresh the page.');
+      }
+
+      // Initialize Cashfree
+      const cashfree = (window as any).Cashfree({
+        mode: "sandbox", // Placeholder: Change to "production" for live
+      });
+
+      // Trigger the Hosted Checkout
+      cashfree.checkout({
+        paymentSessionId: payment_session_id
+      });
 
     } catch (err: any) {
       console.error('Checkout error:', err);

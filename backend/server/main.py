@@ -447,6 +447,12 @@ async def get_tools():
 def read_root():
     return {"message": "Welcome to The Propels API. All systems nominal."}
 
+class CheckoutRequest(BaseModel):
+    tool_ids: List[str]
+    user_email: str
+    amount: float
+    return_base_url: Optional[str] = None
+
 # Endpoint to initiate a Cashfree checkout session
 @app.post("/api/checkout")
 async def create_checkout_session(req: CheckoutRequest):
@@ -500,6 +506,8 @@ async def create_checkout_session(req: CheckoutRequest):
         "Content-Type": "application/json"
     }
     
+    frontend_url = req.return_base_url or os.getenv("NEXT_PUBLIC_FRONTEND_URL", "https://thepropels.com")
+    
     payload = {
         "order_id": order_id,
         "order_amount": calculated_amount,
@@ -508,6 +516,9 @@ async def create_checkout_session(req: CheckoutRequest):
             "customer_id": req.user_email.replace("@", "_").replace(".", "_"),
             "customer_email": req.user_email,
             "customer_phone": "9999999999"
+        },
+        "order_meta": {
+            "return_url": f"{frontend_url}/checkout/success?order_id={order_id}"
         }
     }
     
@@ -768,6 +779,36 @@ async def activate_premium(order_id: str):
         raise HTTPException(status_code=400, detail="Payment not verified.")
         
     return RedirectResponse(url=transaction["assigned_link"])
+
+# ---------------------------------------------------------
+# ARCHITECTURE BEST PRACTICE: CASHFREE WEBHOOK
+# ---------------------------------------------------------
+# This is a stub for a webhook endpoint to securely listen for asynchronous payment confirmations 
+# directly from Cashfree's servers. This prevents users from tampering with frontend redirects.
+#
+# @app.post("/api/webhooks/cashfree")
+# async def cashfree_webhook(request: Request):
+#     # 1. Fetch the raw body and signature header
+#     payload = await request.body()
+#     signature = request.headers.get("x-webhook-signature")
+#     timestamp = request.headers.get("x-webhook-timestamp")
+#     
+#     # 2. Verify signature using CASHFREE_SECRET_KEY
+#     # import hmac, hashlib, base64
+#     # message = timestamp.encode('utf-8') + payload
+#     # expected_sig = base64.b64encode(hmac.new(CASHFREE_SECRET_KEY.encode('utf-8'), message, hashlib.sha256).digest()).decode('utf-8')
+#     # if signature != expected_sig:
+#     #     raise HTTPException(status_code=401, detail="Invalid signature")
+#     
+#     # 3. Process the event payload
+#     # event_data = json.loads(payload)
+#     # if event_data.get("type") == "PAYMENT_SUCCESS_WEBHOOK":
+#     #     order_id = event_data["data"]["order"]["order_id"]
+#     #     # Execute the fulfillment logic (similar to /api/checkout/simulate-success)
+#     #     # e.g., update DB status to 'paid' and send credentials email
+#     
+#     return {"status": "success"}
+# ---------------------------------------------------------
 
 if __name__ == "__main__":
     import uvicorn
