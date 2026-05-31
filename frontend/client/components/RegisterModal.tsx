@@ -357,7 +357,7 @@ export default function RegisterModal() {
                 <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                    <div className="text-center mb-6">
                       <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">OTP Verification</h3>
-                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 4: Enter 6-digit code</p>
+                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 4: Enter your code</p>
                    </div>
 
                    <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
@@ -373,9 +373,9 @@ export default function RegisterModal() {
 
                    <div className="space-y-4">
                       <input 
-                        type="text" maxLength={6} placeholder="Enter 6-Digit Code"
+                        type="text" maxLength={8} placeholder="Enter Code"
                         value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
-                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-center text-xl tracking-[0.5em] font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all"
+                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-center text-xl tracking-[0.5em] placeholder:tracking-normal placeholder:font-medium font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all"
                       />
                    </div>
 

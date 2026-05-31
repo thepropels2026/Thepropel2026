@@ -184,11 +184,11 @@ export default function LoginModal() {
                   <input 
                     required
                     type="text"
-                    maxLength={6}
-                    placeholder="6-digit code"
+                    maxLength={8}
+                    placeholder="Enter 8-digit code"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
-                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-center text-xl tracking-[0.5em] font-bold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
+                    className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-center text-xl tracking-[0.5em] placeholder:tracking-normal placeholder:font-medium font-bold text-slate-900 focus:outline-none focus:border-black focus:ring-4 focus:ring-black/5 transition-all"
                   />
                 </div>
 
