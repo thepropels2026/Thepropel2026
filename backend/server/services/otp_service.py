@@ -76,12 +76,14 @@ class OTPService:
         </div>
         """
 
-        if SMTP_EMAIL and SMTP_PASSWORD:
+        brevo_api_key = os.getenv("BREVO_API_KEY")
+        
+        if brevo_api_key and SMTP_EMAIL:
             try:
                 import requests
                 url = "https://api.brevo.com/v3/smtp/email"
                 headers = {
-                    "api-key": SMTP_PASSWORD,
+                    "api-key": brevo_api_key,
                     "content-type": "application/json",
                     "accept": "application/json"
                 }
@@ -98,13 +100,38 @@ class OTPService:
                 else:
                     error_msg = f"Brevo API error: {response.text}"
                     print(f"[WARN] Brevo API email send failed: {error_msg}")
-                    return False, error_msg
+                    return False, f"FAILED TO SEND EMAIL OTP: BREVO API ERROR: {response.text} . PLEASE CHECK THE SERVER LOGS OR ENSURE BREVO_API_KEY IS CORRECT."
             except Exception as e:
                 error_msg = f"API request error: {str(e)}"
                 print(f"[WARN] Brevo API request failed: {error_msg}")
                 return False, error_msg
+
+        elif SMTP_EMAIL and SMTP_PASSWORD:
+            try:
+                import smtplib
+                from email.mime.text import MIMEText
+                from email.mime.multipart import MIMEMultipart
+
+                msg = MIMEMultipart()
+                msg['From'] = f"The Propels <{SMTP_EMAIL}>"
+                msg['To'] = email
+                msg['Subject'] = "The Propels Verification Code"
+                msg.attach(MIMEText(html_content, 'html'))
+
+                # Connect to Brevo SMTP
+                server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
+                server.starttls()
+                server.login(SMTP_EMAIL, SMTP_PASSWORD)
+                server.send_message(msg)
+                server.quit()
+                
+                return True, "OTP email sent via standard SMTP"
+            except Exception as e:
+                error_msg = f"SMTP error: {str(e)}"
+                print(f"[WARN] SMTP email send failed: {error_msg}")
+                return False, f"FAILED TO SEND EMAIL OTP VIA SMTP: {str(e)}. PLEASE ENSURE SMTP_EMAIL AND SMTP_PASSWORD ARE CORRECT."
         else:
-            return False, "SMTP credentials not configured (SMTP_EMAIL or SMTP_PASSWORD is empty)"
+            return False, "Email credentials not configured. Please set BREVO_API_KEY, or SMTP_EMAIL and SMTP_PASSWORD."
 
     def send_sms_otp(self, mobile: str, otp: str) -> tuple[bool, str]:
         """Sends the OTP via SMS."""
