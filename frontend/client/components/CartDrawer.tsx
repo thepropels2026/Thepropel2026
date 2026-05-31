@@ -94,7 +94,14 @@ export default function CartDrawer() {
         }),
       });
 
-      if (!response.ok) throw new Error('Verification succeeded but failed to initiate checkout');
+      if (!response.ok) {
+        let errMsg = 'Verification succeeded but failed to initiate checkout';
+        try {
+          const errData = await response.json();
+          errMsg = errData.detail || errData.message || errMsg;
+        } catch(e) {}
+        throw new Error(errMsg);
+      }
       
       const { payment_session_id, order_id } = await response.json();
       
@@ -129,7 +136,14 @@ export default function CartDrawer() {
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to initiate checkout');
+      if (!response.ok) {
+        let errMsg = 'Failed to initiate checkout';
+        try {
+          const errData = await response.json();
+          errMsg = errData.detail || errData.message || errMsg;
+        } catch(e) {}
+        throw new Error(errMsg);
+      }
       
       const { payment_session_id, order_id } = await response.json();
       
