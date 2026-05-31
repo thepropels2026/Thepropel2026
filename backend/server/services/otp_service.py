@@ -112,7 +112,7 @@ class OTPService:
                 from email.mime.text import MIMEText
                 from email.mime.multipart import MIMEMultipart
 
-                sender_email = os.getenv("SENDER_EMAIL", SMTP_EMAIL)
+                sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
 
                 msg = MIMEMultipart()
                 msg['From'] = f"The Propels <{sender_email}>"
