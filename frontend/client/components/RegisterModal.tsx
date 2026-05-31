@@ -3,16 +3,14 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useRouter } from 'next/navigation';
 import { 
-  ArrowRight, ArrowLeft, Mail, Phone, Lock, User, 
+  ArrowRight, ArrowLeft, Mail, Phone, User, 
   Calendar, Users, Loader2, Check, X, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../lib/supabase';
-import { sendOtp, verifyOtp } from '../lib/authService';
-import { API_BASE_URL } from '../lib/api';
 
 export default function RegisterModal() {
-  const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, login } = useAuth();
+  const { isRegisterModalOpen, setRegisterModalOpen, setLoginModalOpen, syncUser } = useAuth();
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -21,6 +19,7 @@ export default function RegisterModal() {
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [countdown, setCountdown] = useState(30);
   const [canResend, setCanResend] = useState(false);
+  const [verifiedUser, setVerifiedUser] = useState<any>(null);
 
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -38,7 +37,10 @@ export default function RegisterModal() {
     setIsSendingOtp(true);
     setError(null);
     try {
-      await sendOtp(formData.email);
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: formData.email,
+      });
+      if (otpError) throw otpError;
       setCountdown(30);
       setCanResend(false);
     } catch (err: any) {
@@ -48,9 +50,6 @@ export default function RegisterModal() {
     }
   };
 
-
-
-  // Lock scroll while registration modal is active
   useEffect(() => {
     if (isRegisterModalOpen) {
       document.body.style.overflow = 'hidden';
@@ -62,7 +61,6 @@ export default function RegisterModal() {
     };
   }, [isRegisterModalOpen]);
 
-  // Form State
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -70,9 +68,6 @@ export default function RegisterModal() {
     gender: '',
     email: '',
     mobile: '',
-    password: '',
-    confirmPassword: '',
-
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -84,10 +79,6 @@ export default function RegisterModal() {
 
   const sendOtpAndProceed = async (e?: any) => {
     if (e && e.preventDefault) e.preventDefault();
-    if (!formData.password || formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
-    }
     setIsSendingOtp(true);
     setError(null);
     try {
@@ -105,9 +96,14 @@ export default function RegisterModal() {
         return;
       }
 
-      // 2. Send OTP via backend
-      await sendOtp(formData.email);
+      // 2. Send OTP via Supabase Passwordless
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email: formData.email,
+      });
+      if (otpError) throw otpError;
       
+      setCountdown(30);
+      setCanResend(false);
       nextStep(); // Move to Step 4 (OTP input)
     } catch (err: any) {
       setError(err.message || "Failed to initiate verification.");
@@ -117,72 +113,57 @@ export default function RegisterModal() {
   };
 
   const registerUser = async () => {
+    if (otp.length < 6) {
+      setError("Please enter the 6-digit OTP.");
+      return;
+    }
     setIsSubmitting(true);
     setError(null);
     try {
-      // 1. Verify OTP using Backend
-      await verifyOtp(formData.email, otp);
-
-      // 2. Create User in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // 1. Verify OTP using Supabase Passwordless
+      const { data: authData, error: authError } = await supabase.auth.verifyOtp({
         email: formData.email,
-        password: formData.password,
-        options: {
-          data: {
-            first_name: formData.firstName,
-            last_name: formData.lastName,
-            mobile: formData.mobile,
-            dob: formData.dob ? formData.dob : null,
-            gender: formData.gender ? formData.gender : null
-          }
-        }
+        token: otp,
+        type: 'email'
       });
 
       if (authError) {
-        console.error("Supabase Auth Error:", authError);
         throw authError;
       }
       
-      // If we need to manually insert to profiles due to missing triggers:
+      // 2. Insert into profiles manually since Supabase triggered might not catch all fields on OTP signup
       if (authData.user) {
-        const { error: profileError } = await supabase.from('profiles').insert({
+        const { error: profileError } = await supabase.from('profiles').upsert({
           id: authData.user.id,
           first_name: formData.firstName,
           last_name: formData.lastName,
           email: formData.email,
           mobile: formData.mobile,
           dob: formData.dob ? formData.dob : null,
+          gender: formData.gender ? formData.gender : null,
           is_email_verified: true
         });
         if (profileError && profileError.code !== '23505') {
             console.warn("Profile insertion warning:", profileError);
         }
+        setVerifiedUser(authData.user);
       }
 
       nextStep(); // Move to step 5 (Success)
     } catch (err: any) {
       console.error("Registration error:", err);
-      
-      // Special handling for the broken Supabase Trigger error
-      if (err.message && err.message.includes("Database error saving new user")) {
-        setError(
-          "DEVELOPER ACTION REQUIRED: Your Supabase database has a broken trigger because the 'email' column was removed from the 'profiles' table. " +
-          "To fix this permanently, you MUST go to your Supabase Dashboard -> SQL Editor and run this exact command: \n\n" +
-          "CREATE OR REPLACE FUNCTION public.handle_new_user() RETURNS trigger AS $$ BEGIN " +
-          "INSERT INTO public.profiles (id, identifier, first_name, last_name, dob, gender, mobile) VALUES ( " +
-          "new.id, new.email, COALESCE(new.raw_user_meta_data->>'first_name', ''), COALESCE(new.raw_user_meta_data->>'last_name', ''), " +
-          "(new.raw_user_meta_data->>'dob')::DATE, new.raw_user_meta_data->>'gender', new.raw_user_meta_data->>'mobile'); " +
-          "RETURN new; END; $$ LANGUAGE plpgsql SECURITY DEFINER;"
-        );
-      } else {
-        setError(err.message || "Failed to register. Please check your inputs.");
-      }
+      setError(err.message || "Invalid OTP. Please check the code and try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-
+  const completeInitialization = async () => {
+    if (verifiedUser) {
+      await syncUser(verifiedUser);
+    }
+    setRegisterModalOpen(false);
+  };
 
   if (!isRegisterModalOpen) return null;
 
@@ -230,7 +211,7 @@ export default function RegisterModal() {
                 <span className="text-orange-600">Propels Node.</span>
               </h2>
               <p className="text-[rgba(0,0,0,0.6)] text-base font-medium leading-relaxed max-w-sm">
-                Join the elite handshake protocol. We parse intent, optimize trajectory, and scale impact.
+                Join the elite handshake protocol. Passwordless, secure, and instantaneous.
               </p>
            </motion.div>
         </div>
@@ -276,7 +257,10 @@ export default function RegisterModal() {
 
                    <div className="flex gap-3 pt-4">
                       <button 
-                        onClick={() => {/* Login Logic */}} 
+                        onClick={() => {
+                          setRegisterModalOpen(false);
+                          setLoginModalOpen(true);
+                        }} 
                         className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all duration-300"
                       >
                         Login
@@ -339,8 +323,8 @@ export default function RegisterModal() {
               {step === 3 && (
                 <motion.div key="step3" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Credentials</h3>
-                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 3 of 4: Secure Account</p>
+                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Contact Details</h3>
+                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 3 of 4: Secure Verification</p>
                    </div>
 
                    <div className="space-y-4">
@@ -350,29 +334,20 @@ export default function RegisterModal() {
                       </div>
                       <div className="relative group">
                         <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
-                        <input required type="tel" name="mobile" placeholder="Mobile (+91)" value={formData.mobile} onChange={handleInputChange} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-12 text-sm font-medium text-[rgba(0,0,0,0.8)] focus:outline-none focus:border-black transition-all" />
-                      </div>
-                      <div className="relative group">
-                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
-                        <input required type="password" name="password" placeholder="Create Password" value={formData.password} onChange={handleInputChange} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-12 text-sm font-medium text-[rgba(0,0,0,0.8)] focus:outline-none focus:border-black transition-all" />
-                      </div>
-                      <div className="relative group">
-                        <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 group-focus-within:text-black transition-colors" />
-                        <input required type="password" name="confirmPassword" placeholder="Confirm Password" value={formData.confirmPassword} onChange={handleInputChange} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-12 text-sm font-medium text-[rgba(0,0,0,0.8)] focus:outline-none focus:border-black transition-all" />
+                        <input required type="tel" name="mobile" placeholder="Mobile Number" value={formData.mobile} onChange={handleInputChange} className="w-full h-12 bg-slate-50 border border-slate-200 rounded-xl px-12 text-sm font-medium text-[rgba(0,0,0,0.8)] focus:outline-none focus:border-black transition-all" />
                       </div>
                    </div>
 
-
-
-                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
+                   {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center">{error}</p>}
 
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
-                        onClick={sendOtpAndProceed} disabled={isSendingOtp || !formData.email || !formData.mobile || !formData.password || !formData.confirmPassword}
-                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
+                        onClick={sendOtpAndProceed}
+                        disabled={isSendingOtp || !formData.email || !formData.mobile}
+                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
                       >
-                        {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Verify & Continue"}
+                        {isSendingOtp ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Send OTP <ArrowRight className="w-4 h-4" /></>}
                       </button>
                    </div>
                 </motion.div>
@@ -381,79 +356,72 @@ export default function RegisterModal() {
               {step === 4 && (
                 <motion.div key="step4" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
                    <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">Verify Email</h3>
-                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 5: Enter OTP Code</p>
+                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">OTP Verification</h3>
+                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 4 of 4: Enter 6-digit code</p>
+                   </div>
+
+                   <div className="bg-slate-50 border border-slate-100 rounded-xl p-4 flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-white border border-slate-100 flex items-center justify-center">
+                         <Mail className="w-4 h-4 text-slate-400" />
+                      </div>
+                      <div className="flex-1 overflow-hidden">
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Sent To</p>
+                         <p className="text-xs font-bold text-slate-900 truncate">{formData.email}</p>
+                      </div>
+                      <button type="button" onClick={() => setStep(3)} className="text-[10px] font-bold text-cyan-600 uppercase hover:underline">Change</button>
                    </div>
 
                    <div className="space-y-4">
-                     <p className="text-sm text-center text-slate-500 mb-4">We've sent a 6-digit code to <strong>{formData.email}</strong>. Enter it below.</p>
-                     <input 
-                       required type="text" name="otp" placeholder="6-digit code" maxLength={6}
-                       value={otp} onChange={(e) => setOtp(e.target.value)} 
-                       className="w-full h-14 bg-slate-50 border border-slate-200 rounded-xl px-12 text-center text-xl tracking-[0.5em] font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all" 
-                     />
-                     <div className="flex items-center justify-center mt-2">
-                       {canResend ? (
-                         <button onClick={handleResendOtp} disabled={isSendingOtp} className="text-xs font-bold text-orange-600 hover:text-orange-700 transition-colors">
-                           {isSendingOtp ? "Resending..." : "Resend OTP"}
-                         </button>
-                       ) : (
-                         <p className="text-xs font-medium text-slate-400">Resend OTP in {countdown}s</p>
-                       )}
-                     </div>
+                      <input 
+                        type="text" maxLength={6} placeholder="Enter 6-Digit Code"
+                        value={otp} onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
+                        className="w-full h-14 bg-slate-50 border border-slate-200 rounded-2xl px-6 text-center text-xl tracking-[0.5em] font-bold text-[rgba(0,0,0,0.9)] focus:outline-none focus:border-black transition-all"
+                      />
                    </div>
 
-                   {error && <p className="text-center text-red-600 text-[10px] font-bold uppercase">{error}</p>}
+                   {/* Countdown and Resend */}
+                   <div className="flex justify-between items-center text-[10px] font-bold uppercase tracking-widest">
+                     {countdown > 0 ? (
+                       <span className="text-slate-400">Resend available in {countdown}s</span>
+                     ) : (
+                       <button onClick={handleResendOtp} disabled={isSendingOtp} className="text-orange-500 hover:text-orange-600 flex items-center gap-1">
+                         {isSendingOtp ? <Loader2 className="w-3 h-3 animate-spin" /> : "Resend OTP"}
+                       </button>
+                     )}
+                   </div>
+
+                   {error && <p className="text-red-500 text-[10px] font-bold uppercase text-center mt-2">{error}</p>}
 
                    <div className="flex gap-3 pt-4">
                       <button onClick={prevStep} className="flex-1 h-12 border border-slate-200 text-[rgba(0,0,0,0.8)] rounded-xl font-bold text-xs hover:bg-slate-50 transition-all">Back</button>
                       <button 
-                        onClick={registerUser} disabled={isSubmitting || otp.length < 6}
-                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30"
+                        onClick={registerUser}
+                        disabled={isSubmitting || otp.length < 6}
+                        className="flex-[2] h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all disabled:opacity-30 flex items-center justify-center gap-2"
                       >
-                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Create Account"}
+                        {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin" /> : <>Verify & Complete <Check className="w-4 h-4" /></>}
                       </button>
                    </div>
                 </motion.div>
               )}
 
               {step === 5 && (
-                <motion.div key="step5" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }} className="space-y-6">
-                   <div className="text-center mb-6">
-                      <h3 className="text-2xl font-bold text-[rgba(0,0,0,0.9)] mb-1">System Locked</h3>
-                      <p className="text-xs font-semibold text-[rgba(0,0,0,0.5)]">Step 5 of 5: Final Identity Verification</p>
+                <motion.div key="step5" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-12 space-y-6">
+                   <div className="w-24 h-24 bg-emerald-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                      <Check className="w-10 h-10 text-emerald-500" />
                    </div>
-
-                   <div className="bg-slate-50 border border-slate-100 rounded-2xl p-5 space-y-3.5">
-                     <div className="flex gap-3">
-                       <div className="w-5 h-5 rounded-full bg-black/5 flex items-center justify-center text-xs font-bold text-black mt-0.5"><Check className="w-3 h-3"/></div>
-                       <div className="flex-1 space-y-0.5">
-                         <h4 className="text-[11px] font-bold text-[rgba(0,0,0,0.8)] uppercase tracking-wider">Verification Link Sent</h4>
-                         <p className="text-xs font-medium text-[rgba(0,0,0,0.5)] leading-relaxed">
-                           We've sent a verification link to <strong className="text-black font-semibold">{formData.email}</strong>. Please check your inbox and click the link to verify your account before logging in.
-                         </p>
-                       </div>
-                     </div>
-                   </div>
-
-                   <div className="flex gap-3 pt-4">
-                      <button 
-                        onClick={() => {
-                          setRegisterModalOpen(false);
-                          setLoginModalOpen(true);
-                        }} 
-                        className="flex-1 h-12 bg-black text-white rounded-xl font-bold text-xs shadow-md hover:bg-slate-800 transition-all"
-                      >
-                        Proceed to Login
-                      </button>
-                   </div>
+                   <h3 className="text-3xl font-bold text-[rgba(0,0,0,0.9)]">Identity Verified</h3>
+                   <p className="text-slate-500 text-sm max-w-sm mx-auto">Your access node has been provisioned. You are now securely logged in.</p>
+                   
+                   <button 
+                     onClick={completeInitialization}
+                     className="mt-8 px-10 h-12 bg-black text-white rounded-xl font-bold text-xs shadow-xl shadow-black/10 hover:bg-slate-800 transition-all hover:-translate-y-0.5"
+                   >
+                     Complete Initialization
+                   </button>
                 </motion.div>
               )}
            </AnimatePresence>
-
-           <div className="mt-auto pt-6 text-center border-t border-slate-100">
-              <p className="text-[10px] font-bold text-[rgba(0,0,0,0.3)] uppercase tracking-wider">Sovereign Identity Protection Enabled</p>
-           </div>
         </div>
       </motion.div>
     </div>
