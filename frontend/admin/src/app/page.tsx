@@ -5,6 +5,7 @@ import {
   Link as LinkIcon, LogOut, ChevronRight, Award, Briefcase, 
   Download, Eye, Mail, Phone, Linkedin, User, FileText, 
   RefreshCw, Search, Trash2, BookOpen, MapPin, Clock, DollarSign, Check, Library
+, Edit3, X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Image from 'next/image';
@@ -16,6 +17,8 @@ export default function AdminPortal() {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState<'tools' | 'courses' | 'stories' | 'applications' | 'careers' | 'pricing' | 'kb'>('tools');
   const [loading, setLoading] = useState(false);
+  const [editingItem, setEditingItem] = useState<any>(null);
+  const [editingType, setEditingType] = useState<string>(\'\');
 
   // Data states
   const [tools, setTools] = useState<any[]>([]);
@@ -105,6 +108,20 @@ export default function AdminPortal() {
       alert("Error removing item: " + err.message);
     }
   };
+
+  const handleEditSave = async (updatedData: any) => {
+    try {
+      const { id, created_at, ...updatePayload } = updatedData;
+      const { error } = await supabase.from(editingType).update(updatePayload).eq('id', id);
+      if (error) throw error;
+      alert("Successfully updated!");
+      setEditingItem(null);
+      fetchContent();
+    } catch (err: any) {
+      alert("Error updating: " + err.message);
+    }
+  };
+
 
   // HANDLERS
   const handleAddTool = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -405,6 +422,7 @@ export default function AdminPortal() {
 
         {/* Content */}
         <div className="flex-1 w-full space-y-8">
+          <AnimatePresence>{editingItem && <EditModal item={editingItem} type={editingType} onClose={() => setEditingItem(null)} onSave={handleEditSave} />}</AnimatePresence>
           <AnimatePresence mode="wait">
             {activeTab === 'tools' && (
               <motion.div key="tools" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
@@ -431,7 +449,7 @@ export default function AdminPortal() {
                           <img src={tool.image_url} className="w-10 h-10 rounded-lg object-cover" />
                           <div><p className="text-sm font-bold text-white">{tool.title}</p><p className="text-xs text-slate-500">{tool.category}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('tools_cards', tool.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(tool); setEditingType(\'tools_cards\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'tools_cards\', tool.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -470,7 +488,7 @@ export default function AdminPortal() {
                           <div className="bg-white/5 p-2 rounded-lg"><Library className="w-5 h-5 text-indigo-400" /></div>
                           <div><p className="text-sm font-bold text-white">{kb.title}</p><p className="text-xs text-slate-500">{kb.category} • {kb.file_type}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('knowledge_base', kb.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(kb); setEditingType(\'knowledge_base\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'knowledge_base\', kb.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -544,7 +562,7 @@ export default function AdminPortal() {
                             </div>
                             <div className="flex items-center gap-2">
                                <button onClick={() => fetchModules(course.id)} className="px-3 py-1 bg-orange-500/10 text-orange-400 text-xs font-bold rounded-lg border border-orange-500/20 hover:bg-orange-500/20">Manage Modules</button>
-                               <button onClick={() => handleDelete('courses', course.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                               <button onClick={() => { setEditingItem(course); setEditingType(\'courses\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'courses\', course.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button>
                             </div>
                           </div>
                         ))}
@@ -581,7 +599,7 @@ export default function AdminPortal() {
                           <Briefcase className="w-6 h-6 text-yellow-500" />
                           <div><p className="text-sm font-bold text-white">{job.title}</p><p className="text-xs text-slate-500">{job.location} · {job.role}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('job_postings', job.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(job); setEditingType(\'job_postings\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'job_postings\', job.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -614,7 +632,7 @@ export default function AdminPortal() {
                           <img src={story.avatar_url} className="w-10 h-10 rounded-full object-cover" />
                           <div><p className="text-sm font-bold text-white">{story.founder_name}</p><p className="text-xs text-slate-500">{story.startup_name}</p></div>
                         </div>
-                        <button onClick={() => handleDelete('success_stories', story.id)} className="p-2 text-slate-500 hover:text-red-500 transition-colors"><Trash2 className="w-4 h-4" /></button>
+                        <div className="flex items-center gap-2"><button onClick={() => { setEditingItem(story); setEditingType(\'success_stories\'); }} className="flex items-center gap-2 px-4 py-2 bg-cyan-500/10 text-cyan-500 hover:bg-cyan-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Edit3 className="w-4 h-4" /> Edit</button><button onClick={() => handleDelete(\'success_stories\', story.id)} className="flex items-center gap-2 px-4 py-2 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-xl transition-all font-bold text-xs shadow-sm"><Trash2 className="w-4 h-4" /> Delete</button></div>
                       </div>
                     ))}
                   </div>
@@ -764,6 +782,61 @@ export default function AdminPortal() {
           </AnimatePresence>
         </div>
       </main>
+    </div>
+  );
+}
+
+
+function EditModal({ item, type, onClose, onSave }: any) {
+  const [formData, setFormData] = useState(item);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    onSave(formData);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="bg-[#0a0a0a] border border-white/10 rounded-2xl w-full max-w-xl max-h-[90vh] flex flex-col shadow-2xl">
+        <div className="flex justify-between items-center p-6 border-b border-white/10">
+          <h2 className="text-xl font-bold text-white capitalize">Edit {type.replace('_', ' ')}</h2>
+          <button onClick={onClose} className="p-2 text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-6 overflow-y-auto">
+          <form id="editForm" onSubmit={handleSubmit} className="space-y-4">
+            {Object.keys(formData).map((key) => {
+              if (key === 'id' || key === 'created_at') return null;
+              if (key === 'description' || key === 'summary' || key === 'qualification') {
+                return (
+                  <div key={key}>
+                    <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{key.replace('_', ' ')}</label>
+                    <textarea name={key} value={formData[key] || ''} onChange={handleChange} rows={4} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-cyan-500 outline-none resize-none" />
+                  </div>
+                );
+              }
+              if (Array.isArray(formData[key]) || typeof formData[key] === 'object') {
+                 return null;
+              }
+              return (
+                <div key={key}>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">{key.replace('_', ' ')}</label>
+                  <input name={key} type={typeof formData[key] === 'number' ? 'number' : 'text'} value={formData[key] || ''} onChange={handleChange} className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:border-cyan-500 outline-none" />
+                </div>
+              );
+            })}
+          </form>
+        </div>
+        <div className="p-6 border-t border-white/10 flex justify-end gap-3">
+          <button type="button" onClick={onClose} className="px-5 py-2 rounded-xl text-sm font-bold text-slate-400 hover:text-white transition-colors">Cancel</button>
+          <button type="submit" form="editForm" className="px-5 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-cyan-500/20 transition-all">Save Changes</button>
+        </div>
+      </motion.div>
     </div>
   );
 }
