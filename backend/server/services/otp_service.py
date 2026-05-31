@@ -7,7 +7,7 @@ from core.security import hash_otp
 
 # SMTP Configuration
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
+SMTP_PORT = int(os.getenv("SMTP_PORT", "2525"))
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 
@@ -112,8 +112,10 @@ class OTPService:
                 from email.mime.text import MIMEText
                 from email.mime.multipart import MIMEMultipart
 
+                sender_email = os.getenv("SENDER_EMAIL", SMTP_EMAIL)
+
                 msg = MIMEMultipart()
-                msg['From'] = f"The Propels <{SMTP_EMAIL}>"
+                msg['From'] = f"The Propels <{sender_email}>"
                 msg['To'] = email
                 msg['Subject'] = "The Propels Verification Code"
                 msg.attach(MIMEText(html_content, 'html'))
