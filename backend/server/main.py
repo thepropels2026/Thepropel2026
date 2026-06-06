@@ -431,6 +431,43 @@ async def create_order(req: CreateOrderRequest):
             print(f"Cashfree details: {e.response.text}")
         raise HTTPException(status_code=500, detail="Failed to create payment order")
 
+class BroadcastRequest(BaseModel):
+    subject: str
+    message: str
+    audience: str = "all"
+
+@app.post("/api/admin/broadcast")
+async def send_broadcast(req: BroadcastRequest, request: Request):
+    # Very basic auth check based on the proxy header we use for admin routes
+    admin_session = request.headers.get("x-admin-session")
+    if admin_session != "sushantsharma2805@gmail.com":
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    try:
+        # Fetch target emails from Supabase
+        # Right now we just fetch all profiles. In the future, we could filter by audience type if a 'role' column exists.
+        profiles = supabase.table("profiles").select("email").execute()
+        if not profiles.data:
+            return {"status": "success", "sent": 0, "message": "No profiles found."}
+            
+        emails = [p["email"] for p in profiles.data if p.get("email")]
+        
+        # Send emails via Brevo SMTP helper
+        success = send_email_via_smtp(
+            to_email=emails,
+            subject=req.subject,
+            html_content=f"<div style='font-family: Arial, sans-serif; padding: 20px;'>{req.message}</div>"
+        )
+        
+        if success:
+            return {"status": "success", "sent": len(emails)}
+        else:
+            raise HTTPException(status_code=500, detail="SMTP send failed")
+            
+    except Exception as e:
+        print(f"Error broadcasting: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.get("/api/tools")
 async def get_tools():
     if not supabase:
