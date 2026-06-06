@@ -88,7 +88,7 @@ class OTPService:
         </div>
         """
 
-        brevo_api_key = os.getenv("BREVO_API_KEY") or SMTP_PASSWORD
+        brevo_api_key = os.getenv("BREVO_API_KEY")
         if brevo_api_key:
             brevo_api_key = brevo_api_key.strip()
             
@@ -96,7 +96,8 @@ class OTPService:
         if sender_email:
             sender_email = sender_email.strip()
         
-        if brevo_api_key and sender_email:
+        # Use HTTP API only if a v3 API key is configured (starts with xkeysib-)
+        if brevo_api_key and (brevo_api_key.startswith("xkeysib-") or "keysib" in brevo_api_key) and sender_email:
             try:
                 import requests
                 url = "https://api.brevo.com/v3/smtp/email"

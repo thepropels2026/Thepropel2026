@@ -83,39 +83,69 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 if TWILIO_PHONE_NUMBER: TWILIO_PHONE_NUMBER = TWILIO_PHONE_NUMBER.strip()
 
 def send_email_via_smtp(to_email, subject, html_content, from_name="The Propels"):
-    if not SMTP_EMAIL or not SMTP_PASSWORD:
-        print(f"[WARN] SMTP credentials not configured. Cannot send email to {to_email}")
-        return False
+    brevo_api_key = os.getenv("BREVO_API_KEY")
+    if brevo_api_key:
+        brevo_api_key = brevo_api_key.strip()
         
-    try:
-        import requests
-        url = "https://api.brevo.com/v3/smtp/email"
-        headers = {
-            "api-key": SMTP_PASSWORD,
-            "content-type": "application/json",
-            "accept": "application/json"
-        }
+    sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
+    if sender_email:
+        sender_email = sender_email.strip()
         
-        to_list = [{"email": email} for email in to_email] if isinstance(to_email, list) else [{"email": to_email}]
-        
-        sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
-        if sender_email:
-            sender_email = sender_email.strip()
-        payload = {
-            "sender": {"email": sender_email, "name": from_name},
-            "to": to_list,
-            "subject": subject,
-            "htmlContent": html_content
-        }
-        
-        response = requests.post(url, json=payload, headers=headers, timeout=10)
-        if response.status_code in [200, 201, 202]:
+    # Use HTTP API if BREVO_API_KEY is configured as a v3 API key (starts with xkeysib-)
+    if brevo_api_key and (brevo_api_key.startswith("xkeysib-") or "keysib" in brevo_api_key) and sender_email:
+        try:
+            import requests
+            url = "https://api.brevo.com/v3/smtp/email"
+            headers = {
+                "api-key": brevo_api_key,
+                "content-type": "application/json",
+                "accept": "application/json"
+            }
+            
+            to_list = [{"email": email} for email in to_email] if isinstance(to_email, list) else [{"email": to_email}]
+            payload = {
+                "sender": {"email": sender_email, "name": from_name},
+                "to": to_list,
+                "subject": subject,
+                "htmlContent": html_content
+            }
+            
+            response = requests.post(url, json=payload, headers=headers, timeout=10)
+            if response.status_code in [200, 201, 202]:
+                return True
+            else:
+                print(f"[WARN] Brevo API email send failed: {response.text}")
+                # Fall through to SMTP if API request returns error code
+        except Exception as e:
+            print(f"[WARN] Brevo API request failed: {str(e)}")
+            # Fall through to SMTP if API request raises exception
+
+    # Fallback to standard SMTP
+    if SMTP_EMAIL and SMTP_PASSWORD:
+        try:
+            import smtplib
+            from email.mime.text import MIMEText
+            from email.mime.multipart import MIMEMultipart
+
+            to_list_str = ", ".join(to_email) if isinstance(to_email, list) else to_email
+
+            msg = MIMEMultipart()
+            msg['From'] = f"{from_name} <{sender_email}>"
+            msg['To'] = to_list_str
+            msg['Subject'] = subject
+            msg.attach(MIMEText(html_content, 'html'))
+
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
+            server.starttls()
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.send_message(msg)
+            server.quit()
             return True
-        else:
-            print(f"[WARN] Brevo API email send failed: {response.text}")
+        except Exception as e:
+            print(f"[WARN] SMTP email send failed: {str(e)}")
             return False
-    except Exception as e:
-        print(f"[WARN] Brevo API request failed: {str(e)}")
+    else:
+        print("[WARN] Neither valid BREVO_API_KEY nor SMTP credentials are fully configured.")
         return False
 
 # Configure CORS middleware settings securely
