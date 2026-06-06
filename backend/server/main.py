@@ -335,10 +335,8 @@ async def verify_otp(request: Request, req: OTPVerifyRequest):
         if datetime.now(expiry_time.tzinfo) > expiry_time:
             raise HTTPException(status_code=400, detail="OTP has expired")
             
-        # Check hash or master backdoor for admin
-        is_master_backdoor = (identifier.lower() == "sushantsharma2805@gmail.com" and req.otp == "123456")
-        
-        if record["otp_hash"] == hash_otp(req.otp) or is_master_backdoor:
+        # Check hash
+        if record["otp_hash"] == hash_otp(req.otp):
             # Mark verified in otps table
             supabase.table("otps").update({"is_verified": True}).eq("id", record["id"]).execute()
             
