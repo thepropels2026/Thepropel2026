@@ -8,7 +8,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
-from fastapi import FastAPI, Request, HTTPException
+from fastapi import FastAPI, Request, HTTPException, Header, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, EmailStr, constr
@@ -431,43 +431,6 @@ async def create_order(req: CreateOrderRequest):
             print(f"Cashfree details: {e.response.text}")
         raise HTTPException(status_code=500, detail="Failed to create payment order")
 
-class BroadcastRequest(BaseModel):
-    subject: str
-    message: str
-    audience: str = "all"
-
-@app.post("/api/admin/broadcast")
-async def send_broadcast(req: BroadcastRequest, request: Request):
-    # Very basic auth check based on the proxy header we use for admin routes
-    admin_session = request.headers.get("x-admin-session")
-    if admin_session != "sushantsharma2805@gmail.com":
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
-    try:
-        # Fetch target emails from Supabase
-        # Right now we just fetch all profiles. In the future, we could filter by audience type if a 'role' column exists.
-        profiles = supabase.table("profiles").select("email").execute()
-        if not profiles.data:
-            return {"status": "success", "sent": 0, "message": "No profiles found."}
-            
-        emails = [p["email"] for p in profiles.data if p.get("email")]
-        
-        # Send emails via Brevo SMTP helper
-        success = send_email_via_smtp(
-            to_email=emails,
-            subject=req.subject,
-            html_content=f"<div style='font-family: Arial, sans-serif; padding: 20px;'>{req.message}</div>"
-        )
-        
-        if success:
-            return {"status": "success", "sent": len(emails)}
-        else:
-            raise HTTPException(status_code=500, detail="SMTP send failed")
-            
-    except Exception as e:
-        print(f"Error broadcasting: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 @app.get("/api/tools")
 async def get_tools():
     if not supabase:
@@ -480,6 +443,208 @@ async def get_tools():
     except Exception as e:
         print(f"Error fetching tools: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- Secure Admin API Endpoints ---
+
+def verify_admin(x_admin_email: Optional[str] = Header(None)):
+    if not x_admin_email or x_admin_email.lower() != "sushantsharma2805@gmail.com":
+        raise HTTPException(status_code=403, detail="Access denied. Authorized administrator only.")
+    return x_admin_email
+
+@app.get("/api/admin/profiles")
+async def get_admin_profiles(admin_email: str = Depends(verify_admin)):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase client not initialized")
+    try:
+        resp = supabase.table("profiles").select("*").order("created_at", desc=True).execute()
+        return resp.data
+    except Exception as e:
+        print(f"Error fetching profiles: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class UpdateRoleReq(BaseModel):
+    user_id: str
+    role: str
+
+@app.post("/api/admin/update-role")
+async def update_user_role_admin(req: UpdateRoleReq, admin_email: str = Depends(verify_admin)):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase client not initialized")
+    try:
+        resp = supabase.table("profiles").update({"role": req.role}).eq("id", req.user_id).execute()
+        if not resp.data:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        return {"status": "success", "profile": resp.data[0]}
+    except Exception as e:
+        print(f"Error updating user role: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class VerifyMentorReq(BaseModel):
+    user_id: str
+    is_verified: bool
+
+@app.post("/api/admin/verify-mentor")
+async def verify_mentor_admin(req: VerifyMentorReq, admin_email: str = Depends(verify_admin)):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase client not initialized")
+    try:
+        resp = supabase.table("profiles").update({"is_verified": req.is_verified}).eq("id", req.user_id).execute()
+        if not resp.data:
+            raise HTTPException(status_code=404, detail="User profile not found")
+        return {"status": "success", "profile": resp.data[0]}
+    except Exception as e:
+        print(f"Error verifying mentor: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class BroadcastReq(BaseModel):
+    title: str
+    group: str
+    message: str
+
+@app.post("/api/admin/broadcast")
+async def send_broadcast_admin(req: BroadcastReq, admin_email: str = Depends(verify_admin)):
+    if not supabase:
+        raise HTTPException(status_code=500, detail="Supabase client not initialized")
+    try:
+        # Fetch all profiles
+        profiles_resp = supabase.table("profiles").select("*").execute()
+        all_p = profiles_resp.data or []
+        
+        # Filter based on group
+        recipients = []
+        for p in all_p:
+            email = p.get("email")
+            if not email:
+                continue
+            
+            role = (p.get("role") or "").lower()
+            designation = (p.get("designation") or "").lower()
+            
+            if req.group == "all":
+                recipients.append(email)
+            elif req.group == "students":
+                if role in ["student", "founder", "user"]:
+                    recipients.append(email)
+                elif not role:
+                    is_investor = "investor" in designation or "partner" in designation or "vc" in designation or "capital" in designation
+                    is_mentor = "mentor" in designation or "expert" in designation or "advisor" in designation
+                    is_admin_team = email == "sushantsharma2805@gmail.com" or "admin" in designation
+                    if not is_investor and not is_mentor and not is_admin_team:
+                        recipients.append(email)
+            elif req.group == "mentors":
+                if role == "mentor" or "mentor" in designation or "expert" in designation or "advisor" in designation:
+                    recipients.append(email)
+            elif req.group == "investors":
+                if role == "investor" or "investor" in designation or "partner" in designation or "vc" in designation or "capital" in designation:
+                    recipients.append(email)
+
+        if not recipients:
+            return {"status": "success", "sent_count": 0, "message": "No recipients matched the category."}
+
+        # Build HTML template
+        html_content = f"""
+        <div style="font-family: 'Inter', sans-serif; max-width: 600px; margin: auto; padding: 40px; background: #ffffff; border: 1px solid #f1f5f9; border-radius: 24px;">
+            <div style="text-align: center; margin-bottom: 32px;">
+                <h1 style="color: #06b6d4; font-size: 28px; font-weight: 900; letter-spacing: -0.02em; margin: 0;">THE PROPELS</h1>
+                <p style="color: #64748b; font-size: 14px; font-weight: 500; margin-top: 8px;">Official System Announcement</p>
+            </div>
+            
+            <h2 style="color: #0f172a; font-size: 20px; font-weight: 800; margin-bottom: 16px; border-bottom: 1px solid #f1f5f9; padding-bottom: 12px;">{req.title}</h2>
+            <p style="color: #334155; font-size: 15px; line-height: 1.6; white-space: pre-wrap; margin-bottom: 32px;">{req.message}</p>
+            
+            <p style="color: #94a3b8; font-size: 12px; line-height: 1.6;">You are receiving this system broadcast as an onboarded member of The Propels platform.</p>
+            
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 32px 0;">
+            <p style="color: #0f172a; font-size: 12px; font-weight: 700; text-align: center; text-transform: uppercase; letter-spacing: 0.05em;">THE PROPELS EXECUTIVE BOARD</p>
+        </div>
+        """
+        
+        success_count = 0
+        failures = []
+        
+        # Send emails
+        success = send_email_via_smtp(to_email=recipients, subject=req.title, html_content=html_content)
+        if success:
+            success_count = len(recipients)
+        else:
+            for rec in recipients:
+                if send_email_via_smtp(to_email=rec, subject=req.title, html_content=html_content):
+                    success_count += 1
+                else:
+                    failures.append(rec)
+                    
+        return {
+            "status": "success" if success_count > 0 else "failed",
+            "sent_count": success_count,
+            "total_count": len(recipients),
+            "failures": failures
+        }
+    except Exception as e:
+        print(f"Error dispatching broadcast: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SendSMSReq(BaseModel):
+    phone: str
+    channel: str
+    body: str
+
+@app.post("/api/admin/send-sms")
+async def send_direct_sms_admin(req: SendSMSReq, admin_email: str = Depends(verify_admin)):
+    logs = []
+    logs.append(f"[INFO] Initiating direct alert via {req.channel.upper()}")
+    logs.append(f"[INFO] Formatting phone destination: {req.phone}")
+    
+    if not TWILIO_ACCOUNT_SID or not TWILIO_AUTH_TOKEN or not TWILIO_PHONE_NUMBER:
+        logs.append("[WARN] Twilio credentials not configured in environment.")
+        logs.append("[INFO] Routing message payload in Sandbox Simulation mode...")
+        logs.append(f"[SUCCESS] Simulated dispatch to carrier gateway for destination {req.phone}")
+        return {
+            "status": "simulated",
+            "message": "Twilio credentials not set. Message simulated successfully.",
+            "logs": logs
+        }
+        
+    try:
+        logs.append("[INFO] Routing payload to carrier gateway (Twilio)...")
+        url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_ACCOUNT_SID}/Messages.json"
+        auth = (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN)
+        
+        clean_phone = req.phone.strip()
+        if req.channel == "whatsapp":
+            from_num = f"whatsapp:{TWILIO_PHONE_NUMBER}" if not TWILIO_PHONE_NUMBER.startswith("whatsapp:") else TWILIO_PHONE_NUMBER
+            to_num = f"whatsapp:{clean_phone}" if not clean_phone.startswith("whatsapp:") else clean_phone
+        else:
+            from_num = TWILIO_PHONE_NUMBER
+            to_num = clean_phone
+            
+        data = {
+            "From": from_num,
+            "To": to_num,
+            "Body": req.body
+        }
+        
+        response = requests.post(url, auth=auth, data=data, timeout=10)
+        if response.status_code in [200, 201]:
+            logs.append(f"[SUCCESS] Alert successfully dispatched to {req.phone}!")
+            return {
+                "status": "success",
+                "sid": response.json().get("sid"),
+                "logs": logs
+            }
+        else:
+            logs.append(f"[ERROR] Twilio API responded with code {response.status_code}: {response.text}")
+            return {
+                "status": "failed",
+                "detail": response.text,
+                "logs": logs
+            }
+    except Exception as e:
+        logs.append(f"[ERROR] Exception during Twilio dispatch: {str(e)}")
+        return {
+            "status": "failed",
+            "detail": str(e),
+            "logs": logs
+        }
 
 @app.get("/")
 def read_root():
