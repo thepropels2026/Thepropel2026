@@ -76,9 +76,10 @@ class OTPService:
         </div>
         """
 
-        brevo_api_key = os.getenv("BREVO_API_KEY")
+        brevo_api_key = os.getenv("BREVO_API_KEY") or os.getenv("SMTP_PASSWORD")
+        sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
         
-        if brevo_api_key and SMTP_EMAIL:
+        if brevo_api_key and sender_email:
             try:
                 import requests
                 url = "https://api.brevo.com/v3/smtp/email"
@@ -88,7 +89,7 @@ class OTPService:
                     "accept": "application/json"
                 }
                 payload = {
-                    "sender": {"email": SMTP_EMAIL, "name": "The Propels"},
+                    "sender": {"email": sender_email, "name": "The Propels"},
                     "to": [{"email": email}],
                     "subject": "The Propels Verification Code",
                     "htmlContent": html_content
