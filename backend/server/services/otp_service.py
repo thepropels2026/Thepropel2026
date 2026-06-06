@@ -33,8 +33,8 @@ class OTPService:
         self.supabase = supabase
 
     def generate_otp(self) -> str:
-        """Generates a random 6-digit OTP."""
-        return "".join([str(random.randint(0, 9)) for _ in range(6)])
+        """Generates a random 8-digit OTP."""
+        return "".join([str(random.randint(0, 9)) for _ in range(8)])
 
     def store_otp(self, identifier: str, plain_otp: str) -> None:
         """Hashes and stores the OTP in the database with a 5-minute expiration."""

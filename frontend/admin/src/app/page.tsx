@@ -249,26 +249,34 @@ export default function AdminPortal() {
     if (loginStep === 'email') {
       setIsSendingOtp(true);
       try {
-        const { error: otpError } = await supabase.auth.signInWithOtp({
-          email: emailInput.toLowerCase()
+        const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.toLowerCase() })
         });
-        if (otpError) throw otpError;
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Failed to send OTP email');
+        }
         setLoginStep('otp');
-        alert("OTP sent to your email via Supabase. Please check your inbox.");
+        alert("OTP sent to your email. Please check your inbox.");
       } catch (err: any) {
-        setError(err.message || "Failed to dispatch OTP via Supabase.");
+        setError(err.message || "Failed to dispatch OTP. Check SMTP settings.");
       } finally {
         setIsSendingOtp(false);
       }
     } else {
       setIsVerifyingOtp(true);
       try {
-        const { data: authData, error: authError } = await supabase.auth.verifyOtp({
-          email: emailInput.toLowerCase(),
-          token: otpInput,
-          type: 'email'
+        const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: emailInput.toLowerCase(), otp: otpInput })
         });
-        if (authError) throw authError;
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || 'Invalid or expired OTP');
+        }
         
         const sessionData = {
           email: emailInput.toLowerCase(),
@@ -993,14 +1001,14 @@ export default function AdminPortal() {
 
             {loginStep === 'otp' && (
               <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">6-Digit Secure OTP</label>
+                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">8-Digit Secure OTP</label>
                 <input 
                   type="text" 
                   required 
-                  maxLength={6}
+                  maxLength={8}
                   value={otpInput} 
                   onChange={(e) => setOtpInput(e.target.value)} 
-                  placeholder="123456" 
+                  placeholder="12345678" 
                   className="w-full bg-[#111] border border-white/10 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-cyan-500 transition-all text-center tracking-widest font-mono text-lg font-bold" 
                 />
               </motion.div>
