@@ -249,34 +249,27 @@ export default function AdminPortal() {
     if (loginStep === 'email') {
       setIsSendingOtp(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/auth/send-otp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailInput.toLowerCase() })
+        const { error: otpError } = await supabase.auth.signInWithOtp({
+          email: emailInput.toLowerCase()
         });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.detail || 'Failed to send OTP email');
-        }
+        if (otpError) throw otpError;
         setLoginStep('otp');
-        alert("OTP sent to your email. Please check your inbox.");
+        alert("OTP sent to your email via Supabase. Please check your inbox.");
       } catch (err: any) {
-        setError(err.message || "Failed to dispatch OTP. Check SMTP settings.");
+        setError(err.message || "Failed to dispatch OTP via Supabase.");
       } finally {
         setIsSendingOtp(false);
       }
     } else {
       setIsVerifyingOtp(true);
       try {
-        const res = await fetch(`${API_BASE_URL}/api/auth/verify-otp`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email: emailInput.toLowerCase(), otp: otpInput })
+        const { data: authData, error: authError } = await supabase.auth.verifyOtp({
+          email: emailInput.toLowerCase(),
+          token: otpInput,
+          type: 'email'
         });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.detail || 'Invalid or expired OTP');
-        }
+        if (authError) throw authError;
+        
         const sessionData = {
           email: emailInput.toLowerCase(),
           expiresAt: Date.now() + 2 * 60 * 60 * 1000 // 2 hours expiry
