@@ -7,14 +7,26 @@ from core.security import hash_otp
 
 # SMTP Configuration
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp-relay.brevo.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "2525"))
+if SMTP_HOST: SMTP_HOST = SMTP_HOST.strip()
+
+SMTP_PORT_STR = os.getenv("SMTP_PORT", "2525")
+SMTP_PORT = int(SMTP_PORT_STR.strip()) if SMTP_PORT_STR else 2525
+
 SMTP_EMAIL = os.getenv("SMTP_EMAIL")
+if SMTP_EMAIL: SMTP_EMAIL = SMTP_EMAIL.strip()
+
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
+if SMTP_PASSWORD: SMTP_PASSWORD = SMTP_PASSWORD.strip()
 
 # Twilio Configuration
 TWILIO_ACCOUNT_SID = os.getenv("TWILIO_ACCOUNT_SID")
+if TWILIO_ACCOUNT_SID: TWILIO_ACCOUNT_SID = TWILIO_ACCOUNT_SID.strip()
+
 TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
+if TWILIO_AUTH_TOKEN: TWILIO_AUTH_TOKEN = TWILIO_AUTH_TOKEN.strip()
+
 TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
+if TWILIO_PHONE_NUMBER: TWILIO_PHONE_NUMBER = TWILIO_PHONE_NUMBER.strip()
 
 class OTPService:
     def __init__(self, supabase: Client):
