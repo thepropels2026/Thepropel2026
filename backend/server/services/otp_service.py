@@ -106,6 +106,8 @@ class OTPService:
                     "content-type": "application/json",
                     "accept": "application/json"
                 }
+                # Force the sender email to be the Brevo Native address
+                sender_email = "ab9442001@smtp-brevo.com"
                 payload = {
                     "sender": {"email": sender_email, "name": "The Propels"},
                     "to": [{"email": email}],
@@ -131,9 +133,8 @@ class OTPService:
                 from email.mime.text import MIMEText
                 from email.mime.multipart import MIMEMultipart
 
-                sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
-                if sender_email:
-                    sender_email = sender_email.strip()
+                # Force the sender email to be the Brevo Native address to prevent DMARC rejection
+                sender_email = "ab9442001@smtp-brevo.com"
 
                 msg = MIMEMultipart()
                 msg['From'] = f"The Propels <{sender_email}>"
