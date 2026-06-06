@@ -88,8 +88,13 @@ class OTPService:
         </div>
         """
 
-        brevo_api_key = os.getenv("BREVO_API_KEY") or os.getenv("SMTP_PASSWORD")
+        brevo_api_key = os.getenv("BREVO_API_KEY") or SMTP_PASSWORD
+        if brevo_api_key:
+            brevo_api_key = brevo_api_key.strip()
+            
         sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
+        if sender_email:
+            sender_email = sender_email.strip()
         
         if brevo_api_key and sender_email:
             try:
@@ -126,6 +131,8 @@ class OTPService:
                 from email.mime.multipart import MIMEMultipart
 
                 sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
+                if sender_email:
+                    sender_email = sender_email.strip()
 
                 msg = MIMEMultipart()
                 msg['From'] = f"The Propels <{sender_email}>"

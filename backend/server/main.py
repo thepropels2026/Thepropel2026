@@ -99,6 +99,8 @@ def send_email_via_smtp(to_email, subject, html_content, from_name="The Propels"
         to_list = [{"email": email} for email in to_email] if isinstance(to_email, list) else [{"email": to_email}]
         
         sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
+        if sender_email:
+            sender_email = sender_email.strip()
         payload = {
             "sender": {"email": sender_email, "name": from_name},
             "to": to_list,
