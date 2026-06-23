@@ -4,6 +4,33 @@ import { motion } from 'framer-motion';
 import { Rocket, Target, Eye, Sparkles, Quote, ArrowRight, Zap, Shield, Globe } from 'lucide-react';
 import Image from 'next/image';
 
+const MENTORS = [
+  {
+    name: "Dr. Aris Thorne",
+    role: "AI Research & Systems Lead",
+    bio: "Former Lead AI Scientist at deep tech lab. Specializes in scaling neural networks, predictive LLMs, and decentralized agentic systems.",
+    image: "/images/mentor_3.png",
+    linkedin: "#",
+    tag: "DEEP TECH"
+  },
+  {
+    name: "Elena Rostova",
+    role: "Venture Partner & GTM Strategist",
+    bio: "12+ years directing product strategies for hyper-growth startups. Handled product launches with over $200M in cumulative ARR.",
+    image: "/images/mentor_2.png",
+    linkedin: "#",
+    tag: "PRODUCT & CAPITAL"
+  },
+  {
+    name: "Marcus Vance",
+    role: "Scale Architect & Advisor",
+    bio: "Ex-founder with two multi-million dollar exits. Advises early-stage founding teams on building operational structures and customer acquisition loops.",
+    image: "/images/mentor_1.png",
+    linkedin: "#",
+    tag: "SCALING & OPS"
+  }
+];
+
 export default function About() {
   return (
     <div className="flex flex-col min-h-screen bg-[#050505] text-white font-inter overflow-hidden relative">
@@ -142,6 +169,78 @@ export default function About() {
                 </div>
               </div>
             </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* --- MENTORS & ADVISORS SECTION --- */}
+      <section className="relative z-10 py-24 px-6 md:px-12 lg:px-24 border-t border-white/5 bg-[#050505]">
+        <div className="max-w-7xl mx-auto">
+          {/* Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-white/10 rounded text-[10px] font-bold tracking-[2px] text-white/40 uppercase mb-6">
+              <Sparkles className="w-3 h-3 text-cyan-400" />
+              Guiding Minds
+            </div>
+            <h2 className="text-3xl lg:text-4xl font-montserrat font-black text-white tracking-tight mb-4 uppercase">
+              Mentors & <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5F00] to-orange-500 drop-shadow-[0_0_15px_rgba(255,95,0,0.3)]">Advisors</span>
+            </h2>
+            <p className="text-[#8B9BB4] text-base max-w-xl mx-auto leading-relaxed">
+              Connect with world-class builders, technical pioneers, and venture partners committed to your propulsion sequence.
+            </p>
+          </div>
+
+          {/* Mentor Cards Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {MENTORS.map((mentor, index) => (
+              <motion.div
+                key={mentor.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className="group relative flex flex-col rounded-3xl bg-white/[0.02] border border-white/10 overflow-hidden hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_50px_-12px_rgba(6,182,212,0.15)]"
+              >
+                {/* Photo Container */}
+                <div className="relative w-full aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={mentor.image}
+                    alt={mentor.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
+                  
+                  {/* Tag badge on top of image */}
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 border border-white/10 backdrop-blur-md rounded-full text-[9px] font-black tracking-widest text-cyan-400 uppercase">
+                    {mentor.tag}
+                  </div>
+                </div>
+
+                {/* Info & Description */}
+                <div className="p-8 pt-4 flex flex-col flex-1 relative z-10 -mt-8 bg-gradient-to-b from-[#050505]/95 to-transparent">
+                  <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                    {mentor.name}
+                  </h3>
+                  <p className="text-xs text-[#FF5F00] font-black uppercase tracking-wider mb-4">
+                    {mentor.role}
+                  </p>
+                  <p className="text-sm text-[#8B9BB4] leading-relaxed mb-6 font-medium">
+                    {mentor.bio}
+                  </p>
+
+                  {/* LinkedIn / Connect Button */}
+                  <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                    <a
+                      href={mentor.linkedin}
+                      className="inline-flex items-center gap-2 text-xs font-bold text-white/50 hover:text-white uppercase tracking-wider transition-colors"
+                    >
+                      Connect Node <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
