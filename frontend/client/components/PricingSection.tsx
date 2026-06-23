@@ -195,10 +195,6 @@ export default function PricingSection() {
           </div>
         )}
 
-        {/* Bottom note */}
-        <p className="text-center text-white/25 text-xs font-inter mt-10 tracking-wide">
-          All plans include a 14-day free trial. No credit card required to start.
-        </p>
       </div>
     </section>
   );

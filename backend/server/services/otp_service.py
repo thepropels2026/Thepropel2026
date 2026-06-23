@@ -105,7 +105,8 @@ class OTPService:
                     "api-key": brevo_api_key,
                     "content-type": "application/json",
                 }
-                sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
+                # Force the sender email to the verified address to bypass live .env settings
+                sender_email = "sushantsharmafzd2005@gmail.com"
                 payload = {
                     "sender": {"email": sender_email, "name": "The Propels"},
                     "to": [{"email": email}],
@@ -131,9 +132,8 @@ class OTPService:
                 from email.mime.text import MIMEText
                 from email.mime.multipart import MIMEMultipart
 
-                sender_email = os.getenv("SENDER_EMAIL", "sushantsharmafzd2005@gmail.com")
-                if sender_email:
-                    sender_email = sender_email.strip()
+                # Force the sender email to the verified address to bypass live .env settings
+                sender_email = "sushantsharmafzd2005@gmail.com"
 
                 msg = MIMEMultipart()
                 msg['From'] = f"The Propels <{sender_email}>"
