@@ -1,11 +1,39 @@
 "use client";
 import React from 'react';
 import Link from 'next/link';
-import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench } from 'lucide-react';
+import { ArrowRight, Star, Quote, ChevronDown, Play, BookOpen, Mic, Wrench, Sparkles } from 'lucide-react';
 import { useAuth } from '../components/AuthContext';
 import Image from 'next/image';
 import { supabase } from '../lib/supabase'; 
 import PricingSection from '../components/PricingSection';
+import { motion } from 'framer-motion';
+
+const MENTORS = [
+  {
+    name: "Dr. Aris Thorne",
+    role: "AI Research & Systems Lead",
+    bio: "Former Lead AI Scientist at deep tech lab. Specializes in scaling neural networks, predictive LLMs, and decentralized agentic systems.",
+    image: "/images/mentor_3.png",
+    linkedin: "#",
+    tag: "DEEP TECH"
+  },
+  {
+    name: "Elena Rostova",
+    role: "Venture Partner & GTM Strategist",
+    bio: "12+ years directing product strategies for hyper-growth startups. Handled product launches with over $200M in cumulative ARR.",
+    image: "/images/mentor_2.png",
+    linkedin: "#",
+    tag: "PRODUCT & CAPITAL"
+  },
+  {
+    name: "Marcus Vance",
+    role: "Scale Architect & Advisor",
+    bio: "Ex-founder with two multi-million dollar exits. Advises early-stage founding teams on building operational structures and customer acquisition loops.",
+    image: "/images/mentor_1.png",
+    linkedin: "#",
+    tag: "SCALING & OPS"
+  }
+];
 
 export default function Home() {
   const { setRegisterModalOpen } = useAuth();
@@ -266,6 +294,60 @@ export default function Home() {
                 <p className="text-[#FF5F00] text-[9px] font-black uppercase tracking-[0.2em] mb-4 opacity-70 group-hover:opacity-100 transition-opacity">{investor.org}</p>
                 <p className="text-[11px] text-white/30 text-center font-inter leading-relaxed line-clamp-2 group-hover:text-white/50 transition-colors">{investor.bio}</p>
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* --- MENTORS & ADVISORS SECTION --- */}
+      <section className="bg-[#050505] py-16 lg:py-24 px-6 lg:px-24 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex justify-between items-end mb-10 lg:mb-16">
+            <h2 className="text-3xl lg:text-4xl font-inter font-bold text-white">Mentors & <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF5F00] to-orange-500 drop-shadow-[0_0_15px_rgba(255,95,0,0.3)]">Advisors</span></h2>
+            <Link href="/about" className="text-cyan-500 text-sm font-bold uppercase tracking-widest hover:text-cyan-400">View All</Link>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            {MENTORS.map((mentor, index) => (
+              <motion.div
+                key={mentor.name}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: index * 0.15 }}
+                className="group relative flex flex-col rounded-3xl bg-white/[0.02] border border-white/10 overflow-hidden hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_50px_-12px_rgba(6,182,212,0.15)]"
+              >
+                <div className="relative w-full aspect-[4/3] overflow-hidden">
+                  <Image
+                    src={mentor.image}
+                    alt={mentor.name}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
+                  <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 border border-white/10 backdrop-blur-md rounded-full text-[9px] font-black tracking-widest text-cyan-400 uppercase">
+                    {mentor.tag}
+                  </div>
+                </div>
+                <div className="p-8 pt-4 flex flex-col flex-1 relative z-10 -mt-8 bg-gradient-to-b from-[#050505]/95 to-transparent">
+                  <h3 className="text-xl font-bold text-white mb-1 group-hover:text-cyan-400 transition-colors">
+                    {mentor.name}
+                  </h3>
+                  <p className="text-xs text-[#FF5F00] font-black uppercase tracking-wider mb-4">
+                    {mentor.role}
+                  </p>
+                  <p className="text-sm text-[#8B9BB4] leading-relaxed mb-6 font-medium">
+                    {mentor.bio}
+                  </p>
+                  <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
+                    <a
+                      href={mentor.linkedin}
+                      className="inline-flex items-center gap-2 text-xs font-bold text-white/50 hover:text-white uppercase tracking-wider transition-colors"
+                    >
+                      Connect Node <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                    </a>
+                  </div>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
